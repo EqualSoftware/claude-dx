@@ -26,6 +26,7 @@ depends_on: []
 | 2026-10-25 | Equal | Approved. |
 | 2026-10-25 | Equal | Repository made public. FR-2, FR-3, FR-5, FR-6 applied. FR-4 needs the web UI (no API). |
 | 2026-10-25 | Equal | Reported content (FR-4) exists only for organization repositories. Repository moved to the EqualSoftware organization; module path is now `github.com/EqualSoftware/claude-dx`. Secret scanning and CodeQL were off after the transfer and are on again. Code owner: `@EqualSoftware/developers`. |
+| 2026-10-25 | Equal | FR-4: reported content set to "all users" in the repository settings (confirmed in the web UI). The community profile API still shows `content_reports_enabled: false` and 87 %; check again before Done. |
 
 ## 1. Summary
 Make the repository public and turn on the GitHub features that need a public repository: the main branch ruleset, private vulnerability reporting, reported content, secret scanning and CodeQL.

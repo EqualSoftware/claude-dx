@@ -1,0 +1,162 @@
+package task
+
+import (
+	"context"
+	"fmt"
+	"path/filepath"
+	"strings"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"github.com/EqualSoftware/claude-dx/internal/result"
+)
+
+type listInput struct {
+	Status   string `json:"status,omitempty" jsonschema:"open (default), all, or one status: Draft, In Review, Approved, In Development, Blocked, Done, Cancelled"`
+	Priority string `json:"priority,omitempty" jsonschema:"P0, P1, P2 or P3"`
+	Area     string `json:"area,omitempty" jsonschema:"one area"`
+}
+
+type getInput struct {
+	ID      string `json:"id" jsonschema:"task ID, example TASK-007"`
+	Section string `json:"section,omitempty" jsonschema:"one section only, by number (example 7.1) or title. Read one section when you need only that part"`
+}
+
+type createInput struct {
+	Title     string            `json:"title" jsonschema:"short task title, in ASD-STE100"`
+	Priority  string            `json:"priority" jsonschema:"P0, P1, P2 or P3"`
+	Area      []string          `json:"area" jsonschema:"the areas of the project, example [api] or [docs, ci]"`
+	DependsOn []string          `json:"depends_on,omitempty" jsonschema:"task IDs that must be done first"`
+	Fields    Fields            `json:"fields,omitempty"`
+	Sections  map[string]string `json:"sections,omitempty" jsonschema:"section number or title -> body with no heading. Sections that you do not give keep the template text"`
+}
+
+type sectionInput struct {
+	ID      string `json:"id" jsonschema:"task ID"`
+	Section string `json:"section" jsonschema:"section number (example 7.1) or title"`
+	Body    string `json:"body" jsonschema:"new content of the section, with no heading"`
+}
+
+type fieldsInput struct {
+	ID        string   `json:"id" jsonschema:"task ID"`
+	Title     string   `json:"title,omitempty"`
+	Priority  string   `json:"priority,omitempty" jsonschema:"P0, P1, P2 or P3"`
+	Area      []string `json:"area,omitempty"`
+	DependsOn []string `json:"depends_on,omitempty" jsonschema:"the full new list; an empty list removes all"`
+	Fields    Fields   `json:"fields,omitempty"`
+}
+
+type statusInput struct {
+	ID     string `json:"id" jsonschema:"task ID"`
+	Status string `json:"status" jsonschema:"Draft, In Review, Approved, In Development, Blocked, Done or Cancelled"`
+	Note   string `json:"note,omitempty" jsonschema:"Document History note. Required for Blocked (the blocker) and Cancelled (the reason)"`
+}
+
+type questionInput struct {
+	ID       string `json:"id" jsonschema:"task ID"`
+	Question string `json:"question" jsonschema:"one decision for the user, with the context it needs"`
+	Owner    string `json:"owner,omitempty" jsonschema:"who decides, default Maintainer"`
+}
+
+type answerInput struct {
+	ID     string `json:"id" jsonschema:"task ID"`
+	QID    string `json:"qid" jsonschema:"question ID, example Q-2"`
+	Answer string `json:"answer" jsonschema:"the answer of the user"`
+}
+
+type dodInput struct {
+	ID       string `json:"id" jsonschema:"task ID"`
+	Item     int    `json:"item" jsonschema:"Definition of Done item number; 1 is the first item"`
+	Evidence string `json:"evidence" jsonschema:"verified evidence: command output, CI run, path:line"`
+}
+
+type renumberInput struct {
+	File string `json:"file" jsonschema:"task file name, example TASK-005-add-cache.md. Use the file name, because two files can have one number"`
+}
+
+// Register adds the task tools to the server.
+func Register(server *mcp.Server, s Store) {
+	add(server, "task_list", "List tasks: ID, status, priority, title, areas and dependencies. Default: open tasks. Do not read docs/tasks/INDEX.md; use this tool.",
+		func(in listInput) (string, error) { return s.listText(in) })
+	add(server, "task_get", "Read one task, or one section of it.",
+		func(in getInput) (string, error) { return s.Get(in.ID, in.Section) })
+	add(server, "task_create", "Create a Draft task in docs/tasks from the template. The tool sets the number, the date, the author and the file name.",
+		func(in createInput) (string, error) { return s.createText(in) })
+	add(server, "task_update_section", "Replace one section of a task.",
+		func(in sectionInput) (string, error) {
+			return "Updated section " + in.Section + " of " + in.ID + ".", s.UpdateSection(in.ID, in.Section, in.Body)
+		})
+	add(server, "task_update_fields", "Change the title, priority, areas or dependencies (frontmatter), or the table values of a task.",
+		func(in fieldsInput) (string, error) {
+			u := Update{Title: in.Title, Priority: in.Priority, Area: in.Area, DependsOn: in.DependsOn, Fields: in.Fields}
+			return "Updated " + in.ID + ".", s.UpdateFields(in.ID, u)
+		})
+	add(server, "task_set_status", "Change the status of a task and add a Document History row. The tool refuses a change that breaks a status rule and gives the reasons.",
+		func(in statusInput) (string, error) {
+			return in.ID + " is " + in.Status + ".", s.SetStatus(in.ID, in.Status, in.Note)
+		})
+	add(server, "task_question_add", "Add an Open question to the Open Questions table of a task.",
+		func(in questionInput) (string, error) {
+			qid, err := s.AddQuestion(in.ID, in.Question, in.Owner)
+			return "Added " + qid + ".", err
+		})
+	add(server, "task_question_answer", "Write the answer of the user to one question of a task.",
+		func(in answerInput) (string, error) {
+			return "Answered " + in.QID + ".", s.AnswerQuestion(in.ID, in.QID, in.Answer)
+		})
+	add(server, "task_dod_check", "Check one Definition of Done item of a task and add its evidence.",
+		func(in dodInput) (string, error) {
+			return fmt.Sprintf("Checked item %d of %s.", in.Item, in.ID), s.CheckDoD(in.ID, in.Item, in.Evidence)
+		})
+	add(server, "task_renumber", "Give a task file the next free number, for example when two files have the same number.",
+		func(in renumberInput) (string, error) { return s.renumberText(in.File) })
+}
+
+// add registers one tool. A missing docs/tasks is a normal state, so it is not an error.
+func add[In any](server *mcp.Server, name, description string, fn func(In) (string, error)) {
+	mcp.AddTool(server, &mcp.Tool{Name: name, Description: description},
+		func(_ context.Context, _ *mcp.CallToolRequest, in In) (*mcp.CallToolResult, any, error) {
+			text, err := fn(in)
+			return result.Reply(text, err, ErrNoDir)
+		})
+}
+
+func (s Store) listText(in listInput) (string, error) {
+	status := in.Status
+	if status == "" {
+		status = "open"
+	}
+	tasks, warnings, err := s.List(Filter{Status: status, Priority: in.Priority, Area: in.Area})
+	if err != nil {
+		return "", err
+	}
+	if len(tasks) == 0 {
+		return "No tasks match.\n" + warnings, nil
+	}
+	rows := make([][]string, 0, len(tasks))
+	for _, t := range tasks {
+		f := t.Front
+		rows = append(rows, []string{f.ID, f.Status, f.Priority, f.Title, "[" + strings.Join(f.Area, ", ") + "]", "deps:" + list(f.DependsOn, "")})
+	}
+	return result.Table(rows) + warnings, nil
+}
+
+func (s Store) createText(in createInput) (string, error) {
+	path, err := s.Create(New(in))
+	if err != nil {
+		return "", err
+	}
+	return "Created docs/tasks/" + filepath.Base(path) + " (Draft).", nil
+}
+
+func (s Store) renumberText(file string) (string, error) {
+	newID, refs, err := s.Renumber(file)
+	if err != nil {
+		return "", err
+	}
+	text := fmt.Sprintf("%s is now %s.", file, newID)
+	if len(refs) > 0 {
+		text += " These tasks refer to the old ID. Check each one and change it with task_update_fields if it means this task: " + strings.Join(refs, ", ") + "."
+	}
+	return text, nil
+}
