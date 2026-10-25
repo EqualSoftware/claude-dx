@@ -29,6 +29,7 @@ Sort by priority, then by ID.
 | [TASK-011](TASK-011-git-branch-and-remote-tools.md) | Git tools for branches, rebase and remotes | `Approved` | `P1` | `git` | TASK-010 |
 | [TASK-012](TASK-012-bash-git-hook-git-exec-and-report.md) | Bash git hook, git_exec and the report command | `Approved` | `P1` | `git`, `plugin`, `cli` | TASK-002, TASK-009 |
 | [TASK-013](TASK-013-commit-and-eureka-skills.md) | The /dx:commit and /dx:eureka skills | `Approved` | `P1` | `plugin` | TASK-005, TASK-007, TASK-010, TASK-011 |
+| [TASK-019](TASK-019-rename-the-mcp-server-to-mcp.md) | Rename the MCP server of the dx plugin to mcp | `In Development` | `P1` | `plugin`, `mcp` | TASK-004 |
 | [TASK-014](TASK-014-filesystem-tools.md) | Filesystem tools (v0.3) | `Draft` | `P2` | `fs` | TASK-004, TASK-012 |
 | [TASK-015](TASK-015-lsp-core-languages.md) | LSP manager and tools for Go, TypeScript, JavaScript, Python, C and C++ (v0.4) | `Draft` | `P2` | `lsp` | TASK-004 |
 | [TASK-017](TASK-017-prepare-public-release.md) | Prepare the repository for public release | `In Development` | `P2` | `repo` | None |

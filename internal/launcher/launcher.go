@@ -49,7 +49,7 @@ func Run(version string, args []string) (int, error) {
 
 // settings allows all dx tools with no prompt (ADR-005). Tools that change git state
 // will be in an "ask" list, because "ask" wins over "allow".
-const settings = `{"permissions":{"allow":["mcp__plugin_dx_dx"]}}`
+const settings = `{"permissions":{"allow":["mcp__plugin_dx_mcp"]}}`
 
 // Args returns the arguments for claude: the dx flags, then the arguments of the user.
 // The rules go in a file flag, because claude uses only the last --append-system-prompt,

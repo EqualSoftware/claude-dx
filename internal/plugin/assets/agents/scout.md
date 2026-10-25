@@ -3,7 +3,7 @@ name: scout
 description: Read-only fact search. Give it a brief with a closed list of questions when the answers need more than 3 files, or other tasks, ADRs and docs. It returns path:line facts. Not for code or doc changes.
 model: haiku
 effort: low
-tools: Read, Grep, Glob, mcp__plugin_dx_dx__adr_list, mcp__plugin_dx_dx__adr_get, mcp__plugin_dx_dx__task_list, mcp__plugin_dx_dx__task_get, mcp__plugin_dx_dx__learning_list, mcp__plugin_dx_dx__learning_get, mcp__plugin_dx_dx__glossary_lookup
+tools: Read, Grep, Glob, mcp__plugin_dx_mcp__adr_list, mcp__plugin_dx_mcp__adr_get, mcp__plugin_dx_mcp__task_list, mcp__plugin_dx_mcp__task_get, mcp__plugin_dx_mcp__learning_list, mcp__plugin_dx_mcp__learning_get, mcp__plugin_dx_mcp__glossary_lookup
 ---
 
 You find facts in this repository. You do not change files.

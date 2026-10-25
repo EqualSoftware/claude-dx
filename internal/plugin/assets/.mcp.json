@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "dx": {
+    "mcp": {
       "command": "{{BINARY}}",
       "args": ["mcp"]
     }

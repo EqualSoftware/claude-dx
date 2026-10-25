@@ -22,7 +22,7 @@ The objective of claude-dx is fewer tokens, better quality and the same result e
 ## Consequences
 - Positive: clear schemas, permission for each tool, small results.
 - Negative: many tools. Each tool needs a good description.
-- Follow-up: none. TASK-002 verified the rule names on Claude Code 2.1.308: `mcp__plugin_dx_dx__<tool>` for one tool, `mcp__plugin_dx_dx` for all tools of the server.
+- Follow-up: none. TASK-002 verified the rule names on Claude Code 2.1.308: `mcp__plugin_dx_dx__<tool>` for one tool, `mcp__plugin_dx_dx` for all tools of the server. TASK-019 renamed the server key to `mcp`: the rules are now `mcp__plugin_dx_mcp__<tool>` and `mcp__plugin_dx_mcp`.
 
 ## Evidence
 - Design interview (2026-10-25): Q-27, Q-28, Q-29, Q-30.
