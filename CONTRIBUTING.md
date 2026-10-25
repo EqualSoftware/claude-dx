@@ -43,8 +43,13 @@ For a small fix, open a pull request directly. For a new feature or a design cha
 
 ## Write code
 
+Write simple, performant code that is easy to delete.
+
 - Make the smallest complete change. Do not refactor unrelated code.
-- Keep functions short and simple. The linter limits the cyclomatic complexity to 10.
+- Use the most direct solution. Do not add abstractions or options that the change does not need.
+- Do not add unnecessary allocations, I/O, network calls or processes.
+- Keep functions short. The linter limits the cyclomatic complexity to 10.
+- Use early returns. Handle errors and special cases first. Avoid deep nesting.
 - Keep each feature in few places, so it is easy to delete.
 - Add tests for each change. Tests must pass on macOS, Linux and Windows.
 - Write docs, code comments and identifiers in [ASD-STE100](https://www.asd-ste100.org/) Simplified Technical English: short sentences, active voice, one instruction in each sentence.
