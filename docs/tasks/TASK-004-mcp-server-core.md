@@ -53,7 +53,7 @@ TASK-001 gives the layout.
 
 ## 6. Requirements
 ### 6.1 Functional
-- FR-1: `claude-dx mcp` serves MCP on stdin and stdout with name `dx` and the binary version. Logs go to stderr only.
+- FR-1: `claude-dx mcp` serves MCP on stdin and stdout with name `dx` and the binary version. Logs go to stderr only. Add `internal/plugin/assets/.mcp.json`: `{"mcpServers":{"dx":{"command":"{{BINARY}}","args":["mcp"]}}}`.
 - FR-2: `project.Root()` returns `git rev-parse --show-toplevel`, or the current directory outside git.
 - FR-3: `project.Key()` returns the first 16 hex characters of the SHA-256 of the absolute git common directory, or of the root outside git (ADR-007).
 - FR-4: `project.Resolve(rel)` returns an absolute path inside the root, after it resolves `..` and symlinks. Else it returns an error: `Path <rel> is outside the project.`

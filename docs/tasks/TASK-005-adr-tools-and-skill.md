@@ -57,6 +57,7 @@ Reference: [equal `adr` skill and template](https://github.com/is-equal/claude-e
 - FR-3: `adr_create(title, context, decision, alternatives, consequences, evidence, status?, owners?)` allocates the number (ADR-007), makes `docs/decisions/` if necessary, fills the template, sets the date to today and returns the path. `status` is `Proposed` (default) or `Accepted`. `owners` default is `Maintainer`. The file name is `ADR-NNN-<kebab of title>.md`, with a maximum of 60 characters after the number.
 - FR-4: `adr_update(id, status?, section?, body?)` changes the status or replaces one section.
 - FR-5: `adr_supersede(old_id, new_id)` sets `Status: Superseded by ADR-<new>` in the old ADR and adds `Replaces ADR-<old>.` at the start of Context of the new ADR.
+- FR-7: The launcher adds `--settings` with a permission allow list (ADR-005), with the rules `mcp__plugin_dx_dx__<tool>` for the ADR tools. Later tool tasks add their tools to this list.
 - FR-6: The skill `/dx:adr` has the "When to use", "Procedure" and "Report" parts of the equal skill. Procedure: run `/dx:grill` unless the user already confirmed all answers; run `adr_list` to find a related ADR; update it with `adr_update`, or make a new ADR with `adr_create`; set `Accepted` only when the user approved; use `adr_supersede` for a replacement.
 
 ### 6.2 Non-Functional

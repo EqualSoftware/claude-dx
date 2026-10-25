@@ -62,6 +62,7 @@ TASK-002 gives the parser and the update notice that reads `<cache>/update.json`
 - FR-6: `doctor` checks: `claude` is in `PATH`; the `claude` version is equal to or more than the minimum (Q-1); `<cache>` is writable; the plugin of the current version is extracted.
 - FR-7: The MCP server starts a goroutine at start. If `<cache>/update.json` is older than 24 hours or does not exist, it gets the latest release and writes the file. Network errors are ignored and the file is not changed.
 - FR-8: `dev` builds do not check for updates.
+- FR-9: At start, the launcher reads `<cache>/update.json`. If it has a newer version, the launcher prints one line to stderr before it starts `claude`: `claude-dx vX.Y.Z is available. Run: claude-dx update` (from TASK-002 FR-8).
 
 ### 6.2 Non-Functional
 - NFR-1: The update check never blocks MCP tool calls.

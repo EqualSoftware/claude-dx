@@ -25,6 +25,7 @@ depends_on: [TASK-001]
 | 2026-10-25 | Claude | Initial draft specification from the design interview |
 | 2026-10-25 | Equal | Open questions answered. Approved. |
 | 2026-10-25 | Equal | Work started. |
+| 2026-10-25 | Claude | FR-6 adds only flags with content; FR-8 moved to TASK-003; `.mcp.json` moved to TASK-004; FR-4 escapes the binary path for JSON. |
 
 ## 1. Summary
 `claude-dx` parses its own commands, extracts the embedded `dx` plugin to the cache and starts `claude` with `--plugin-dir`, `--settings` and `--append-system-prompt`. It passes all other arguments to `claude`.
@@ -60,11 +61,11 @@ TASK-001 gives `cmd/claude-dx/main.go` with `--version`.
 - FR-1: The parser obeys ADR-003. dx commands: `--help`, `-h`, `--version`, `update`, `cache clean`, `doctor`, `report`, `mcp`, `hook`. Only the first argument selects a dx command. `--` as the first argument passes all later arguments to `claude`.
 - FR-2: At start, the launcher deletes `<binary>.old` if it exists, and ignores errors.
 - FR-3: The launcher extracts `internal/plugin/assets` to `<cache>/plugin/<version>/` if the directory does not exist. It writes into a temporary directory and renames it, so two parallel starts do not make a partial plugin. For `dev` builds, it extracts at each start.
-- FR-4: Extraction replaces `{{BINARY}}` in `.mcp.json` and `hooks/hooks.json` with the absolute path of the binary (`os.Executable`, with symlinks resolved).
+- FR-4: Extraction replaces `{{BINARY}}` and `{{VERSION}}` in the `.json` files of the plugin. `{{BINARY}}` is the absolute path of the binary (`os.Executable`, with symlinks resolved), escaped for JSON, because Windows paths have backslashes.
 - FR-5: The launcher finds `claude` with `exec.LookPath`. If it is not found, it prints `claude is not in PATH. Install Claude Code: https://docs.claude.com/claude-code` and exits with code 1.
-- FR-6: The launcher adds, before the user arguments: `--plugin-dir <dir>`, `--settings <json>` (ADR-005 permissions), `--append-system-prompt <rules>` (TASK-008 gives the text; this task uses an empty placeholder).
+- FR-6: The launcher adds `--plugin-dir <dir>` before the user arguments. A flag is added only when it has content: TASK-005 adds `--settings` with the first allowed tools (ADR-005), TASK-008 adds `--append-system-prompt` with the rules.
 - FR-7: macOS and Linux: `syscall.Exec`. Windows: child process with inherited stdio. Ctrl+C goes to the child. The launcher exits with the exit code of the child.
-- FR-8: If `<cache>/update.json` has a newer version, the launcher prints one line to stderr before it starts `claude` (ADR-004).
+- FR-8: Moved to TASK-003, with the code that writes `<cache>/update.json` and compares versions.
 
 ### 6.2 Non-Functional
 - NFR-1: Start overhead before `claude` starts is less than 50 ms when the plugin is extracted.
@@ -87,7 +88,7 @@ flowchart LR
 Embedded plugin layout (`internal/plugin/assets/`):
 ```text
 .claude-plugin/plugin.json      name "dx", version
-.mcp.json                       {"mcpServers":{"dx":{"command":"{{BINARY}}","args":["mcp"]}}}
+.mcp.json                       added in TASK-004, when `claude-dx mcp` exists
 hooks/hooks.json                filled in TASK-011
 skills/<name>/SKILL.md          filled in TASK-005 to TASK-008
 agents/scout.md                 filled in TASK-008
