@@ -1,7 +1,7 @@
 ---
 id: TASK-007
 title: Learning and glossary tools and skills
-status: Approved
+status: In Development
 priority: P1
 area: [docs-tools, plugin]
 depends_on: [TASK-002, TASK-004]
@@ -24,6 +24,8 @@ depends_on: [TASK-002, TASK-004]
 | :--- | :--- | :--- |
 | 2026-10-25 | Claude | Initial draft specification from the design interview |
 | 2026-10-25 | Equal | Open questions answered. Approved. |
+| 2026-10-25 | Equal | Work started. |
+| 2026-10-25 | Claude | The glossary template is in `internal/docs/glossary/` (only the server uses it). Decisions of the maintainer: `glossary_lookup` compares the full term with no case difference; `glossary_upsert` sorts all rows by term with no case difference; it also refuses a `do_not_use` word that is the term of another row; `learning_update` replaces the body. A new line in a cell becomes a space. |
 
 ## 1. Summary
 Add the learning tools and the glossary tools of ADR-006, and the skills `/dx:learning` and `/dx:glossary`.
@@ -56,7 +58,7 @@ Reference: [equal `eukera` skill](https://github.com/is-equal/claude-equal-workf
 - FR-3: `learning_create(topic, description, body)` makes `docs/learnings/` if necessary and writes `<topic>.md` with the frontmatter `topic` and `description`. `topic` must be kebab-case. It refuses a topic that exists and tells the model to use `learning_update`.
 - FR-4: `learning_update(topic, description?, body?)` and `learning_delete(topic)`.
 - FR-5: `glossary_lookup(term)` searches `Term` and `Do not use`, with no case difference. It returns the row, or `No match.` If the term is in `Do not use`, it returns `Use "<Term>", not "<term>".`
-- FR-6: `glossary_upsert(term, definition, area, do_not_use, source)` adds or changes a row and keeps alphabetical order. If the file does not exist, it makes it with the header of the equal template (with `/dx:glossary`) and no rows. It refuses a term that is in `Do not use` of another row, and names that row.
+- FR-6: `glossary_upsert(term, definition, area, do_not_use, source)` adds or changes a row and keeps alphabetical order. If the file does not exist, it makes it with the header of the equal template (with `/dx:glossary`) and no rows. It refuses a term that is in `Do not use` of another row, and names that row. It also refuses a `do_not_use` word that is the term of another row.
 - FR-7: `glossary_delete(term)` removes the row.
 - FR-8: `/dx:learning` tells when a lesson is valid (verified, reusable, not obvious, not documented), and to run `learning_list` before `learning_create`. One lesson is one or two sentences.
 - FR-9: `/dx:glossary` is the equal glossary skill, changed to use the tools and `dx:scout`.
@@ -99,7 +101,7 @@ Glossary table: `| Term | Definition | Area | Do not use | Source |`. Empty `Do 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
 | 1 | `internal/docs/learning/` | FR-1 to FR-4. Tests. | `go test ./internal/docs/learning/` |
-| 2 | `internal/docs/glossary/`, `internal/plugin/assets/templates/glossary.md` | FR-5 to FR-7. Tests for order, escape, conflict. | `go test ./internal/docs/glossary/` |
+| 2 | `internal/docs/glossary/`, `internal/docs/glossary/template.md` | FR-5 to FR-7. Tests for order, escape, conflict. | `go test ./internal/docs/glossary/` |
 | 3 | `internal/plugin/assets/skills/{learning,glossary}/SKILL.md` | FR-8, FR-9. | Session: add a term and a lesson |
 
 ## 9. Acceptance Criteria
