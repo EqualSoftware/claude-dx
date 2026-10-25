@@ -63,18 +63,18 @@ jobs:
         with:
           version: "~> v2"
           args: release --snapshot --clean
-      - name: Serve snapshot release
+      - name: Read snapshot version
         shell: bash
-        run: |
-          python -m http.server 8765 --directory dist > /dev/null 2>&1 &
-          echo "VERSION=v$(python -c 'import json; print(json.load(open("dist/metadata.json"))["version"])')" >> "$GITHUB_ENV"
-          sleep 2
+        run: echo "VERSION=v$(python -c 'import json; print(json.load(open("dist/metadata.json"))["version"])')" >> "$GITHUB_ENV"
       - name: Install (macOS, Linux)
         if: runner.os != 'Windows'
         env:
           CLAUDE_DX_BASE_URL: http://127.0.0.1:8765
           CLAUDE_DX_INSTALL_DIR: ${{ runner.temp }}/bin
         run: |
+          # Start the server in this step. On macOS, a background process does not survive to the next step.
+          python -m http.server 8765 --bind 127.0.0.1 --directory dist > /dev/null 2>&1 &
+          sleep 2
           sh scripts/install.sh "$VERSION"
           "$CLAUDE_DX_INSTALL_DIR/claude-dx" --version
           # A changed archive must fail the checksum check.
@@ -89,6 +89,8 @@ jobs:
           CLAUDE_DX_BASE_URL: http://127.0.0.1:8765
           CLAUDE_DX_INSTALL_DIR: ${{ runner.temp }}\bin
         run: |
+          Start-Process python -ArgumentList "-m", "http.server", "8765", "--bind", "127.0.0.1", "--directory", "dist" -WindowStyle Hidden
+          Start-Sleep -Seconds 2
           ./scripts/install.ps1 $env:VERSION
           & "$env:CLAUDE_DX_INSTALL_DIR\claude-dx.exe" --version
           if ($LASTEXITCODE -ne 0) { exit 1 }
@@ -101,3 +103,5 @@ jobs:
           pwsh -NoProfile -File ./scripts/install.ps1 $env:VERSION
           if ($LASTEXITCODE -eq 0) { throw "checksum check did not fail" }
           if (Test-Path "$env:CLAUDE_DX_INSTALL_DIR\claude-dx.exe") { throw "binary was installed" }
+          # The expected failure above set $LASTEXITCODE to 1. GitHub ends the step with it.
+          exit 0

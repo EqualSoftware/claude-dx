@@ -11,9 +11,9 @@ $ProgressPreference = "SilentlyContinue"
 
 $Repo = "is-equal/claude-dx"
 
+# Use throw, not exit: with "irm | iex", exit closes the PowerShell window of the user.
 function Fail([string]$Message) {
-    Write-Error "claude-dx install: $Message"
-    exit 1
+    throw "claude-dx install: $Message"
 }
 
 function Get-Arch {
