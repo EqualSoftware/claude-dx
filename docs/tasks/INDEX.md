@@ -38,6 +38,7 @@ Sort by priority, then by ID.
 | [TASK-013](TASK-013-commit-and-eureka-skills.md) | The /dx:commit and /dx:eureka skills | `Approved` | `P1` | `plugin` | TASK-005, TASK-007, TASK-010, TASK-011 |
 | [TASK-014](TASK-014-filesystem-tools.md) | Filesystem tools (v0.3) | `Draft` | `P2` | `fs` | TASK-004, TASK-012 |
 | [TASK-015](TASK-015-lsp-core-languages.md) | LSP manager and tools for Go, TypeScript, JavaScript, Python, C and C++ (v0.4) | `Draft` | `P2` | `lsp` | TASK-004 |
+| [TASK-017](TASK-017-prepare-public-release.md) | Prepare the repository for public release | `Approved` | `P2` | `repo` | None |
 | [TASK-016](TASK-016-lsp-other-languages.md) | LSP servers for HTML, CSS, JSON, Bash, CMake, Lua, Make and Ninja (v0.5) | `Draft` | `P3` | `lsp` | TASK-015 |
 
 ## Closed tasks

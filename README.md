@@ -1,5 +1,7 @@
 # claude-dx
 
+[![CI](https://github.com/is-equal/claude-dx/actions/workflows/ci.yml/badge.svg)](https://github.com/is-equal/claude-dx/actions/workflows/ci.yml)
+
 `claude-dx` starts [Claude Code](https://docs.claude.com/claude-code) with the dx tools: skills, an MCP server and hooks for ADRs, tasks, learnings, a glossary, git, files and LSP servers. The tools do the mechanical work, so the model uses fewer tokens and gives the same result each time.
 
 `claude-dx` writes no configuration into your project or into your Claude Code settings. It loads its plugin with launch flags.
@@ -49,6 +51,10 @@ The scripts verify the SHA-256 checksum of the release. To change the install di
 claude-dx [claude arguments]     # Start Claude Code with dx.
 claude-dx -- [claude arguments]  # Pass all arguments to Claude Code.
 ```
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md). To report a security problem, read [SECURITY.md](SECURITY.md). This project has a [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Design
 

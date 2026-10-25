@@ -57,7 +57,7 @@ TASK-002 extracts `hooks/hooks.json` with `{{BINARY}}`.
 - FR-3: The deny reason: `Git in Bash is blocked. Use the git_* tools. If no tool fits, use git_exec.`
 - FR-4: If the parser fails, the hook allows the command, so a parser bug does not stop work.
 - FR-5: `git_exec(args, reason)` runs `git <args>` with the runner. The result has the git output and: `This git operation is not mapped. Tell the user. The user can run "claude-dx report" to open an issue.` It appends one JSON line to `<cache>/unmapped.log`.
-- FR-6: `claude-dx report` reads `unmapped.log`, groups lines by the git subcommand, and opens `https://github.com/is-equal/claude-dx/issues/new` with a title and body in the browser. It also prints the URL. `report --clear` empties the log. With an empty log it prints `No unmapped git operations.`
+- FR-6: `claude-dx report` reads `unmapped.log`, groups lines by the git subcommand, and opens the issue form `.github/ISSUE_TEMPLATE/unmapped-git-operation.yml` in the browser, prefilled with URL parameters (`template`, `title`, `operations`, `version`, `os`). It also prints the URL. `report --clear` empties the log. With an empty log it prints `No unmapped git operations.`
 - FR-7: The rules text (TASK-008) gets: `Use the git_* tools for git. Do not run git in Bash.`
 
 ### 6.2 Non-Functional
