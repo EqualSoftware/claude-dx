@@ -40,6 +40,7 @@ Sort by priority, then by ID.
 | [TASK-016](TASK-016-lsp-other-languages.md) | LSP servers for HTML, CSS, JSON, Bash, CMake, Lua, Make and Ninja (v0.5) | `Draft` | `P3` | `lsp` | TASK-015 |
 | [TASK-025](TASK-025-give-a-compact-list-of-the-unchecked-definition-of-done.md) | Give a compact list of the unchecked Definition of Done items | `Draft` | `P3` | `docs-tools` | TASK-006 |
 | [TASK-027](TASK-027-do-not-remove-the-dev-plugin-directory-of-a-running-session.md) | Do not remove the dev plugin directory of a running session | `Draft` | `P3` | `cli`, `plugin` | TASK-002 |
+| [TASK-028](TASK-028-do-not-end-a-file-name-slug-with-a-stop-word.md) | Do not end a file name slug with a stop word | `Draft` | `P3` | `docs-tools` | TASK-005, TASK-006 |
 
 ## Closed tasks
 
