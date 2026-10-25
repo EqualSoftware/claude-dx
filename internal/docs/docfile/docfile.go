@@ -1,0 +1,131 @@
+// Package docfile holds the file rules that ADRs and tasks share: IDs, numbered file names and exclusive create.
+package docfile
+
+import (
+	"errors"
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+)
+
+// Kind describes one type of numbered document, for example ADR-NNN-<slug>.md.
+type Kind struct {
+	Prefix  string         // "ADR" or "TASK"
+	Pattern *regexp.Regexp // file name pattern; group 1 is the number
+	id      *regexp.Regexp
+}
+
+// NewKind returns the kind for prefix.
+func NewKind(prefix string) Kind {
+	return Kind{
+		Prefix:  prefix,
+		Pattern: regexp.MustCompile(`^` + prefix + `-(\d{3})-.*\.md$`),
+		id:      regexp.MustCompile(`^(?i:` + prefix + `-)?(\d{1,3})$`),
+	}
+}
+
+// ID formats n, for example ADR-007.
+func (k Kind) ID(n int) string {
+	return fmt.Sprintf("%s-%03d", k.Prefix, n)
+}
+
+// FileName returns the file name for n and title.
+func (k Kind) FileName(n int, title string) string {
+	return k.ID(n) + "-" + Slug(title) + ".md"
+}
+
+// Parse returns the number in id. It accepts "ADR-007", "adr-7", "7" and "007".
+func (k Kind) Parse(id string) (int, error) {
+	m := k.id.FindStringSubmatch(strings.TrimSpace(id))
+	if m == nil {
+		return 0, fmt.Errorf("%q is not a %s ID. Example: %s", id, k.Prefix, k.ID(7))
+	}
+	n, _ := strconv.Atoi(m[1])
+	return n, nil
+}
+
+// Files returns the numbered files in dir, by number. fs.ErrNotExist means that dir does not exist.
+func (k Kind) Files(dir string) (map[int][]string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	files := map[int][]string{}
+	for _, e := range entries {
+		m := k.Pattern.FindStringSubmatch(e.Name())
+		if m == nil {
+			continue
+		}
+		n, _ := strconv.Atoi(m[1])
+		files[n] = append(files[n], e.Name())
+	}
+	return files, nil
+}
+
+// Find returns the path of the file with the number in id. It fails if no file or many files have it.
+func (k Kind) Find(dir, id string) (string, error) {
+	n, err := k.Parse(id)
+	if err != nil {
+		return "", err
+	}
+	files, err := k.Files(dir)
+	if err != nil {
+		return "", err
+	}
+	switch len(files[n]) {
+	case 0:
+		return "", fmt.Errorf("%s does not exist", k.ID(n))
+	case 1:
+		return filepath.Join(dir, files[n][0]), nil
+	}
+	return "", fmt.Errorf("%s has %d files: %s. Give each file a different number first", k.ID(n), len(files[n]), strings.Join(files[n], ", "))
+}
+
+// Duplicates returns one warning line for each number that has more than one file.
+func Duplicates(k Kind, files map[int][]string) string {
+	var b strings.Builder
+	for n, names := range files {
+		if len(names) > 1 {
+			fmt.Fprintf(&b, "Warning: %s has %d files. Give each file a different number.\n", k.ID(n), len(names))
+		}
+	}
+	return b.String()
+}
+
+// Create makes a new file with data. It fails if the file exists, so two writers never use one number.
+func Create(path string, data []byte) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(data)
+	return errors.Join(err, f.Close())
+}
+
+// NotExist reports whether err means that a file or directory does not exist.
+func NotExist(err error) bool {
+	return errors.Is(err, fs.ErrNotExist)
+}
+
+// Slug makes the file name part from a title: lowercase ASCII words joined by "-", maximum 60 characters.
+func Slug(title string) string {
+	words := strings.FieldsFunc(strings.ToLower(title), func(r rune) bool {
+		return (r < 'a' || r > 'z') && (r < '0' || r > '9')
+	})
+	slug := strings.Join(words, "-")
+	if len(slug) <= 60 {
+		return slug
+	}
+	cut := strings.LastIndexByte(slug[:61], '-')
+	if cut <= 0 {
+		return slug[:60]
+	}
+	return slug[:cut]
+}

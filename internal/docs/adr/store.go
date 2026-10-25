@@ -6,15 +6,15 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
+	"sort"
 	"strings"
 	"text/template"
 	"time"
 
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/markdown"
 	"github.com/EqualSoftware/claude-dx/internal/numbering"
 )
@@ -23,11 +23,10 @@ import (
 var templateText string
 
 var (
-	tmpl        = template.Must(template.New("adr").Parse(templateText))
-	filePattern = regexp.MustCompile(`^ADR-(\d{3})-.*\.md$`)
-	idPattern   = regexp.MustCompile(`^(?i:ADR-)?(\d{1,3})$`)
-	statusLine  = regexp.MustCompile(`(?m)^- Status: (.*)$`)
-	titleLine   = regexp.MustCompile(`(?m)^# ADR-\d{3}: (.*)$`)
+	tmpl       = template.Must(template.New("adr").Parse(templateText))
+	kind       = docfile.NewKind("ADR")
+	statusLine = regexp.MustCompile(`(?m)^- Status: (.*)$`)
+	titleLine  = regexp.MustCompile(`(?m)^# ADR-\d{3}: (.*)$`)
 )
 
 // ErrNoDir means that docs/decisions does not exist. It is a normal state, not a failure.
@@ -78,36 +77,33 @@ type New struct {
 	Evidence     string
 }
 
-// List returns the ADRs sorted by number. Two files with one number are both in the list.
-func (s Store) List() ([]Entry, error) {
-	entries, err := os.ReadDir(s.Dir)
-	if errors.Is(err, fs.ErrNotExist) {
-		return nil, ErrNoDir
+// List returns the ADRs by number, and the files of each number.
+func (s Store) List() ([]Entry, map[int][]string, error) {
+	files, err := kind.Files(s.Dir)
+	if docfile.NotExist(err) {
+		return nil, nil, ErrNoDir
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	var list []Entry
-	for _, e := range entries {
-		m := filePattern.FindStringSubmatch(e.Name())
-		if m == nil {
-			continue
+	for _, n := range sortedKeys(files) {
+		for _, name := range files[n] {
+			entry, err := s.read(name, n)
+			if err != nil {
+				return nil, nil, err
+			}
+			list = append(list, entry)
 		}
-		entry, err := s.read(e.Name(), m[1])
-		if err != nil {
-			return nil, err
-		}
-		list = append(list, entry)
 	}
-	return list, nil
+	return list, files, nil
 }
 
-func (s Store) read(name, number string) (Entry, error) {
+func (s Store) read(name string, n int) (Entry, error) {
 	data, err := os.ReadFile(filepath.Join(s.Dir, name))
 	if err != nil {
 		return Entry{}, err
 	}
-	n, _ := strconv.Atoi(number)
 	return Entry{Number: n, File: name, Status: first(statusLine, data), Title: first(titleLine, data)}, nil
 }
 
@@ -135,10 +131,14 @@ func (s Store) Create(adr New) (string, error) {
 		return "", err
 	}
 	var path string
-	_, err := s.Alloc.Next("adr", s.Dir, filePattern, func(n int) error {
+	_, err := s.Alloc.Next("adr", s.Dir, kind.Pattern, func(n int) error {
 		adr.Number = n
-		path = filepath.Join(s.Dir, fmt.Sprintf("ADR-%03d-%s.md", n, Slug(adr.Title)))
-		return s.write(path, adr)
+		path = filepath.Join(s.Dir, kind.FileName(n, adr.Title))
+		var b bytes.Buffer
+		if err := tmpl.Execute(&b, adr); err != nil {
+			return err
+		}
+		return docfile.Create(path, b.Bytes())
 	})
 	return path, err
 }
@@ -156,23 +156,6 @@ func (s Store) defaults(adr New) New {
 	}
 	adr.Date = now().Format(time.DateOnly)
 	return adr
-}
-
-// write renders the template into a new file. Exclusive create makes a duplicate number fail.
-func (s Store) write(path string, adr New) error {
-	var b bytes.Buffer
-	if err := tmpl.Execute(&b, adr); err != nil {
-		return err
-	}
-	if err := os.MkdirAll(s.Dir, 0o755); err != nil {
-		return err
-	}
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
-	if err != nil {
-		return err
-	}
-	_, err = f.Write(b.Bytes())
-	return errors.Join(err, f.Close())
 }
 
 // Update changes the status, or replaces one section, or both.
@@ -198,11 +181,11 @@ func (s Store) Update(id, status, section, body string) error {
 
 // Supersede marks the old ADR as replaced by the new ADR, and adds the link to the new ADR.
 func (s Store) Supersede(oldID, newID string) error {
-	oldN, err := parseID(oldID)
+	oldN, err := kind.Parse(oldID)
 	if err != nil {
 		return err
 	}
-	newN, err := parseID(newID)
+	newN, err := kind.Parse(newID)
 	if err != nil {
 		return err
 	}
@@ -252,36 +235,19 @@ func (s Store) edit(id string, fn func(string) (string, error)) error {
 
 // find returns the path of the ADR with the number in id.
 func (s Store) find(id string) (string, error) {
-	n, err := parseID(id)
-	if err != nil {
-		return "", err
+	if _, err := os.Stat(s.Dir); docfile.NotExist(err) {
+		return "", ErrNoDir
 	}
-	list, err := s.List()
-	if err != nil {
-		return "", err
-	}
-	var matches []string
-	for _, e := range list {
-		if e.Number == n {
-			matches = append(matches, e.File)
-		}
-	}
-	switch len(matches) {
-	case 0:
-		return "", fmt.Errorf("ADR-%03d does not exist", n)
-	case 1:
-		return filepath.Join(s.Dir, matches[0]), nil
-	}
-	return "", fmt.Errorf("ADR-%03d has %d files: %s. Give each file a different number first", n, len(matches), strings.Join(matches, ", "))
+	return kind.Find(s.Dir, id)
 }
 
-func parseID(id string) (int, error) {
-	m := idPattern.FindStringSubmatch(strings.TrimSpace(id))
-	if m == nil {
-		return 0, fmt.Errorf("%q is not an ADR ID. Example: ADR-007", id)
+func sortedKeys(files map[int][]string) []int {
+	keys := make([]int, 0, len(files))
+	for n := range files {
+		keys = append(keys, n)
 	}
-	n, _ := strconv.Atoi(m[1])
-	return n, nil
+	sort.Ints(keys)
+	return keys
 }
 
 func validStatus(status string) error {
@@ -297,20 +263,4 @@ func first(re *regexp.Regexp, data []byte) string {
 		return ""
 	}
 	return strings.TrimSpace(string(m[1]))
-}
-
-// Slug makes the file name part from a title: lowercase ASCII words joined by "-", maximum 60 characters.
-func Slug(title string) string {
-	words := strings.FieldsFunc(strings.ToLower(title), func(r rune) bool {
-		return (r < 'a' || r > 'z') && (r < '0' || r > '9')
-	})
-	slug := strings.Join(words, "-")
-	if len(slug) <= 60 {
-		return slug
-	}
-	cut := strings.LastIndexByte(slug[:61], '-')
-	if cut <= 0 {
-		return slug[:60]
-	}
-	return slug[:cut]
 }

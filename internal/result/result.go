@@ -2,6 +2,7 @@
 package result
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"unicode"
@@ -51,4 +52,16 @@ func Sentence(err error) string {
 	text := strings.TrimSuffix(err.Error(), ".")
 	r, size := utf8.DecodeRuneInString(text)
 	return string(unicode.ToUpper(r)) + text[size:] + "."
+}
+
+// Reply makes the tool result for text and err. An error that is normal (example: a docs
+// directory that does not exist yet) gives a normal message, not a tool error.
+func Reply(text string, err, normal error) (*mcp.CallToolResult, any, error) {
+	if errors.Is(err, normal) {
+		return Text(Sentence(err)), nil, nil
+	}
+	if err != nil {
+		return Errorf("%s", Sentence(err)), nil, nil
+	}
+	return Text(text), nil, nil
 }

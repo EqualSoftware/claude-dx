@@ -2,13 +2,12 @@ package adr
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/result"
 )
 
@@ -66,17 +65,11 @@ func Register(server *mcp.Server, s Store) {
 
 // reply makes the tool result. A missing docs/decisions is a normal state, so it is not an error.
 func reply(text string, err error) (*mcp.CallToolResult, any, error) {
-	if errors.Is(err, ErrNoDir) {
-		return result.Text(result.Sentence(err)), nil, nil
-	}
-	if err != nil {
-		return result.Errorf("%s", result.Sentence(err)), nil, nil
-	}
-	return result.Text(text), nil, nil
+	return result.Reply(text, err, ErrNoDir)
 }
 
 func (s Store) listText() (string, error) {
-	list, err := s.List()
+	list, files, err := s.List()
 	if err != nil {
 		return "", err
 	}
@@ -84,22 +77,10 @@ func (s Store) listText() (string, error) {
 		return "No ADRs in docs/decisions.", nil
 	}
 	rows := make([][]string, 0, len(list))
-	seen := map[int]int{}
 	for _, e := range list {
-		rows = append(rows, []string{fmt.Sprintf("ADR-%03d", e.Number), e.Status, e.Title})
-		seen[e.Number]++
+		rows = append(rows, []string{kind.ID(e.Number), e.Status, e.Title})
 	}
-	return result.Table(rows) + duplicates(seen), nil
-}
-
-func duplicates(seen map[int]int) string {
-	var b strings.Builder
-	for n, count := range seen {
-		if count > 1 {
-			fmt.Fprintf(&b, "Warning: ADR-%03d has %d files. Give each file a different number.\n", n, count)
-		}
-	}
-	return b.String()
+	return result.Table(rows) + docfile.Duplicates(kind, files), nil
 }
 
 func (s Store) createText(in createInput) (string, error) {

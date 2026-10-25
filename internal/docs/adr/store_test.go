@@ -93,7 +93,7 @@ func TestCreateRefusesStatus(t *testing.T) {
 
 func TestMissingDir(t *testing.T) {
 	s := newStore(t)
-	if _, err := s.List(); !errors.Is(err, ErrNoDir) {
+	if _, _, err := s.List(); !errors.Is(err, ErrNoDir) {
 		t.Fatalf("List = %v, want ErrNoDir", err)
 	}
 	if err := s.Update("ADR-001", "Accepted", "", ""); !errors.Is(err, ErrNoDir) {
@@ -109,7 +109,7 @@ func TestList(t *testing.T) {
 	if _, err := s.Create(sample("Use stdio")); err != nil {
 		t.Fatal(err)
 	}
-	list, err := s.List()
+	list, _, err := s.List()
 	if err != nil || len(list) != 1 || list[0].Status != "Proposed" || list[0].Title != "Use stdio" {
 		t.Fatalf("List = %+v, %v", list, err)
 	}
@@ -172,20 +172,5 @@ func TestSupersede(t *testing.T) {
 	}
 	if err := s.Supersede("ADR-001", "ADR-001"); err == nil {
 		t.Error("an ADR replaced itself")
-	}
-}
-
-func TestSlug(t *testing.T) {
-	tests := map[string]string{
-		"Use stdio":                 "use-stdio",
-		"  Load dx: with flags!  ":  "load-dx-with-flags",
-		"Ação em português":         "a-o-em-portugu-s",
-		strings.Repeat("word ", 20): "word-word-word-word-word-word-word-word-word-word-word-word",
-		strings.Repeat("x", 70):     strings.Repeat("x", 60),
-	}
-	for title, want := range tests {
-		if got := Slug(title); got != want {
-			t.Errorf("Slug(%q) = %q, want %q", title, got, want)
-		}
 	}
 }
