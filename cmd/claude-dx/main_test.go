@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"os"
 	"os/exec"
@@ -9,6 +10,9 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
 func TestRunVersion(t *testing.T) {
@@ -116,6 +120,24 @@ func TestLaunchDeletesOldBinary(t *testing.T) {
 	env.launch(t, env.bin, "--resume")
 	if _, err := os.Stat(old); err == nil {
 		t.Fatal(".old file was not deleted")
+	}
+}
+
+func TestMCPServerInitialize(t *testing.T) {
+	env := setup(t)
+	client := mcp.NewClient(&mcp.Implementation{Name: "test", Version: "v0"}, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	start := time.Now()
+	session, err := client.Connect(ctx, &mcp.CommandTransport{Command: exec.Command(env.dx, "mcp")}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = session.Close() }()
+	t.Logf("initialize took %v", time.Since(start))
+	info := session.InitializeResult().ServerInfo
+	if info.Name != "dx" || info.Version != "v9.9.9" {
+		t.Fatalf("server info = %+v, want dx v9.9.9", info)
 	}
 }
 

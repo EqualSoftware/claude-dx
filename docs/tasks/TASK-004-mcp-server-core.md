@@ -1,7 +1,7 @@
 ---
 id: TASK-004
 title: MCP server core, project root and number allocation
-status: Approved
+status: In Development
 priority: P0
 area: [mcp]
 depends_on: [TASK-001]
@@ -24,6 +24,8 @@ depends_on: [TASK-001]
 | :--- | :--- | :--- |
 | 2026-10-25 | Claude | Initial draft specification from the design interview |
 | 2026-10-25 | Equal | Open questions answered. Approved. |
+| 2026-10-25 | Equal | Work started. |
+| 2026-10-25 | Claude | Public API changed to the form in section 7.2. |
 
 ## 1. Summary
 Add `claude-dx mcp`, a stdio MCP server with no tools yet, and the shared packages that all tools use: project root and path guard, project key, OS file lock, number allocation, Markdown helpers and compact result helpers.
@@ -82,17 +84,20 @@ flowchart TD
 
 ### 7.2 Public API
 ```text
-project.Root() (string, error)
-project.Key() (string, error)
-project.Resolve(rel string) (string, error)
+project.Open(dir string) (Project, error)          // Project{Root, Key}
+Project.Resolve(rel string) (string, error)
 filelock.Lock(path string) (unlock func() error, err error)
-numbering.Next(kind string, dir string, pattern *regexp.Regexp, create func(n int) error) (int, error)
-markdown.Parse(src []byte) (Doc, error)
-Doc.Section(ref string) (string, bool)
-Doc.ReplaceSection(ref string, body string) error
-Doc.Frontmatter / Doc.SetFrontmatter
+numbering.Allocator{Dir}.Next(kind, docDir string, pattern *regexp.Regexp, create func(n int) error) (int, error)
+numbering.Highest(dir string, pattern *regexp.Regexp) (int, error)
+markdown.Split(src) (front, body string) / markdown.Join(front, body) string
+markdown.Decode(front string, v any) error
+markdown.SetField(front, key string, value any) string   // keeps the comment at the end of the line
+markdown.Section(body, ref string) (string, bool)
+markdown.ReplaceSection(body, ref, content string) (string, error)
+mcpserver.New(version) *mcp.Server / mcpserver.Run(ctx, version) error
+mcpserver.Text(text) / mcpserver.Errorf(format, args...) / mcpserver.Table(rows) string
 ```
-`numbering.Next` calls `create(n)` while it holds the lock, so the file exists before another process reads the directory.
+`project.Open` takes a directory, so tests use temp repositories with no change of the process directory. The markdown functions work on strings, with no document type, because each tool needs only some of them.`numbering.Next` calls `create(n)` while it holds the lock, so the file exists before another process reads the directory.
 
 ### 7.3 Data and File Formats
 ```json

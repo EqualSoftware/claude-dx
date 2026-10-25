@@ -2,12 +2,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 
 	"github.com/is-equal/claude-dx/internal/cli"
 	"github.com/is-equal/claude-dx/internal/launcher"
+	"github.com/is-equal/claude-dx/internal/mcpserver"
 )
 
 // version is set at build time with -ldflags "-X main.version=<tag>".
@@ -40,6 +42,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 	case "version":
 		fmt.Fprintf(stdout, "claude-dx %s\n", version)
 		return 0
+	case "mcp":
+		return serve(stderr)
 	}
 	fmt.Fprintf(stderr, "claude-dx: %q is not available yet.\n", args[0])
 	return 1
@@ -51,4 +55,13 @@ func launch(args []string, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "claude-dx: %v\n", err)
 	}
 	return code
+}
+
+// serve runs the MCP server. Claude Code starts it from the plugin (ADR-002).
+func serve(stderr io.Writer) int {
+	if err := mcpserver.Run(context.Background(), version); err != nil {
+		fmt.Fprintf(stderr, "claude-dx mcp: %v\n", err)
+		return 1
+	}
+	return 0
 }
