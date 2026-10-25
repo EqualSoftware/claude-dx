@@ -2,6 +2,6 @@
   "name": "dx",
   "version": "{{VERSION}}",
   "description": "dx tools for Claude Code: ADRs, tasks, learnings, glossary, git, files and LSP.",
-  "homepage": "https://github.com/is-equal/claude-dx",
+  "homepage": "https://github.com/EqualSoftware/claude-dx",
   "license": "MIT"
 }

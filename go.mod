@@ -1,4 +1,4 @@
-module github.com/is-equal/claude-dx
+module github.com/EqualSoftware/claude-dx
 
 go 1.27.3
 

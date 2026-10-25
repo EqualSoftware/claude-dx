@@ -15,8 +15,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/is-equal/claude-dx/internal/markdown"
-	"github.com/is-equal/claude-dx/internal/numbering"
+	"github.com/EqualSoftware/claude-dx/internal/markdown"
+	"github.com/EqualSoftware/claude-dx/internal/numbering"
 )
 
 //go:embed template.md

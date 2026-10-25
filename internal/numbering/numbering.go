@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/is-equal/claude-dx/internal/filelock"
+	"github.com/EqualSoftware/claude-dx/internal/filelock"
 )
 
 // mu orders the calls of one process. The file lock orders the calls of different processes.

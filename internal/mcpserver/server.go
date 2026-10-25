@@ -8,10 +8,10 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/is-equal/claude-dx/internal/cache"
-	"github.com/is-equal/claude-dx/internal/docs/adr"
-	"github.com/is-equal/claude-dx/internal/numbering"
-	"github.com/is-equal/claude-dx/internal/project"
+	"github.com/EqualSoftware/claude-dx/internal/cache"
+	"github.com/EqualSoftware/claude-dx/internal/docs/adr"
+	"github.com/EqualSoftware/claude-dx/internal/numbering"
+	"github.com/EqualSoftware/claude-dx/internal/project"
 )
 
 // New returns the dx server with all tools for the project that contains dir.

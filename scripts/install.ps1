@@ -1,6 +1,6 @@
 # Install claude-dx from GitHub Releases on Windows.
 # Usage: install.ps1 [version]     Example: install.ps1 v0.1.0
-#        irm https://raw.githubusercontent.com/is-equal/claude-dx/main/scripts/install.ps1 | iex
+#        irm https://raw.githubusercontent.com/EqualSoftware/claude-dx/main/scripts/install.ps1 | iex
 # Environment:
 #   CLAUDE_DX_VERSION      Version to install, if no argument is given. Default: latest
 #   CLAUDE_DX_INSTALL_DIR  Install directory. Default: %LocalAppData%\Programs\claude-dx
@@ -9,7 +9,7 @@
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$Repo = "is-equal/claude-dx"
+$Repo = "EqualSoftware/claude-dx"
 
 # Use throw, not exit: with "irm | iex", exit closes the PowerShell window of the user.
 function Fail([string]$Message) {

@@ -1,6 +1,6 @@
 # claude-dx
 
-[![CI](https://github.com/is-equal/claude-dx/actions/workflows/ci.yml/badge.svg)](https://github.com/is-equal/claude-dx/actions/workflows/ci.yml)
+[![CI](https://github.com/EqualSoftware/claude-dx/actions/workflows/ci.yml/badge.svg)](https://github.com/EqualSoftware/claude-dx/actions/workflows/ci.yml)
 
 `claude-dx` starts [Claude Code](https://docs.claude.com/claude-code) with the dx tools: skills, an MCP server and hooks for ADRs, tasks, learnings, a glossary, git, files and LSP servers. The tools do the mechanical work, so the model uses fewer tokens and gives the same result each time.
 
@@ -34,13 +34,13 @@ claude-dx moves this work into Go tools:
 macOS and Linux:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/is-equal/claude-dx/main/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/EqualSoftware/claude-dx/main/scripts/install.sh | sh
 ```
 
 Windows (PowerShell):
 
 ```powershell
-irm https://raw.githubusercontent.com/is-equal/claude-dx/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/EqualSoftware/claude-dx/main/scripts/install.ps1 | iex
 ```
 
 The scripts verify the SHA-256 checksum of the release. To change the install directory, set `CLAUDE_DX_INSTALL_DIR`.

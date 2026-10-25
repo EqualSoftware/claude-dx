@@ -7,9 +7,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/is-equal/claude-dx/internal/cli"
-	"github.com/is-equal/claude-dx/internal/launcher"
-	"github.com/is-equal/claude-dx/internal/mcpserver"
+	"github.com/EqualSoftware/claude-dx/internal/cli"
+	"github.com/EqualSoftware/claude-dx/internal/launcher"
+	"github.com/EqualSoftware/claude-dx/internal/mcpserver"
 )
 
 // version is set at build time with -ldflags "-X main.version=<tag>".

@@ -9,7 +9,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/is-equal/claude-dx/internal/result"
+	"github.com/EqualSoftware/claude-dx/internal/result"
 )
 
 type getInput struct {

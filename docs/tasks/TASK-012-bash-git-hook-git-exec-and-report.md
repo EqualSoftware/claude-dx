@@ -91,7 +91,7 @@ The report does not include paths of the project. It includes only args, reason,
 ```text
 $ claude-dx report
 3 unmapped git operations (bisect: 2, worktree: 1).
-Opened https://github.com/is-equal/claude-dx/issues/new?... in the browser.
+Opened https://github.com/EqualSoftware/claude-dx/issues/new?... in the browser.
 ```
 
 ### 7.5 Alternatives

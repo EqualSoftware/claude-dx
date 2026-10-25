@@ -47,7 +47,7 @@ The user must update the binary with no package manager (ADR-004), remove all da
 TASK-002 gives the parser and the update notice that reads `<cache>/update.json`. TASK-004 gives the MCP server.
 
 ### 5.2 Assumptions
-- A-1: The GitHub API `GET https://api.github.com/repos/is-equal/claude-dx/releases/latest` with no token is sufficient. The limit is 60 requests in 1 hour for each IP. One check in 24 hours is far below it.
+- A-1: The GitHub API `GET https://api.github.com/repos/EqualSoftware/claude-dx/releases/latest` with no token is sufficient. The limit is 60 requests in 1 hour for each IP. One check in 24 hours is far below it.
 
 ### 5.3 Constraints
 - ADR-004.

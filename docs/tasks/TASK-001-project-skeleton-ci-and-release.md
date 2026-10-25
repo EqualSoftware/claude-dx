@@ -45,10 +45,10 @@ The repository has only `go.mod` and docs. All later tasks need a layout, a CI t
 
 ## 5. Context
 ### 5.1 Current State
-`go.mod` declares `module github.com/is-equal/claude-dx` and `go 1.27.3`. There is no Go code.
+`go.mod` declares `module github.com/EqualSoftware/claude-dx` and `go 1.27.3`. There is no Go code.
 
 ### 5.2 Assumptions
-- A-1: The repository `github.com/is-equal/claude-dx` exists before the first release. Verify: `gh repo view is-equal/claude-dx`.
+- A-1: The repository `github.com/EqualSoftware/claude-dx` exists before the first release. Verify: `gh repo view EqualSoftware/claude-dx`.
 - A-2: golangci-lint supports Go 1.27. Verify: CI run.
 
 ### 5.3 Constraints
@@ -107,7 +107,7 @@ install.ps1 [version]
 
 ### 7.4 User-facing Behavior
 ```text
-$ curl -fsSL https://raw.githubusercontent.com/is-equal/claude-dx/main/scripts/install.sh | sh
+$ curl -fsSL https://raw.githubusercontent.com/EqualSoftware/claude-dx/main/scripts/install.sh | sh
 claude-dx v0.1.0 installed to ~/.local/bin/claude-dx
 ```
 

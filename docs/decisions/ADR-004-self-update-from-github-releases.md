@@ -5,7 +5,7 @@
 - Owners: Maintainer
 
 ## Context
-The project is published at `github.com/is-equal/claude-dx`. The maintainer does not want to publish to Homebrew, package managers or other places. The targets are macOS, Linux and Windows.
+The project is published at `github.com/EqualSoftware/claude-dx`. The maintainer does not want to publish to Homebrew, package managers or other places. The targets are macOS, Linux and Windows.
 
 ## Decision
 - ADR-012 defines the version numbers and when a release happens.

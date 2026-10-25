@@ -7,7 +7,7 @@
 
 set -eu
 
-REPO="is-equal/claude-dx"
+REPO="EqualSoftware/claude-dx"
 INSTALL_DIR="${CLAUDE_DX_INSTALL_DIR:-$HOME/.local/bin}"
 
 fail() {

@@ -25,6 +25,7 @@ depends_on: []
 | 2026-10-25 | Claude | Initial specification from the open source review. Decisions by the maintainer. |
 | 2026-10-25 | Equal | Approved. |
 | 2026-10-25 | Equal | Repository made public. FR-2, FR-3, FR-5, FR-6 applied. FR-4 needs the web UI (no API). |
+| 2026-10-25 | Equal | Reported content (FR-4) exists only for organization repositories. Repository moved to the EqualSoftware organization; module path is now `github.com/EqualSoftware/claude-dx`. Secret scanning and CodeQL were off after the transfer and are on again. Code owner: `@EqualSoftware/developers`. |
 
 ## 1. Summary
 Make the repository public and turn on the GitHub features that need a public repository: the main branch ruleset, private vulnerability reporting, reported content, secret scanning and CodeQL.
@@ -85,7 +86,7 @@ Visitors see the Security tab with "Report a vulnerability" and the "Report cont
 ## 8. Implementation Plan
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | None (repository settings) | FR-1 to FR-6 with `gh repo edit` and `gh api`. | `gh api repos/is-equal/claude-dx/rulesets`; Community Standards page |
+| 1 | None (repository settings) | FR-1 to FR-6 with `gh repo edit` and `gh api`. | `gh api repos/EqualSoftware/claude-dx/rulesets`; Community Standards page |
 
 ## 9. Acceptance Criteria
 - AC-1: Given the public repository, when a person pushes with force to `main`, then GitHub refuses the push.

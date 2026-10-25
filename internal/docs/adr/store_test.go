@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/is-equal/claude-dx/internal/numbering"
+	"github.com/EqualSoftware/claude-dx/internal/numbering"
 )
 
 func newStore(t *testing.T) Store {

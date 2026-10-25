@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/is-equal/claude-dx/internal/cache"
-	"github.com/is-equal/claude-dx/internal/plugin"
+	"github.com/EqualSoftware/claude-dx/internal/cache"
+	"github.com/EqualSoftware/claude-dx/internal/plugin"
 )
 
 // installURL is shown when claude is not in PATH.
