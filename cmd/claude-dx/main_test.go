@@ -93,7 +93,7 @@ func TestLaunchPassesArgsAndExitCode(t *testing.T) {
 			t.Fatalf("%q: exit code = %d, want 3; stderr: %s", args, code, stderr)
 		}
 		lines := strings.Split(strings.TrimSpace(stdout), "\n")
-		if len(lines) != 3 || lines[0] != "--plugin-dir" || lines[2] != args[len(args)-1] {
+		if len(lines) != 5 || lines[0] != "--plugin-dir" || lines[2] != "--settings" || lines[4] != args[len(args)-1] {
 			t.Fatalf("%q: claude args = %q", args, lines)
 		}
 		manifest := filepath.Join(strings.TrimSpace(lines[1]), ".claude-plugin", "plugin.json")

@@ -7,7 +7,7 @@ import (
 
 func TestArgs(t *testing.T) {
 	got := Args("/cache/plugin/dev", []string{"--resume", "-p", "hi"})
-	want := []string{"--plugin-dir", "/cache/plugin/dev", "--resume", "-p", "hi"}
+	want := []string{"--plugin-dir", "/cache/plugin/dev", "--settings", settings, "--resume", "-p", "hi"}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("Args = %q, want %q", got, want)
 	}

@@ -1,8 +1,11 @@
-package mcpserver
+// Package result makes compact tool results for the model (ADR-005).
+package result
 
 import (
 	"fmt"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -41,4 +44,11 @@ func Table(rows [][]string) string {
 		b.WriteString("\n")
 	}
 	return b.String()
+}
+
+// Sentence makes a Go error text into a sentence for the model: a capital letter and a period.
+func Sentence(err error) string {
+	text := strings.TrimSuffix(err.Error(), ".")
+	r, size := utf8.DecodeRuneInString(text)
+	return string(unicode.ToUpper(r)) + text[size:] + "."
 }

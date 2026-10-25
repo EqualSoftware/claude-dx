@@ -96,7 +96,7 @@ markdown.SetField(front, key string, value any) string   // keeps the comment at
 markdown.Section(body, ref string) (string, bool)
 markdown.ReplaceSection(body, ref, content string) (string, error)
 mcpserver.New(version) *mcp.Server / mcpserver.Run(ctx, version) error
-mcpserver.Text(text) / mcpserver.Errorf(format, args...) / mcpserver.Table(rows) string
+result.Text(text) / result.Errorf(format, args...) / result.Table(rows) / result.Sentence(err)   // internal/result (moved in TASK-005)
 ```
 `project.Open` takes a directory, so tests use temp repositories with no change of the process directory. The markdown functions work on strings, with no document type, because each tool needs only some of them.`numbering.Next` calls `create(n)` while it holds the lock, so the file exists before another process reads the directory.
 

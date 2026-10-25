@@ -42,9 +42,13 @@ func Run(version string, args []string) (int, error) {
 	return start(claude, Args(pluginDir, args))
 }
 
+// settings allows all dx tools with no prompt (ADR-005). Tools that change git state
+// will be in an "ask" list, because "ask" wins over "allow".
+const settings = `{"permissions":{"allow":["mcp__plugin_dx_dx"]}}`
+
 // Args returns the arguments for claude: the dx flags, then the arguments of the user.
 func Args(pluginDir string, user []string) []string {
-	return append([]string{"--plugin-dir", pluginDir}, user...)
+	return append([]string{"--plugin-dir", pluginDir, "--settings", settings}, user...)
 }
 
 // executable returns the absolute path of claude-dx, with symlinks resolved.
