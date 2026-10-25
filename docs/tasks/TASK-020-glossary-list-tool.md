@@ -24,6 +24,7 @@ depends_on: [TASK-007, TASK-008]
 | :--- | :--- | :--- |
 | 2026-10-25 | Claude | Initial specification from the v0.1.0 QA of the maintainer |
 | 2026-10-25 | Equal | Q-1 to Q-3 answered in the chat. Approved for v0.1.0. Work started. The maintainer does the real session test. |
+| 2026-10-25 | Claude | AC-2 failed in the session of the maintainer: `dx:scout` called `glossary_list`, then Grep on the file to get line numbers, because its rules asked a `path:line` for each fact. FR-5 added. |
 
 ## 1. Summary
 Add `glossary_list(area?)`. It returns one row for each term of `docs/GLOSSARY.md`. `dx:scout` and `/dx:glossary` use it in place of a read of the file.
@@ -53,6 +54,7 @@ In a QA session, the request "which terms are in docs/GLOSSARY.md" made `dx:scou
 - FR-2: A non-empty `area` keeps only the rows of that area, with no case difference (Q-2).
 - FR-3: With no rows: `No terms in docs/GLOSSARY.md.`, or `No terms with the area "<area>".` With no file: `No glossary. docs/GLOSSARY.md does not exist.`
 - FR-4: `dx:scout` has `glossary_list` in its tools. `/dx:glossary` and `dx:scout` use it for many terms and do not read the file. ADR-006 lists the tool (Q-3).
+- FR-5: `dx:scout` gives the tool name as the source of a fact from a dx tool, and does not read a file only to find a line number, because a tool result has no line numbers.
 
 ### 6.2 Non-Functional
 - NFR-1: Not applicable. The table parse of TASK-007 NFR-1 applies.
