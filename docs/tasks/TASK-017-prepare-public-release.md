@@ -1,7 +1,7 @@
 ---
 id: TASK-017
 title: Prepare the repository for public release
-status: Approved
+status: In Development
 priority: P2
 area: [repo]
 depends_on: []
@@ -24,6 +24,7 @@ depends_on: []
 | :--- | :--- | :--- |
 | 2026-10-25 | Claude | Initial specification from the open source review. Decisions by the maintainer. |
 | 2026-10-25 | Equal | Approved. |
+| 2026-10-25 | Equal | Repository made public. FR-2, FR-3, FR-5, FR-6 applied. FR-4 needs the web UI (no API). |
 
 ## 1. Summary
 Make the repository public and turn on the GitHub features that need a public repository: the main branch ruleset, private vulnerability reporting, reported content, secret scanning and CodeQL.
