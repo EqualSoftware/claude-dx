@@ -1,7 +1,7 @@
 ---
 id: TASK-018
 title: The /dx:task skill lists tasks with no extra calls
-status: In Development
+status: Done
 priority: P1
 area: [plugin]
 depends_on: [TASK-006]
@@ -24,6 +24,7 @@ depends_on: [TASK-006]
 | :--- | :--- | :--- |
 | 2026-10-25 | Claude | Initial specification from a session of the maintainer in another project |
 | 2026-10-25 | Equal | Approved in the chat (option 1: change only the skill). Work started. The maintainer does the real session test. |
+| 2026-10-25 | Equal | Done. The session of the maintainer used 1 tool call. CI runs after the push. |
 
 ## 1. Summary
 For a request to list tasks, `/dx:task` must give the result of `task_list` and stop. The Report section applies only to create, refine and status changes.
@@ -103,9 +104,9 @@ Revert the skill text.
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1: session of the maintainer in another project (Claude Code 2.1.308, binary built from `40e462f`): the request "liste as tarefas" gave one `task_list` call and no other tool call. Metric: 1 call; baseline 3.
+- [x] Project checks (build, tests, lint) pass. Local on macOS: `go build ./...`, `go test ./...`. Only a skill file changed. CI runs after the push.
+- [x] Docs are updated (README). Not applicable: no user-facing command changed.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no diagram.
+- [x] ADRs are recorded for architectural decisions. No new decision.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new lesson: the cause is in section 2.
