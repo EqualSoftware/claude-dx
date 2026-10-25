@@ -1,7 +1,7 @@
 ---
 id: TASK-004
 title: MCP server core, project root and number allocation
-status: In Development
+status: Done
 priority: P0
 area: [mcp]
 depends_on: [TASK-001]
@@ -26,6 +26,7 @@ depends_on: [TASK-001]
 | 2026-10-25 | Equal | Open questions answered. Approved. |
 | 2026-10-25 | Equal | Work started. |
 | 2026-10-25 | Claude | Public API changed to the form in section 7.2. |
+| 2026-10-25 | Equal | Done. All acceptance criteria pass. |
 
 ## 1. Summary
 Add `claude-dx mcp`, a stdio MCP server with no tools yet, and the shared packages that all tools use: project root and path guard, project key, OS file lock, number allocation, Markdown helpers and compact result helpers.
@@ -148,9 +149,9 @@ Not applicable. This is the base of all tools.
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated.
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1: Claude Code 2.1.308 started with `claude-dx` shows `plugin:dx:dx` as `connected`. AC-2: `TestNextParallelProcesses` (20 processes, 2 worktree directories, 1 cache) gives 1 to 20 with no duplicates, in CI run 40230283887 on macOS, Linux and Windows. AC-3: `TestResolve` and `TestResolveRefusesSymlinkOutside` (symlink test skipped on Windows). NFR-1: initialize takes about 11 ms (`TestMCPServerInitialize`). NFR-2: `go test -race` passes.
+- [x] Project checks (build, tests, lint) pass. CI run 40230283887; lint with GOOS=windows also passes.
+- [x] Docs are updated. Section 7.2 has the final API.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. The flowchart in section 7.1 matches the code.
+- [x] ADRs are recorded for architectural decisions. No new decision. ADR-002 and ADR-007 describe the code.
+- [x] `/dx:eureka` is done. The tool does not exist yet. Lesson recorded as a code comment: `internal/project/project_test.go` (a global git config can sign commits with an external agent; tests disable it).
