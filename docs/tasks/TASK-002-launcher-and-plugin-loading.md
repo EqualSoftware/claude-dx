@@ -1,7 +1,7 @@
 ---
 id: TASK-002
 title: Launcher and plugin loading
-status: Approved
+status: In Development
 priority: P0
 area: [cli, plugin]
 depends_on: [TASK-001]
@@ -24,6 +24,7 @@ depends_on: [TASK-001]
 | :--- | :--- | :--- |
 | 2026-10-25 | Claude | Initial draft specification from the design interview |
 | 2026-10-25 | Equal | Open questions answered. Approved. |
+| 2026-10-25 | Equal | Work started. |
 
 ## 1. Summary
 `claude-dx` parses its own commands, extracts the embedded `dx` plugin to the cache and starts `claude` with `--plugin-dir`, `--settings` and `--append-system-prompt`. It passes all other arguments to `claude`.

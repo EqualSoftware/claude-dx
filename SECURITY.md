@@ -16,7 +16,7 @@ Give:
 - the steps to reproduce the problem,
 - the effect (example: code execution, file access outside the project, a bad binary install).
 
-The maintainers try to reply within 7 days. When a fix is available, the maintainers publish a release and a security advisory, and give credit to the reporter if the reporter agrees.
+The maintainers reply as soon as possible. When a fix is available, the maintainers publish a release and a security advisory, and give credit to the reporter if the reporter agrees.
 
 ## Scope
 
