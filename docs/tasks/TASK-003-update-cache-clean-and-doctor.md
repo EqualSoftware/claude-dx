@@ -26,6 +26,7 @@ depends_on: [TASK-002, TASK-004]
 | 2026-10-25 | Equal | Open questions answered. Approved. |
 | 2026-10-25 | Equal | Work started. |
 | 2026-10-25 | Claude | Decisions of the maintainer: Q-2 to Q-5. Facts: version comparison uses `golang.org/x/mod/semver` (already in the module graph); download URLs come from `browser_download_url` of the release assets; archive names are the names of `scripts/install.sh`; `update.json` is written to a temporary file and renamed; requests send `User-Agent: claude-dx/<version>`. `CheckInBackground` is `Check`; the MCP server runs it in a goroutine. `claude-dx cache` with no `clean` prints the usage and exits with code 1. |
+| 2026-10-25 | Claude | Code done (`67aef6f`). Local on macOS: all tests pass, also `TestUpdateRunningBinary` (AC-1), `TestBadChecksum` (AC-2) and `TestCheck` (AC-3). `claude-dx doctor` with a real binary gives the lines of 7.4. Done waits for CI on Windows (AC-1). |
 
 ## 1. Summary
 Add `claude-dx update`, `claude-dx cache clean` and `claude-dx doctor`, and the background update check in the MCP server.
