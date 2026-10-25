@@ -1,7 +1,7 @@
 ---
 id: TASK-002
 title: Launcher and plugin loading
-status: In Development
+status: Done
 priority: P0
 area: [cli, plugin]
 depends_on: [TASK-001]
@@ -26,6 +26,7 @@ depends_on: [TASK-001]
 | 2026-10-25 | Equal | Open questions answered. Approved. |
 | 2026-10-25 | Equal | Work started. |
 | 2026-10-25 | Claude | FR-6 adds only flags with content; FR-8 moved to TASK-003; `.mcp.json` moved to TASK-004; FR-4 escapes the binary path for JSON. |
+| 2026-10-25 | Equal | Done. All acceptance criteria pass. |
 
 ## 1. Summary
 `claude-dx` parses its own commands, extracts the embedded `dx` plugin to the cache and starts `claude` with `--plugin-dir`, `--settings` and `--append-system-prompt`. It passes all other arguments to `claude`.
@@ -162,9 +163,9 @@ Not applicable. The launcher is the base of the project.
 | Q-1 | None. | — | — |
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README usage).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1, AC-2, AC-4: `cmd/claude-dx/main_test.go` (`TestLaunchPassesArgsAndExitCode`) with a fake `claude` in CI run 40229335617 on macOS, Linux and Windows. AC-1 also with the real Claude Code 2.1.308: the `dx` plugin loads with the build version. AC-3: the probe of batch 1 shows `dx:hello`; the first real skills come in TASK-005. NFR-1: overhead 2.6 ms (median of 50 starts, plugin extracted).
+- [x] Project checks (build, tests, lint) pass. CI run 40229335617; lint with GOOS=windows also passes.
+- [x] Docs are updated (README usage). The README Use section matches the help text.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. The flowchart in section 7.1 matches the code (`internal/cli`, `internal/plugin`, `internal/launcher`); the update notice step moved to TASK-003.
+- [x] ADRs are recorded for architectural decisions. No new decision; ADR-001 and ADR-005 follow-ups closed with the verified behavior.
+- [x] `/dx:eureka` is done. The tool does not exist yet. Lessons are code comments at their location: `internal/plugin/plugin.go` (`all:` embed prefix for dot files; JSON escape of Windows paths), `internal/launcher/exec_windows.go` (Ctrl+C goes to the whole console).
