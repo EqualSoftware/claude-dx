@@ -45,7 +45,7 @@ All tool tasks need the same base. If each tool makes its own base, the results 
 TASK-001 gives the layout.
 
 ### 5.2 Assumptions
-- A-1: `github.com/modelcontextprotocol/go-sdk` supports stdio server transport and elicitation. Verify: SDK docs and an example.
+- A-1: `github.com/modelcontextprotocol/go-sdk` supports stdio server transport and elicitation. Stdio verified with v1.8.0 (TASK-002 probe): Claude Code 2.1.308 connected and called a tool. Elicitation: verify in TASK-010.
 - A-2: `golang.org/x/sys/windows` gives `LockFileEx`. Verify: package docs.
 
 ### 5.3 Constraints

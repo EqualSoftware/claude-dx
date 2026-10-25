@@ -47,10 +47,10 @@ The developer must get dx in Claude Code with one command and no change to proje
 TASK-001 gives `cmd/claude-dx/main.go` with `--version`.
 
 ### 5.2 Assumptions
-- A-1: A plugin loaded with `--plugin-dir` gives its skills the prefix `<plugin name>:`. Verify: load a test plugin named `dx` and list skills.
-- A-2: The permission rule name of a plugin MCP tool. Verify: load a test plugin with an MCP server and read the tool names in `/mcp`. Update ADR-005 rules with the real format.
+- A-1: A plugin loaded with `--plugin-dir` gives its skills the prefix `<plugin name>:`. Verified on 2.1.308: a test plugin named `dx` with skill `hello` shows `dx:hello` in `skills` and `slash_commands` of the `stream-json` init event; the plugin source is `dx@inline`.
+- A-2: The permission rule name of a plugin MCP tool. Verified on 2.1.308: server `dx` in the plugin `.mcp.json` shows as `plugin:dx:dx`, and its tool `ping` is `mcp__plugin_dx_dx__ping`. In `--settings`, the rule `mcp__plugin_dx_dx__ping` allows one tool and `mcp__plugin_dx_dx` allows all tools of the server. With no rule, `claude -p` denies the tool.
 - A-3: `--settings` accepts a JSON string. Verified: `claude --help` of 2.1.308.
-- A-4: `hooks/hooks.json` of a plugin loaded with `--plugin-dir` runs. Verify: test plugin with a hook that writes a file.
+- A-4: `hooks/hooks.json` of a plugin loaded with `--plugin-dir` runs. Verified on 2.1.308: a `PreToolUse` hook with matcher `Bash` ran before each Bash call.
 
 ### 5.3 Constraints
 - ADR-001, ADR-003. Go standard library only for the parser.

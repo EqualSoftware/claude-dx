@@ -44,7 +44,7 @@ Without a block, the model uses Bash git and the result is not consistent. Witho
 TASK-002 extracts `hooks/hooks.json` with `{{BINARY}}`.
 
 ### 5.2 Assumptions
-- A-1: A `PreToolUse` hook gets the Bash command in the JSON on stdin (`tool_input.command`) and can deny the call with a JSON decision and a reason for the model. Verify: Claude Code hooks docs and a test.
+- A-1: A `PreToolUse` hook gets the Bash command in the JSON on stdin (`tool_input.command`) and can deny the call with a JSON decision and a reason for the model. Verified on 2.1.308 (TASK-002 probe): stdin has `hook_event_name`, `tool_name` and `tool_input.command`; the output `{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"<reason>"}}` stops the call, and the model gets `PreToolUse:Bash hook error: <reason>`.
 - A-2: `mvdan.cc/sh/v3/syntax` parses the commands of the Bash tool on all platforms. Verify: tests.
 
 ### 5.3 Constraints

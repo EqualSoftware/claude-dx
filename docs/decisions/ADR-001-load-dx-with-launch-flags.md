@@ -23,7 +23,7 @@ claude-dx adds skills, an agent, an MCP server, hooks and rules to Claude Code. 
 ## Consequences
 - Positive: no change to user or project configuration. Removal is `cache clean` plus deletion of the binary. Native `/dx:` prefix.
 - Negative: `claude` without the launcher does not load dx.
-- Follow-up: TASK-002 verifies the tool names and skill prefix of a plugin loaded with `--plugin-dir`.
+- Follow-up: none. TASK-002 verified on Claude Code 2.1.308 that a plugin loaded with `--plugin-dir` gives the `dx:` skill prefix, connects its MCP server and runs its hooks.
 
 ## Evidence
 - `claude --help` of Claude Code 2.1.308 lists `--plugin-dir`, `--mcp-config`, `--settings`, `--append-system-prompt`.
