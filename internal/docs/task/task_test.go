@@ -2,6 +2,7 @@ package task
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -267,5 +268,26 @@ func TestIndexMatchesRepository(t *testing.T) {
 	got, _ := os.ReadFile(filepath.Join(s.Dir, "INDEX.md"))
 	if string(got) != string(want) {
 		t.Fatalf("INDEX.md differs from the committed file.\ngot:\n%s", got)
+	}
+}
+
+// BenchmarkList200 measures NFR-1: task_list on 200 tasks takes less than 50 ms.
+func BenchmarkList200(b *testing.B) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "..", "docs", "tasks", "TASK-006-task-tools-index-and-skill.md"))
+	if err != nil {
+		b.Skip("no repository tasks")
+	}
+	s := Store{Dir: b.TempDir()}
+	for i := 1; i <= 200; i++ {
+		name := fmt.Sprintf("TASK-%03d-task.md", i)
+		text := strings.Replace(string(data), "id: TASK-006", fmt.Sprintf("id: TASK-%03d", i), 1)
+		if err := os.WriteFile(filepath.Join(s.Dir, name), []byte(text), 0o644); err != nil {
+			b.Fatal(err)
+		}
+	}
+	for b.Loop() {
+		if _, err := s.listText(listInput{Status: "all"}); err != nil {
+			b.Fatal(err)
+		}
 	}
 }

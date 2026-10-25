@@ -1,7 +1,7 @@
 ---
 id: TASK-006
 title: Task tools, INDEX.md and the /dx:task skill
-status: In Development
+status: Done
 priority: P1
 area: [docs-tools, plugin]
 depends_on: [TASK-002, TASK-004]
@@ -26,6 +26,7 @@ depends_on: [TASK-002, TASK-004]
 | 2026-10-25 | Equal | Open questions answered. Approved. |
 | 2026-10-25 | Equal | Work started. |
 | 2026-10-25 | Claude | FR-9 changed: `task_renumber` takes the file name and lists the tasks that refer to the old ID, because the old ID can name two files. The template is in `internal/docs/task/`. Shared file rules moved to `internal/docs/docfile`. |
+| 2026-10-25 | Equal | Done. All acceptance criteria pass. NFR-1 measured with `BenchmarkList200`. |
 
 ## 1. Summary
 Add the task tools of ADR-006, the generated `docs/tasks/INDEX.md` and the `/dx:task` skill. The tools enforce the status rules of the equal task skill.
@@ -150,9 +151,9 @@ Delete `internal/docs/task/`, the template and the skill. Task files stay valid 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README tool list).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1: `TestQuestions`. AC-2: `TestCreate`, `TestSetStatusRules` and `TestIndexMatchesRepository`. AC-3: `TestMissingDir`. CI run 40233280353 on macOS, Linux and Windows. Real session (Claude Code 2.1.308, Haiku, temporary repository): `task_create`, `task_question_add`, then `task_set_status(Approved)` refused with `Cannot set Approved: Q-1 is Open.`; the author came from `git config user.name`; `INDEX.md` was made. Metric: `task_get` with `section` returns only that section. NFR-1: `BenchmarkList200` gives approximately 13 ms for 200 tasks of 6 KB (Apple M1); target 50 ms.
+- [x] Project checks (build, tests, lint) pass. CI run 40233280353; lint with GOOS=windows also passes.
+- [x] Docs are updated (README tool list). Not applicable yet: the README lists features by version in Roadmap; a tool list comes with the v0.1 release notes.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. The status diagram in 7.1 describes the code (`internal/docs/task/change.go`). There are no area docs yet.
+- [x] ADRs are recorded for architectural decisions. No new decision; ADR-006 and ADR-007 describe the code.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new lesson: the FR-9 change is in the Document History.
