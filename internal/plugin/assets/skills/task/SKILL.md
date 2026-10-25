@@ -9,6 +9,10 @@ The dx task tools read and write the task files in `docs/tasks/`. They set the n
 
 Read only what you need: `task_get` with `section` returns one section.
 
+## List tasks
+
+Run `task_list` with the filters of the request (`status`, `priority`, `area`). Give its lines to the user and stop. Do not run other tools: `task_list` has all the data of a list. Run `task_get` only when the user asks for the content of a task.
+
 ## Create a task
 
 Each unit of work of the project gets a task. Changes to the agent setup (`.claude/` and the agent rules in `CLAUDE.md`) do not get a task.
@@ -65,4 +69,4 @@ If `task_list` warns that two files have one number, run `task_renumber` with th
 
 ## Report
 
-Give the task path, its status, its priority and the open questions.
+After a create, a refine or a status change, give the task path, its status, its priority and the open questions. The path is in the `task_create` result, and `task_list` gives the ID. Do not run other tools to find the path.
