@@ -7,6 +7,11 @@ on:
 permissions:
   contents: write
 
+# Do not cancel a release in progress. A partial release is worse than a wait.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
