@@ -1,7 +1,7 @@
 ---
 id: TASK-020
 title: The glossary_list tool
-status: In Development
+status: Done
 priority: P1
 area: [docs-tools, plugin]
 depends_on: [TASK-007, TASK-008]
@@ -20,11 +20,13 @@ depends_on: [TASK-007, TASK-008]
 | Related | ADR-005, ADR-006, TASK-007 |
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Claude | Initial specification from the v0.1.0 QA of the maintainer |
 | 2026-10-25 | Equal | Q-1 to Q-3 answered in the chat. Approved for v0.1.0. Work started. The maintainer does the real session test. |
 | 2026-10-25 | Claude | AC-2 failed in the session of the maintainer: `dx:scout` called `glossary_list`, then Grep on the file to get line numbers, because its rules asked a `path:line` for each fact. FR-5 added. |
+| 2026-10-25 | Equal | AC-2 passed in the QA session of the maintainer. The short-name failure of dx:scout goes to a new task. |
 
 ## 1. Summary
 Add `glossary_list(area?)`. It returns one row for each term of `docs/GLOSSARY.md`. `dx:scout` and `/dx:glossary` use it in place of a read of the file.
@@ -112,9 +114,10 @@ Delete `List`, `listText`, the tool registration and the skill and agent lines.
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+
+- [x] All acceptance criteria pass, with evidence. AC-1: `TestToolsFlow` and `TestListArea` pass (`internal/docs/glossary/glossary_test.go:63`, `:108`). AC-2: QA session, Claude Code 2.1.308, binary from `7063947`. `dx:scout` answered "all terms" and "terms of area docs-tools" with `glossary_list` and no read of `docs/GLOSSARY.md`. Two calls with the short name `glossary_list` failed: the next task records this.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `7063947`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues; govulncheck: no vulnerabilities.
+- [x] Docs are updated (README). Not applicable: the README does not list tools. `skills/glossary/SKILL.md:8` and `agents/scout.md:21` give `glossary_list`.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no diagram.
+- [x] ADRs are recorded for architectural decisions. `docs/decisions/ADR-006-document-management-tools.md:23` lists `glossary_list`.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new lesson.

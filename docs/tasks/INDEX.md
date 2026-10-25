@@ -29,11 +29,17 @@ Sort by priority, then by ID.
 | [TASK-011](TASK-011-git-branch-and-remote-tools.md) | Git tools for branches, rebase and remotes | `Approved` | `P1` | `git` | TASK-010 |
 | [TASK-012](TASK-012-bash-git-hook-git-exec-and-report.md) | Bash git hook, git_exec and the report command | `Approved` | `P1` | `git`, `plugin`, `cli` | TASK-002, TASK-009 |
 | [TASK-013](TASK-013-commit-and-eureka-skills.md) | The /dx:commit and /dx:eureka skills | `Approved` | `P1` | `plugin` | TASK-005, TASK-007, TASK-010, TASK-011 |
-| [TASK-020](TASK-020-glossary-list-tool.md) | The glossary_list tool | `In Development` | `P1` | `docs-tools`, `plugin` | TASK-007, TASK-008 |
+| [TASK-021](TASK-021-prevent-adr-supersede-cycles-and-status-changes-of.md) | Prevent ADR supersede cycles and status changes of superseded ADRs | `Draft` | `P1` | `docs-tools` | TASK-005 |
+| [TASK-022](TASK-022-keep-omitted-fields-in-glossary-upsert.md) | Keep omitted fields in glossary_upsert | `Draft` | `P1` | `docs-tools` | TASK-007 |
+| [TASK-023](TASK-023-refuse-task-dependencies-that-do-not-exist-point-to-the-same.md) | Refuse task dependencies that do not exist, point to the same task or make a cycle | `Draft` | `P1` | `docs-tools` | TASK-006 |
+| [TASK-024](TASK-024-give-full-mcp-tool-names-in-the-rules-of-dx-scout.md) | Give full MCP tool names in the rules of dx:scout | `Draft` | `P1` | `plugin` | TASK-008 |
 | [TASK-014](TASK-014-filesystem-tools.md) | Filesystem tools (v0.3) | `Draft` | `P2` | `fs` | TASK-004, TASK-012 |
 | [TASK-015](TASK-015-lsp-core-languages.md) | LSP manager and tools for Go, TypeScript, JavaScript, Python, C and C++ (v0.4) | `Draft` | `P2` | `lsp` | TASK-004 |
 | [TASK-017](TASK-017-prepare-public-release.md) | Prepare the repository for public release | `In Development` | `P2` | `repo` | None |
+| [TASK-026](TASK-026-remove-the-dx-eureka-item-from-the-task-template-until-the.md) | Remove the /dx:eureka item from the task template until the skill exists | `Draft` | `P2` | `docs-tools` | TASK-006 |
 | [TASK-016](TASK-016-lsp-other-languages.md) | LSP servers for HTML, CSS, JSON, Bash, CMake, Lua, Make and Ninja (v0.5) | `Draft` | `P3` | `lsp` | TASK-015 |
+| [TASK-025](TASK-025-give-a-compact-list-of-the-unchecked-definition-of-done.md) | Give a compact list of the unchecked Definition of Done items | `Draft` | `P3` | `docs-tools` | TASK-006 |
+| [TASK-027](TASK-027-do-not-remove-the-dev-plugin-directory-of-a-running-session.md) | Do not remove the dev plugin directory of a running session | `Draft` | `P3` | `cli`, `plugin` | TASK-002 |
 
 ## Closed tasks
 
@@ -51,3 +57,4 @@ Sort by priority, then by ID.
 | [TASK-008](TASK-008-grill-skill-scout-agent-and-rules.md) | Grill skill, scout agent and shared rules | `Done` | 2026-10-25 |
 | [TASK-018](TASK-018-task-skill-list-without-extra-calls.md) | The /dx:task skill lists tasks with no extra calls | `Done` | 2026-10-25 |
 | [TASK-019](TASK-019-rename-the-mcp-server-to-mcp.md) | Rename the MCP server of the dx plugin to mcp | `Done` | 2026-10-25 |
+| [TASK-020](TASK-020-glossary-list-tool.md) | The glossary_list tool | `Done` | 2026-10-25 |
