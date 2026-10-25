@@ -1,7 +1,7 @@
 ---
 id: TASK-003
 title: Update, cache clean and doctor commands
-status: In Development
+status: Done
 priority: P1
 area: [cli]
 depends_on: [TASK-002, TASK-004]
@@ -27,6 +27,7 @@ depends_on: [TASK-002, TASK-004]
 | 2026-10-25 | Equal | Work started. |
 | 2026-10-25 | Claude | Decisions of the maintainer: Q-2 to Q-5. Facts: version comparison uses `golang.org/x/mod/semver` (already in the module graph); download URLs come from `browser_download_url` of the release assets; archive names are the names of `scripts/install.sh`; `update.json` is written to a temporary file and renamed; requests send `User-Agent: claude-dx/<version>`. `CheckInBackground` is `Check`; the MCP server runs it in a goroutine. `claude-dx cache` with no `clean` prints the usage and exits with code 1. |
 | 2026-10-25 | Claude | Code done (`67aef6f`). Local on macOS: all tests pass, also `TestUpdateRunningBinary` (AC-1), `TestBadChecksum` (AC-2) and `TestCheck` (AC-3). `claude-dx doctor` with a real binary gives the lines of 7.4. Done waits for CI on Windows (AC-1). |
+| 2026-10-25 | Equal | Done. All acceptance criteria pass. CI run 40238788647 on macOS, Linux and Windows. |
 
 ## 1. Summary
 Add `claude-dx update`, `claude-dx cache clean` and `claude-dx doctor`, and the background update check in the MCP server.
@@ -139,9 +140,9 @@ Remove `internal/update/` and the `update` command. Users then update with the i
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. CI run 40238788647: `internal/update` passes on windows-latest (no `-short`). AC-1: `TestUpdateRunningBinary` replaces a `claude-dx.exe` that runs, runs the new binary (`claude-dx v0.2.0`), and the next start deletes `claude-dx.exe.old`. AC-2: `TestBadChecksum` (the binary and its directory do not change). AC-3: `TestCheck` (an `update.json` from 2 days ago gets a new `checked_at`). `TestLaunchShowsUpdateNotice`, `TestDoctor`, `TestCacheClean`, `TestUpdateRefusesDev` run the built binary. Real binary on macOS: `claude-dx doctor` gives the lines of 7.4 and exit code 1 for a missing plugin. Metric: the launcher only calls `update.Notice`, which reads `update.json` (`internal/launcher/launcher.go`); 0 network calls.
+- [x] Project checks (build, tests, lint) pass. CI run 40238788647 (test, install and vuln jobs); lint with GOOS=windows and GOOS=linux also passes.
+- [x] Docs are updated (README). README "Use" lists `update`, `cache clean`, `doctor` and the update notice.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no diagram.
+- [x] ADRs are recorded for architectural decisions. No new decision; ADR-004 describes the code. The decisions of the maintainer are Q-2 to Q-5.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new lesson.

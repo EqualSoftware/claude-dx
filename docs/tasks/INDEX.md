@@ -24,7 +24,6 @@ Sort by priority, then by ID.
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-003](TASK-003-update-cache-clean-and-doctor.md) | Update, cache clean and doctor commands | `In Development` | `P1` | `cli` | TASK-002, TASK-004 |
 | [TASK-009](TASK-009-git-runner-and-read-tools.md) | Git runner and read-only git tools | `Approved` | `P1` | `git` | TASK-004 |
 | [TASK-010](TASK-010-git-local-history-tools.md) | Git tools for local changes and history | `Approved` | `P1` | `git` | TASK-009 |
 | [TASK-011](TASK-011-git-branch-and-remote-tools.md) | Git tools for branches, rebase and remotes | `Approved` | `P1` | `git` | TASK-010 |
@@ -43,6 +42,7 @@ Sort by priority, then by ID.
 | :--- | :--- | :--- | :--- |
 | [TASK-001](TASK-001-project-skeleton-ci-and-release.md) | Project skeleton, CI and release pipeline | `Done` | 2026-10-25 |
 | [TASK-002](TASK-002-launcher-and-plugin-loading.md) | Launcher and plugin loading | `Done` | 2026-10-25 |
+| [TASK-003](TASK-003-update-cache-clean-and-doctor.md) | Update, cache clean and doctor commands | `Done` | 2026-10-25 |
 | [TASK-004](TASK-004-mcp-server-core.md) | MCP server core, project root and number allocation | `Done` | 2026-10-25 |
 | [TASK-005](TASK-005-adr-tools-and-skill.md) | ADR tools and the /dx:adr skill | `Done` | 2026-10-25 |
 | [TASK-006](TASK-006-task-tools-index-and-skill.md) | Task tools, INDEX.md and the /dx:task skill | `Done` | 2026-10-25 |
