@@ -35,3 +35,58 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.15.0
+
+  install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Build snapshot release
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          version: "~> v2"
+          args: release --snapshot --clean
+      - name: Serve snapshot release
+        shell: bash
+        run: |
+          python -m http.server 8765 --directory dist > /dev/null 2>&1 &
+          echo "VERSION=v$(python -c 'import json; print(json.load(open("dist/metadata.json"))["version"])')" >> "$GITHUB_ENV"
+          sleep 2
+      - name: Install (macOS, Linux)
+        if: runner.os != 'Windows'
+        env:
+          CLAUDE_DX_BASE_URL: http://127.0.0.1:8765
+          CLAUDE_DX_INSTALL_DIR: ${{ runner.temp }}/bin
+        run: |
+          sh scripts/install.sh "$VERSION"
+          "$CLAUDE_DX_INSTALL_DIR/claude-dx" --version
+          # A changed archive must fail the checksum check.
+          rm -rf "$CLAUDE_DX_INSTALL_DIR"
+          echo bad >> dist/claude-dx_*_$(go env GOOS)_$(go env GOARCH).tar.gz
+          if sh scripts/install.sh "$VERSION"; then echo "checksum check did not fail"; exit 1; fi
+          test ! -e "$CLAUDE_DX_INSTALL_DIR/claude-dx"
+      - name: Install (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          CLAUDE_DX_BASE_URL: http://127.0.0.1:8765
+          CLAUDE_DX_INSTALL_DIR: ${{ runner.temp }}\bin
+        run: |
+          ./scripts/install.ps1 $env:VERSION
+          & "$env:CLAUDE_DX_INSTALL_DIR\claude-dx.exe" --version
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          # A second install replaces the binary through the .old rename.
+          ./scripts/install.ps1 $env:VERSION
+          if (-not (Test-Path "$env:CLAUDE_DX_INSTALL_DIR\claude-dx.exe.old")) { throw "no .old file" }
+          # A changed archive must fail the checksum check.
+          Remove-Item $env:CLAUDE_DX_INSTALL_DIR -Recurse -Force
+          Get-ChildItem dist/claude-dx_*_windows_amd64.zip | ForEach-Object { Add-Content $_.FullName "bad" }
+          pwsh -NoProfile -File ./scripts/install.ps1 $env:VERSION
+          if ($LASTEXITCODE -eq 0) { throw "checksum check did not fail" }
+          if (Test-Path "$env:CLAUDE_DX_INSTALL_DIR\claude-dx.exe") { throw "binary was installed" }
