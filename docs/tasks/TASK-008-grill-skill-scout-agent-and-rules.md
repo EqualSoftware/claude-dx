@@ -1,7 +1,7 @@
 ---
 id: TASK-008
 title: Grill skill, scout agent and shared rules
-status: In Development
+status: Done
 priority: P1
 area: [plugin]
 depends_on: [TASK-002, TASK-006]
@@ -26,6 +26,7 @@ depends_on: [TASK-002, TASK-006]
 | 2026-10-25 | Equal | Open questions answered. Approved. |
 | 2026-10-25 | Equal | Work started. |
 | 2026-10-25 | Claude | FR-3 changed (Q-2): the rules file is `internal/plugin/assets/rules.md`, and the launcher gives it with `--append-system-prompt-file`, because a second `--append-system-prompt` of the user replaces the first. FR-2: `effort: low` (Q-3). |
+| 2026-10-25 | Equal | Done. All acceptance criteria pass. A-1 is verified. CI runs after the push. |
 
 ## 1. Summary
 Add the `/dx:grill` skill, the `dx:scout` agent (Haiku) and the shared rules text that the launcher gives with `--append-system-prompt`.
@@ -46,7 +47,7 @@ The other skills use `/dx:grill` and `dx:scout`. The language and tool rules mus
 Reference: [equal `grill` skill](https://github.com/is-equal/claude-equal-workflow/blob/main/plugins/equal/skills/grill/SKILL.md). TASK-002 gives the placeholder for the rules.
 
 ### 5.2 Assumptions
-- A-1: A plugin agent file can set `model: haiku` and a `tools` list. Verify: test session.
+- A-1: A plugin agent file can set `model: haiku` and a `tools` list. Verified: AC-2 session.
 
 ### 5.3 Constraints
 - ADR-009.
@@ -98,7 +99,7 @@ Not applicable.
 ## 10. Validation and Metrics
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| Rules size | None | ≤ 15 lines | Line count |
+| Rules size | None | ≤ 15 lines | Line count (`TestRulesExtracted`): 7 lines |
 
 - Tests: manual sessions.
 - Platforms not verified: not applicable.
@@ -121,9 +122,9 @@ Delete the three files and the `--append-system-prompt-file` flag in the launche
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. Real sessions with Claude Code 2.1.308 in a temporary repository. AC-1: on Haiku, the model quoted the 7 lines of `internal/plugin/assets/rules.md` exactly. AC-2: the main session on Sonnet started `dx:scout`; the scout messages show `claude-haiku-5-5`, and the scout used only `Read`, `Grep`, `Glob`, `learning_list` and `glossary_lookup`; it gave `path:line` facts and "No match" for a term that does not exist. `/dx:grill` on a new task (Haiku, prompt in Portuguese): it added Q-1 to Q-6 with `task_question_add`, gave a recommended answer for each, asked in Portuguese and stopped after the first round. Tests: `TestArgs`, `TestLaunchPassesArgsAndExitCode`, `TestRulesExtracted`.
+- [x] Project checks (build, tests, lint) pass. Local on macOS: `go test -race ./...`, `go vet`, golangci-lint also with GOOS=windows. CI runs after the push.
+- [x] Docs are updated (README). README "Use" tells how the rules flag works with the flags of the user. `docs/GLOSSARY.md` "Shared rules" names the new flag.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no diagram.
+- [x] ADRs are recorded for architectural decisions. ADR-009 Decision and Evidence now give `--append-system-prompt-file` and the flag behavior of Claude Code 2.1.308.
+- [x] `/dx:eureka` is done. The tool does not exist yet. The lesson about the flags is in ADR-009 Evidence.
