@@ -20,6 +20,9 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          # Cache Go modules and build output. The key uses go.mod, because
+          # go.sum does not exist while the project has no dependencies.
+          cache-dependency-path: go.mod
       - name: Build
         run: go build ./...
       - name: Vet
@@ -47,6 +50,9 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          # Cache Go modules and build output. The key uses go.mod, because
+          # go.sum does not exist while the project has no dependencies.
+          cache-dependency-path: go.mod
       - name: Build snapshot release
         uses: goreleaser/goreleaser-action@v7
         with:
