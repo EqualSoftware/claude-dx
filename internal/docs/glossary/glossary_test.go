@@ -65,7 +65,9 @@ func TestToolsFlow(t *testing.T) {
 	session := connect(t, s)
 	expect(t, session, "glossary_lookup", map[string]any{"term": "Task"}, "No glossary. docs/GLOSSARY.md does not exist.")
 	args := map[string]any{"term": "Task", "definition": "A spec file.", "area": "process", "do_not_use": []string{"ticket", "issue"}, "source": "`docs/tasks/`"}
+	expect(t, session, "glossary_list", map[string]any{}, "No glossary. docs/GLOSSARY.md does not exist.")
 	expect(t, session, "glossary_upsert", args, `Added "Task".`)
+	expect(t, session, "glossary_list", map[string]any{}, "| Task | A spec file. | process | ticket, issue | `docs/tasks/` |\n")
 	// AC-1: a Do not use word gives the approved term.
 	expect(t, session, "glossary_lookup", map[string]any{"term": "TICKET"}, `Use "Task", not "ticket".`)
 	expect(t, session, "glossary_lookup", map[string]any{"term": "task"}, "| Task | A spec file. | process | ticket, issue | `docs/tasks/` |")
@@ -73,6 +75,7 @@ func TestToolsFlow(t *testing.T) {
 	expect(t, session, "glossary_upsert", args, `Changed "Task".`)
 	expect(t, session, "glossary_lookup", map[string]any{"term": "tas"}, "No match.")
 	expect(t, session, "glossary_delete", map[string]any{"term": "task"}, `Deleted "task".`)
+	expect(t, session, "glossary_list", map[string]any{}, "No terms in docs/GLOSSARY.md.")
 	data, _ := os.ReadFile(s.Path)
 	if string(data) != templateText {
 		t.Fatalf("file after delete =\n%s", data)
@@ -99,6 +102,24 @@ func TestUpsertSortsAndEscapes(t *testing.T) {
 	text, _, _ := s.Lookup("pipe")
 	if text != "| Pipe | The \\| character. It splits cells. | build | — | x |" {
 		t.Fatalf("Lookup(pipe) = %q", text)
+	}
+}
+
+func TestListArea(t *testing.T) {
+	s := newStore(t)
+	upsert(t, s, "ADR")
+	if _, err := s.Upsert(Row{Term: "Lexer", Definition: "D.", Area: "Lexer", Source: "x"}); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := s.List("lexer")
+	if err != nil || len(rows) != 1 || rows[0].Term != "Lexer" {
+		t.Fatalf("List(lexer) = %+v, %v", rows, err)
+	}
+	if text, _ := s.listText("cli"); text != `No terms with the area "cli".` {
+		t.Fatalf("listText(cli) = %q", text)
+	}
+	if all, _ := s.List(""); len(all) != 2 {
+		t.Fatalf("List() = %+v", all)
 	}
 }
 

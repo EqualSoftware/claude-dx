@@ -5,7 +5,7 @@ description: Add, change or check terms in docs/GLOSSARY.md with the dx glossary
 
 # Maintain the glossary
 
-The glossary is `docs/GLOSSARY.md`. One term has one meaning. One meaning has one term. The dx glossary tools read and write the table. Do not change `docs/GLOSSARY.md` with Edit or Write, and do not read all of it: use `glossary_lookup`.
+The glossary is `docs/GLOSSARY.md`. One term has one meaning. One meaning has one term. The dx glossary tools read and write the table. Do not change `docs/GLOSSARY.md` with Edit or Write, and do not read it: use `glossary_lookup` for one term, and `glossary_list` (all terms, or the terms of one `area`) for many terms.
 
 ## When to use
 

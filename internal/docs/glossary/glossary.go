@@ -66,6 +66,22 @@ func (s Store) Lookup(term string) (text string, ok bool, err error) {
 	return "", false, nil
 }
 
+// List returns the rows of the glossary in file order. A non-empty area keeps only the rows of
+// that area, with no case difference.
+func (s Store) List(area string) ([]Row, error) {
+	t, err := s.read()
+	if err != nil || area == "" {
+		return t.rows, err
+	}
+	var rows []Row
+	for _, r := range t.rows {
+		if same(r.Area, area) {
+			rows = append(rows, r)
+		}
+	}
+	return rows, nil
+}
+
 // Upsert adds the row, or replaces the row with the same term, and sorts the rows by term.
 // It makes the file if it does not exist. added is true for a new term.
 func (s Store) Upsert(row Row) (added bool, err error) {

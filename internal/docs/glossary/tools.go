@@ -3,6 +3,7 @@ package glossary
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
@@ -11,6 +12,10 @@ import (
 
 type termInput struct {
 	Term string `json:"term" jsonschema:"the term or a word to find. The tool compares the full text with no case difference"`
+}
+
+type listInput struct {
+	Area string `json:"area,omitempty" jsonschema:"only the terms of this area, example process. Omit it for all terms"`
 }
 
 type upsertInput struct {
@@ -31,6 +36,8 @@ func Register(server *mcp.Server, s Store) {
 			}
 			return text, err
 		})
+	add(server, "glossary_list", "List the terms of docs/GLOSSARY.md, one row for each term (| Term | Definition | Area | Do not use | Source |). Use it when you need many terms; use glossary_lookup for one term.",
+		func(in listInput) (string, error) { return s.listText(in.Area) })
 	add(server, "glossary_upsert", "Add a term to docs/GLOSSARY.md, or replace the row of the term. The tool keeps alphabetical order and refuses a conflict with another row.",
 		func(in upsertInput) (string, error) {
 			added, err := s.Upsert(Row(in))
@@ -49,4 +56,23 @@ func add[In any](server *mcp.Server, name, description string, fn func(In) (stri
 			text, err := fn(in)
 			return result.Reply(text, err, ErrNoFile)
 		})
+}
+
+func (s Store) listText(area string) (string, error) {
+	rows, err := s.List(area)
+	if err != nil {
+		return "", err
+	}
+	if len(rows) == 0 && area != "" {
+		return fmt.Sprintf("No terms with the area %q.", area), nil
+	}
+	if len(rows) == 0 {
+		return "No terms in docs/GLOSSARY.md.", nil
+	}
+	var b strings.Builder
+	for _, r := range rows {
+		b.WriteString(r.line())
+		b.WriteByte('\n')
+	}
+	return b.String(), nil
 }
