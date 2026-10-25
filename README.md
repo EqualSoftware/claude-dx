@@ -52,6 +52,8 @@ claude-dx [claude arguments]     # Start Claude Code with dx.
 claude-dx -- [claude arguments]  # Pass all arguments to Claude Code.
 ```
 
+claude-dx gives the dx rules to Claude Code with `--append-system-prompt-file`. Your `--append-system-prompt` also applies. Do not give `--append-system-prompt-file`: Claude Code uses only the last one, so the dx rules stop.
+
 ## Contributing
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md). To report a security problem, read [SECURITY.md](SECURITY.md). This project has a [Code of Conduct](CODE_OF_CONDUCT.md).

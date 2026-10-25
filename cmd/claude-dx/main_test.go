@@ -93,12 +93,13 @@ func TestLaunchPassesArgsAndExitCode(t *testing.T) {
 			t.Fatalf("%q: exit code = %d, want 3; stderr: %s", args, code, stderr)
 		}
 		lines := strings.Split(strings.TrimSpace(stdout), "\n")
-		if len(lines) != 5 || lines[0] != "--plugin-dir" || lines[2] != "--settings" || lines[4] != args[len(args)-1] {
+		if len(lines) != 7 || lines[0] != "--plugin-dir" || lines[2] != "--settings" || lines[4] != "--append-system-prompt-file" || lines[6] != args[len(args)-1] {
 			t.Fatalf("%q: claude args = %q", args, lines)
 		}
-		manifest := filepath.Join(strings.TrimSpace(lines[1]), ".claude-plugin", "plugin.json")
-		if _, err := os.Stat(manifest); err != nil {
-			t.Fatalf("%q: plugin is not extracted: %v", args, err)
+		for _, file := range []string{filepath.Join(lines[1], ".claude-plugin", "plugin.json"), lines[5]} {
+			if _, err := os.Stat(strings.TrimSpace(file)); err != nil {
+				t.Fatalf("%q: plugin is not extracted: %v", args, err)
+			}
 		}
 	}
 }

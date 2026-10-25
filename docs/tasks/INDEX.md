@@ -25,7 +25,7 @@ Sort by priority, then by ID.
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | [TASK-003](TASK-003-update-cache-clean-and-doctor.md) | Update, cache clean and doctor commands | `Approved` | `P1` | `cli` | TASK-002, TASK-004 |
-| [TASK-008](TASK-008-grill-skill-scout-agent-and-rules.md) | Grill skill, scout agent and shared rules | `Approved` | `P1` | `plugin` | TASK-002, TASK-006 |
+| [TASK-008](TASK-008-grill-skill-scout-agent-and-rules.md) | Grill skill, scout agent and shared rules | `In Development` | `P1` | `plugin` | TASK-002, TASK-006 |
 | [TASK-009](TASK-009-git-runner-and-read-tools.md) | Git runner and read-only git tools | `Approved` | `P1` | `git` | TASK-004 |
 | [TASK-010](TASK-010-git-local-history-tools.md) | Git tools for local changes and history | `Approved` | `P1` | `git` | TASK-009 |
 | [TASK-011](TASK-011-git-branch-and-remote-tools.md) | Git tools for branches, rebase and remotes | `Approved` | `P1` | `git` | TASK-010 |

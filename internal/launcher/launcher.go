@@ -47,8 +47,15 @@ func Run(version string, args []string) (int, error) {
 const settings = `{"permissions":{"allow":["mcp__plugin_dx_dx"]}}`
 
 // Args returns the arguments for claude: the dx flags, then the arguments of the user.
+// The rules go in a file flag, because claude uses only the last --append-system-prompt,
+// and the user can give one (ADR-009).
 func Args(pluginDir string, user []string) []string {
-	return append([]string{"--plugin-dir", pluginDir, "--settings", settings}, user...)
+	dx := []string{
+		"--plugin-dir", pluginDir,
+		"--settings", settings,
+		"--append-system-prompt-file", filepath.Join(pluginDir, "rules.md"),
+	}
+	return append(dx, user...)
 }
 
 // executable returns the absolute path of claude-dx, with symlinks resolved.

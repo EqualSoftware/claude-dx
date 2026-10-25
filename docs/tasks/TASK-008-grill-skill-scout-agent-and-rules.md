@@ -1,7 +1,7 @@
 ---
 id: TASK-008
 title: Grill skill, scout agent and shared rules
-status: Approved
+status: In Development
 priority: P1
 area: [plugin]
 depends_on: [TASK-002, TASK-006]
@@ -24,6 +24,8 @@ depends_on: [TASK-002, TASK-006]
 | :--- | :--- | :--- |
 | 2026-10-25 | Claude | Initial draft specification from the design interview |
 | 2026-10-25 | Equal | Open questions answered. Approved. |
+| 2026-10-25 | Equal | Work started. |
+| 2026-10-25 | Claude | FR-3 changed (Q-2): the rules file is `internal/plugin/assets/rules.md`, and the launcher gives it with `--append-system-prompt-file`, because a second `--append-system-prompt` of the user replaces the first. FR-2: `effort: low` (Q-3). |
 
 ## 1. Summary
 Add the `/dx:grill` skill, the `dx:scout` agent (Haiku) and the shared rules text that the launcher gives with `--append-system-prompt`.
@@ -52,8 +54,8 @@ Reference: [equal `grill` skill](https://github.com/is-equal/claude-equal-workfl
 ## 6. Requirements
 ### 6.1 Functional
 - FR-1: `/dx:grill` is the equal grill skill with these changes: `equal:scout` becomes `dx:scout`; `/equal:task` and `/equal:adr` become `/dx:task` and `/dx:adr`; for a task, answers go through `task_question_answer`.
-- FR-2: `agents/scout.md`: name `scout`, `model: haiku`, tools `Read`, `Grep`, `Glob` and the read-only dx tools. Its instructions: answer the closed list of questions in the brief with `path:line` facts only; do not guess; return "Not found" for a question with no fact.
-- FR-3: `internal/plugin/rules.md` (embedded) holds the rules text. The launcher reads it and gives it with `--append-system-prompt`. First text:
+- FR-2: `agents/scout.md`: name `scout`, `model: haiku`, `effort: low` (Q-3), tools `Read`, `Grep`, `Glob` and the read-only dx tools. Its instructions: answer the closed list of questions in the brief with `path:line` facts only; do not guess; return "Not found" for a question with no fact.
+- FR-3: `internal/plugin/assets/rules.md` holds the rules text. The plugin extraction writes it to the plugin directory. The launcher gives it with `--append-system-prompt-file <plugin dir>/rules.md` (Q-2). First text:
 
 ```text
 # dx rules
@@ -70,7 +72,7 @@ Reference: [equal `grill` skill](https://github.com/is-equal/claude-equal-workfl
 
 ## 7. Design
 ### 7.1 Architecture
-Files: `internal/plugin/assets/skills/grill/SKILL.md`, `internal/plugin/assets/agents/scout.md`, `internal/plugin/rules.md`.
+Files: `internal/plugin/assets/skills/grill/SKILL.md`, `internal/plugin/assets/agents/scout.md`, `internal/plugin/assets/rules.md`.
 
 ### 7.2 Public API
 `/dx:grill`, agent `dx:scout`.
@@ -107,12 +109,14 @@ Not applicable.
 | The model ignores the rule "do not use Edit on dx files" | Medium | Add a hook check later if this happens |
 
 ## 12. Removal and Compatibility
-Delete the three files and the `--append-system-prompt` flag in the launcher.
+Delete the three files and the `--append-system-prompt-file` flag in the launcher.
 
 ## 13. Open Questions
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
 | Q-1 | Language of the conversation with the user. The project goal says that documents and the communication of MCP and skills use ASD-STE100 English. Recommended: documents, tool arguments, tool results and skill files use ASD-STE100; the chat with the user (example: grill questions) uses the language of the user. Alternative: all chat in ASD-STE100 English. | Maintainer | A: ASD-STE100 for documents, commit messages, tool arguments, tool results and skill files. The chat with the user uses the language of the user. |
+| Q-2 | How does the launcher give the rules? Claude Code 2.1.308 uses only the last `--append-system-prompt`, and only the last `--append-system-prompt-file`, but it uses one of each together. Recommended: a file in the plugin directory with `--append-system-prompt-file`, so that the `--append-system-prompt` of the user also applies. | Maintainer | Accepted. |
+| Q-3 | Does `dx:scout` use `effort: low`? Recommended: yes, because fact searches are mechanical. | Maintainer | Accepted. |
 
 The status cannot be `Approved` while a question is `Open`.
 

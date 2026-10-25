@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 )
@@ -33,6 +34,21 @@ func TestEnsureExtracts(t *testing.T) {
 	m := readManifest(t, dir)
 	if m["name"] != "dx" || m["version"] != "v1.2.3" {
 		t.Fatalf("manifest = %v", m)
+	}
+}
+
+// TestRulesExtracted checks that the launcher can give rules.md, and NFR-1 of TASK-008: 15 lines or less.
+func TestRulesExtracted(t *testing.T) {
+	dir, err := Ensure(t.TempDir(), "v1.2.3", "/bin/claude-dx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "rules.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if lines := strings.Count(string(data), "\n"); !strings.HasPrefix(string(data), "# dx rules\n") || lines > 15 {
+		t.Fatalf("rules.md has %d lines:\n%s", lines, data)
 	}
 }
 
