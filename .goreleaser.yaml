@@ -44,3 +44,7 @@ release:
   github:
     owner: is-equal
     name: claude-dx
+  # A SemVer pre-release tag (example: v0.1.0-rc.0) makes a GitHub pre-release.
+  prerelease: auto
+  # release-please writes the release notes. Keep them and only add the files.
+  mode: keep-existing

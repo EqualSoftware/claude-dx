@@ -17,7 +17,7 @@ depends_on: []
 | Platforms | macOS, Linux, Windows (amd64, arm64) |
 | Size | `M` (1–3 days) |
 | Blocks | TASK-002, TASK-004 |
-| Related | ADR-003, ADR-004 |
+| Related | ADR-003, ADR-004, ADR-012 |
 
 ## Document History
 | Date | Author | Description / Change Notes |
@@ -58,7 +58,7 @@ The repository has only `go.mod` and docs. All later tasks need a layout, a CI t
 ### 6.1 Functional
 - FR-1: The layout is the layout in section 7.1.
 - FR-2: `.github/workflows/ci.yml` runs on push and pull request. Matrix: `macos-latest`, `ubuntu-latest`, `windows-latest`. Steps: build, vet, test (with `-race` on macOS and Linux), golangci-lint.
-- FR-3: `.github/workflows/release.yml` runs GoReleaser on a `v*` tag.
+- FR-3: `.github/workflows/release.yml` runs release-please on each push to `main`, and GoReleaser when release-please makes a release or when a person pushes a `v*` tag (ADR-012).
 - FR-4: GoReleaser builds `darwin/amd64`, `darwin/arm64`, `linux/amd64`, `linux/arm64`, `windows/amd64`, `windows/arm64`, with `CGO_ENABLED=0`. It sets the version with `-ldflags "-X main.version=<tag>"`. Archive name: `claude-dx_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows).
 - FR-5: `scripts/install.sh` detects the OS and the architecture, downloads the latest release (or the version in the first argument), verifies the SHA-256 from `checksums.txt` and installs the binary into the install directory: `$CLAUDE_DX_INSTALL_DIR`, else `~/.local/bin` (Q-1).
 - FR-6: `scripts/install.ps1` does the same on Windows and installs into `$env:CLAUDE_DX_INSTALL_DIR`, else `%LocalAppData%\Programs\claude-dx`, and adds it to the user `PATH` (Q-1).
@@ -123,7 +123,7 @@ claude-dx v0.1.0 installed to ~/.local/bin/claude-dx
 
 ## 9. Acceptance Criteria
 - AC-1: Given a push, when CI runs, then all steps pass on macOS, Linux and Windows.
-- AC-2: Given a `v*` tag, when the release workflow runs, then the release has 6 archives and `checksums.txt`.
+- AC-2: Given the pre-release tag `v0.1.0-rc.0`, when the release workflow runs, then the GitHub pre-release has 6 archives and `checksums.txt`.
 - AC-3: Given a changed archive, when `install.sh` runs, then the checksum check fails and nothing is installed.
 
 ## 10. Validation and Metrics

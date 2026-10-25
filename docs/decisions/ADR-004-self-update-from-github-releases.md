@@ -8,6 +8,7 @@
 The project is published at `github.com/is-equal/claude-dx`. The maintainer does not want to publish to Homebrew, package managers or other places. The targets are macOS, Linux and Windows.
 
 ## Decision
+- ADR-012 defines the version numbers and when a release happens.
 - GoReleaser builds `darwin/amd64`, `darwin/arm64`, `linux/amd64`, `linux/arm64`, `windows/amd64` and `windows/arm64`. It publishes the archives and `checksums.txt` to GitHub Releases only.
 - First install: `install.sh` (macOS, Linux) and `install.ps1` (Windows) in the repository download the release asset and verify its SHA-256. A manual download is also possible.
 - The MCP server checks the latest release a maximum of one time in 24 hours, in the background. It writes the result to `<cache>/update.json`.
