@@ -1,7 +1,7 @@
 ---
 id: TASK-007
 title: Learning and glossary tools and skills
-status: In Development
+status: Done
 priority: P1
 area: [docs-tools, plugin]
 depends_on: [TASK-002, TASK-004]
@@ -26,6 +26,7 @@ depends_on: [TASK-002, TASK-004]
 | 2026-10-25 | Equal | Open questions answered. Approved. |
 | 2026-10-25 | Equal | Work started. |
 | 2026-10-25 | Claude | The glossary template is in `internal/docs/glossary/` (only the server uses it). Decisions of the maintainer: `glossary_lookup` compares the full term with no case difference; `glossary_upsert` sorts all rows by term with no case difference; it also refuses a `do_not_use` word that is the term of another row; `learning_update` replaces the body. A new line in a cell becomes a space. |
+| 2026-10-25 | Equal | Done. All acceptance criteria pass. CI runs after the push. |
 
 ## 1. Summary
 Add the learning tools and the glossary tools of ADR-006, and the skills `/dx:learning` and `/dx:glossary`.
@@ -131,9 +132,9 @@ Delete the two packages, the template and the two skills. Files in projects stay
 | Q-1 | None. | — | — |
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README tool list).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1: `TestToolsFlow` in `internal/docs/glossary/glossary_test.go` (`glossary_lookup("TICKET")` returns `Use "Task", not "ticket".`). AC-2: `TestCreate` and `TestToolsFlow` in `internal/docs/learning/learning_test.go`. AC-3: `TestMissingDir` (learning). `TestRepositoryRoundTrip` reads and writes `docs/GLOSSARY.md` with no change. Real session (Claude Code 2.1.308, Haiku, temporary repository): `/dx:glossary` added `Gauge` after 3 `glossary_lookup` calls and 1 `glossary_upsert` call, in alphabetical order before `Widget`; `/dx:learning` ran `learning_list`, then `learning_create` for `sed-in-place` with two lessons. With no evidence, `/dx:learning` did not record the lesson. Metric: 1 `glossary_upsert` call for each term; target 1–2. NFR-1: `BenchmarkUpsert500` gives approximately 0.55 ms for 500 rows (Apple M1); target 20 ms.
+- [x] Project checks (build, tests, lint) pass. Local on macOS: `go test -race ./...`, `go vet`, govulncheck, golangci-lint also with GOOS=windows. CI runs after the push.
+- [x] Docs are updated (README tool list). Not applicable yet: the README lists features by version in Roadmap; a tool list comes with the v0.1 release notes.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no diagram.
+- [x] ADRs are recorded for architectural decisions. No new decision; ADR-006 describes the code. The decisions of the maintainer for this task are in the Document History.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new lesson: in the first session, Haiku gave `do_not_use` as a string; the schema description now gives an example list.
