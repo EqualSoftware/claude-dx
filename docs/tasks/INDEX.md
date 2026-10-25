@@ -24,7 +24,6 @@ Sort by priority, then by ID.
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-001](TASK-001-project-skeleton-ci-and-release.md) | Project skeleton, CI and release pipeline | `Approved` | `P0` | `build`, `ci` | None |
 | [TASK-002](TASK-002-launcher-and-plugin-loading.md) | Launcher and plugin loading | `Approved` | `P0` | `cli`, `plugin` | TASK-001 |
 | [TASK-004](TASK-004-mcp-server-core.md) | MCP server core, project root and number allocation | `Approved` | `P0` | `mcp` | TASK-001 |
 | [TASK-003](TASK-003-update-cache-clean-and-doctor.md) | Update, cache clean and doctor commands | `Approved` | `P1` | `cli` | TASK-002, TASK-004 |
@@ -47,3 +46,4 @@ Sort by priority, then by ID.
 
 | ID | Title | Status | Closed |
 | :--- | :--- | :--- | :--- |
+| [TASK-001](TASK-001-project-skeleton-ci-and-release.md) | Project skeleton, CI and release pipeline | `Done` | 2026-10-25 |

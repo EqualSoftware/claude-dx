@@ -1,7 +1,7 @@
 ---
 id: TASK-001
 title: Project skeleton, CI and release pipeline
-status: In Development
+status: Done
 priority: P0
 area: [build, ci]
 depends_on: []
@@ -25,6 +25,7 @@ depends_on: []
 | 2026-10-25 | Claude | Initial draft specification from the design interview |
 | 2026-10-25 | Equal | Open questions answered. Approved. |
 | 2026-10-25 | Equal | Work started. |
+| 2026-10-25 | Equal | Done. All acceptance criteria pass. |
 
 ## 1. Summary
 Make the Go project layout, the CI workflow and the release pipeline. After this task, each push runs build, lint and tests on macOS, Linux and Windows, and each `v*` tag publishes the binaries to GitHub Releases.
@@ -151,9 +152,9 @@ Not applicable. This is the base of the project.
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1 and AC-3: CI run 40226407455 (jobs `test` and `install` on macOS, Linux, Windows). AC-2: pre-release `v0.1.0-rc.0` (run 40227361491) has 6 archives and `checksums.txt`; the checksum of the darwin/arm64 archive matches and the binary prints `claude-dx v0.1.0-rc.0`.
+- [x] Project checks (build, tests, lint) pass. CI run 40226407455.
+- [x] Docs are updated (README). Install, Why and Roadmap sections.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no diagram; the layout is in section 7.1.
+- [x] ADRs are recorded for architectural decisions. ADR-012 (SemVer with release-please).
+- [x] `/dx:eureka` is done. The tool does not exist yet. Lessons are code comments at their location: `.gitattributes` (CRLF breaks gofmt), `scripts/install.ps1` (exit closes the window with `irm | iex`), `.github/workflows/ci.yml` (macOS background process, Windows step exit code, Go cache key).
