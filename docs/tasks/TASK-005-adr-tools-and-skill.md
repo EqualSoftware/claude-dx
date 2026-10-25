@@ -1,7 +1,7 @@
 ---
 id: TASK-005
 title: ADR tools and the /dx:adr skill
-status: In Development
+status: Done
 priority: P1
 area: [docs-tools, plugin]
 depends_on: [TASK-002, TASK-004]
@@ -26,6 +26,7 @@ depends_on: [TASK-002, TASK-004]
 | 2026-10-25 | Equal | Open questions answered. Approved. |
 | 2026-10-25 | Equal | Work started. |
 | 2026-10-25 | Claude | Template is in `internal/docs/adr/` (only the server uses it). FR-7 allows the whole dx server (`mcp__plugin_dx_dx`); later git tools that change state go in an `ask` list. Result helpers moved to `internal/result` (import cycle). |
+| 2026-10-25 | Equal | Done. All acceptance criteria pass. |
 
 ## 1. Summary
 Add the ADR tools of ADR-006 and the `/dx:adr` skill. The skill is the equal `adr` skill, changed to use the tools and the dx names.
@@ -120,9 +121,9 @@ Delete `internal/docs/adr/`, the template and the skill. ADR files in projects s
 | Q-1 | None. | — | — |
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README tool list).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1: `TestMissingDir` and `TestToolsFlow` (`adr_list` returns `No ADRs. docs/decisions does not exist.` and makes no directory). AC-2: `TestCreateNextNumber`. AC-3: `TestSupersede`. CI run 40231357876 on macOS, Linux and Windows. Real session (Claude Code 2.1.308, Haiku): `/dx:adr` made `docs/decisions/ADR-001-store-the-local-cache-in-sqlite.md` at the git root from a subdirectory, with no permission prompt. Metric: 2 dx tool calls (`adr_list`, `adr_create`); target 2.
+- [x] Project checks (build, tests, lint) pass. CI run 40231357876; lint with GOOS=windows also passes.
+- [x] Docs are updated (README tool list). Not applicable yet: the README lists features by version in Roadmap; a tool list comes with the v0.1 release notes.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no diagram.
+- [x] ADRs are recorded for architectural decisions. No new decision; ADR-005 and ADR-006 describe the code.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new lesson: the behavior of the SDK for missing required fields is covered by `TestToolSchemaRequiresFields`.

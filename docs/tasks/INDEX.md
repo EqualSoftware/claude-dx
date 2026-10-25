@@ -25,7 +25,6 @@ Sort by priority, then by ID.
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | [TASK-003](TASK-003-update-cache-clean-and-doctor.md) | Update, cache clean and doctor commands | `Approved` | `P1` | `cli` | TASK-002, TASK-004 |
-| [TASK-005](TASK-005-adr-tools-and-skill.md) | ADR tools and the /dx:adr skill | `Approved` | `P1` | `docs-tools`, `plugin` | TASK-002, TASK-004 |
 | [TASK-006](TASK-006-task-tools-index-and-skill.md) | Task tools, INDEX.md and the /dx:task skill | `Approved` | `P1` | `docs-tools`, `plugin` | TASK-002, TASK-004 |
 | [TASK-007](TASK-007-learning-and-glossary-tools.md) | Learning and glossary tools and skills | `Approved` | `P1` | `docs-tools`, `plugin` | TASK-002, TASK-004 |
 | [TASK-008](TASK-008-grill-skill-scout-agent-and-rules.md) | Grill skill, scout agent and shared rules | `Approved` | `P1` | `plugin` | TASK-002, TASK-006 |
@@ -48,3 +47,4 @@ Sort by priority, then by ID.
 | [TASK-001](TASK-001-project-skeleton-ci-and-release.md) | Project skeleton, CI and release pipeline | `Done` | 2026-10-25 |
 | [TASK-002](TASK-002-launcher-and-plugin-loading.md) | Launcher and plugin loading | `Done` | 2026-10-25 |
 | [TASK-004](TASK-004-mcp-server-core.md) | MCP server core, project root and number allocation | `Done` | 2026-10-25 |
+| [TASK-005](TASK-005-adr-tools-and-skill.md) | ADR tools and the /dx:adr skill | `Done` | 2026-10-25 |

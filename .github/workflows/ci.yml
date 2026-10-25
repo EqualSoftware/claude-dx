@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   pull_request:
+    # The release pull request changes only these files, and GitHub does not run
+    # workflows for pull requests of the Actions bot without a manual approval.
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
 
 permissions:
   contents: read
