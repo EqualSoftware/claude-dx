@@ -1,7 +1,7 @@
 ---
 id: TASK-019
 title: Rename the MCP server of the dx plugin to mcp
-status: In Development
+status: Done
 priority: P1
 area: [plugin, mcp]
 depends_on: [TASK-004]
@@ -24,6 +24,7 @@ depends_on: [TASK-004]
 | :--- | :--- | :--- |
 | 2026-10-25 | Claude | Initial specification from the v0.1.0 QA of the maintainer |
 | 2026-10-25 | Equal | Approved in the chat for v0.1.0. Work started. The maintainer does the real session test. |
+| 2026-10-25 | Equal | Done. A-1 is verified. CI runs after the push. |
 
 ## 1. Summary
 Rename the server key in the `.mcp.json` of the dx plugin from `dx` to `mcp`. Claude Code then shows the server as `plugin:dx:mcp`, and the tool IDs become `mcp__plugin_dx_mcp__<tool>`.
@@ -43,7 +44,7 @@ Claude Code shows the server as `plugin:<plugin>:<server>`. Now this is `plugin:
 `internal/plugin/assets/.mcp.json:3` (server key `dx`), `internal/launcher/launcher.go:52` (rule `mcp__plugin_dx_dx`), `internal/plugin/assets/agents/scout.md:6` (7 tool IDs), ADR-005 Follow-up.
 
 ### 5.2 Assumptions
-- A-1: The rule name follows the server key, as TASK-002 A-2 verified: `mcp__plugin_<plugin>_<server>`. Verify: session of the maintainer.
+- A-1: The rule name follows the server key, as TASK-002 A-2 verified: `mcp__plugin_<plugin>_<server>`. Verified: session of the maintainer (AC-1).
 
 ### 5.3 Constraints
 - ADR-005.
@@ -107,9 +108,9 @@ Revert the names. No data migrates.
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. Session of the maintainer in another project (Claude Code 2.1.308, binary built from `0d1b1e9`). AC-1: `task_list` showed as `plugin:dx:mcp` with no permission prompt. AC-2: `dx:scout` answered a glossary question with `path:line` facts (3 tool uses).
+- [x] Project checks (build, tests, lint) pass. Local on macOS: `go test ./...`, golangci-lint. CI runs after the push.
+- [x] Docs are updated (README). Not applicable: the README does not give tool IDs.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no diagram.
+- [x] ADRs are recorded for architectural decisions. ADR-005 Follow-up gives the new rule names.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new lesson.
