@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"github.com/EqualSoftware/claude-dx/internal/cache"
 )
 
 func TestRunVersion(t *testing.T) {
@@ -68,12 +70,42 @@ func build(t *testing.T, out string, args ...string) {
 	}
 }
 
+// environ returns the environment of a child process with PATH set to path and the cache in env.cache.
+func (env launchEnv) environ(path string) []string {
+	return append(os.Environ(), "PATH="+path, "HOME="+env.cache, "XDG_CACHE_HOME="+env.cache, "LocalAppData="+env.cache)
+}
+
+// dxCache returns the claude-dx cache directory of the child processes.
+func (env launchEnv) dxCache(t *testing.T) string {
+	t.Helper()
+	for _, name := range []string{"HOME", "XDG_CACHE_HOME", "LocalAppData"} {
+		t.Setenv(name, env.cache)
+	}
+	dir, err := cache.Dir()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return dir
+}
+
+// writeState writes update.json with latest and the current time.
+func (env launchEnv) writeState(t *testing.T, latest string) {
+	t.Helper()
+	dir := env.dxCache(t)
+	state := `{"checked_at":"` + time.Now().UTC().Format(time.RFC3339) + `","latest":"` + latest + `"}`
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "update.json"), []byte(state), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // launch runs claude-dx with PATH set to path and the cache in env.cache.
 func (env launchEnv) launch(t *testing.T, path string, args ...string) (int, string, string) {
 	t.Helper()
 	cmd := exec.Command(env.dx, args...)
-	cmd.Env = append(os.Environ(), "PATH="+path,
-		"HOME="+env.cache, "XDG_CACHE_HOME="+env.cache, "LocalAppData="+env.cache)
+	cmd.Env = env.environ(path)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
 	err := cmd.Run()
@@ -130,7 +162,10 @@ func TestMCPServerInitialize(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	start := time.Now()
-	session, err := client.Connect(ctx, &mcp.CommandTransport{Command: exec.Command(env.dx, "mcp")}, nil)
+	env.writeState(t, "v9.9.9") // a new update.json: the server does no network request
+	cmd := exec.Command(env.dx, "mcp")
+	cmd.Env = env.environ(os.Getenv("PATH"))
+	session, err := client.Connect(ctx, &mcp.CommandTransport{Command: cmd}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,6 +174,50 @@ func TestMCPServerInitialize(t *testing.T) {
 	info := session.InitializeResult().ServerInfo
 	if info.Name != "dx" || info.Version != "v9.9.9" {
 		t.Fatalf("server info = %+v, want dx v9.9.9", info)
+	}
+}
+
+func TestLaunchShowsUpdateNotice(t *testing.T) {
+	env := setup(t)
+	env.writeState(t, "v10.0.0")
+	_, _, stderr := env.launch(t, env.bin, "--resume")
+	if stderr != "claude-dx v10.0.0 is available. Run: claude-dx update\n" {
+		t.Fatalf("stderr = %q", stderr)
+	}
+}
+
+func TestDoctor(t *testing.T) {
+	env := setup(t)
+	code, stdout, _ := env.launch(t, env.bin, "doctor")
+	if code != 1 || !strings.HasPrefix(stdout, "OK    claude 2.1.308 in PATH\n") || !strings.Contains(stdout, "FAIL  plugin v9.9.9 is not extracted.") {
+		t.Fatalf("exit code = %d, stdout:\n%s", code, stdout)
+	}
+	env.launch(t, env.bin, "--resume") // extracts the plugin
+	if code, stdout, _ = env.launch(t, env.bin, "doctor"); code != 0 {
+		t.Fatalf("exit code = %d, stdout:\n%s", code, stdout)
+	}
+}
+
+func TestCacheClean(t *testing.T) {
+	env := setup(t)
+	env.launch(t, env.bin, "--resume") // extracts the plugin
+	dir := env.dxCache(t)
+	code, stdout, stderr := env.launch(t, env.bin, "cache", "clean")
+	if code != 0 || stdout != "Removed "+dir+".\n" {
+		t.Fatalf("exit code = %d, stdout = %q, stderr = %q", code, stdout, stderr)
+	}
+	if _, err := os.Stat(dir); err == nil {
+		t.Fatal("the cache exists")
+	}
+	if code, _, stderr = env.launch(t, env.bin, "cache"); code != 1 || stderr != "Usage: claude-dx cache clean\n" {
+		t.Fatalf("cache with no subcommand: exit code = %d, stderr = %q", code, stderr)
+	}
+}
+
+func TestUpdateRefusesDev(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if code := run([]string{"update"}, &stdout, &stderr); code != 1 || stderr.String() != "claude-dx: dev builds do not update. Install a release\n" {
+		t.Fatalf("exit code = %d, stderr = %q", code, stderr.String())
 	}
 }
 

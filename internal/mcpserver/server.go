@@ -17,6 +17,7 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/docs/task"
 	"github.com/EqualSoftware/claude-dx/internal/numbering"
 	"github.com/EqualSoftware/claude-dx/internal/project"
+	"github.com/EqualSoftware/claude-dx/internal/update"
 )
 
 // New returns the dx server with all tools for the project that contains dir.
@@ -48,6 +49,9 @@ func Run(ctx context.Context, version string) error {
 	server, err := New(version, dir)
 	if err != nil {
 		return err
+	}
+	if cacheDir, err := cache.Dir(); err == nil {
+		go update.Updater{URL: update.LatestURL, Version: version, Cache: cacheDir}.Check(ctx)
 	}
 	return server.Run(ctx, &mcp.StdioTransport{})
 }

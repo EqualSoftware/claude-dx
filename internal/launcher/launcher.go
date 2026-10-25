@@ -9,6 +9,7 @@ import (
 
 	"github.com/EqualSoftware/claude-dx/internal/cache"
 	"github.com/EqualSoftware/claude-dx/internal/plugin"
+	"github.com/EqualSoftware/claude-dx/internal/update"
 )
 
 // installURL is shown when claude is not in PATH.
@@ -20,7 +21,7 @@ var ErrClaudeNotFound = fmt.Errorf("claude is not in PATH. Install Claude Code: 
 // Run starts claude with the dx flags and args, and returns the exit code of claude.
 // On macOS and Linux, Run does not return when claude starts: claude replaces this process.
 func Run(version string, args []string) (int, error) {
-	binary, err := executable()
+	binary, err := Executable()
 	if err != nil {
 		return 1, err
 	}
@@ -30,6 +31,10 @@ func Run(version string, args []string) (int, error) {
 	cacheDir, err := cache.Dir()
 	if err != nil {
 		return 1, err
+	}
+	// The launcher only reads update.json. The dx server checks for releases (ADR-004).
+	if notice := update.Notice(cacheDir, version); notice != "" {
+		fmt.Fprintln(os.Stderr, notice)
 	}
 	pluginDir, err := plugin.Ensure(cacheDir, version, binary)
 	if err != nil {
@@ -58,8 +63,8 @@ func Args(pluginDir string, user []string) []string {
 	return append(dx, user...)
 }
 
-// executable returns the absolute path of claude-dx, with symlinks resolved.
-func executable() (string, error) {
+// Executable returns the absolute path of claude-dx, with symlinks resolved.
+func Executable() (string, error) {
 	path, err := os.Executable()
 	if err != nil {
 		return "", err
