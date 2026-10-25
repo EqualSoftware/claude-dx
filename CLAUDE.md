@@ -22,6 +22,10 @@ go tool govulncheck ./...
 go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0 run
 ```
 
+## Go language server
+
+Use the LSP tool for Go navigation and refactoring (definitions, references, symbols, rename) before Grep. The project enables the `gopls-lsp` plugin in `.claude/settings.json`. It runs `gopls` from `PATH`: install it with `go install golang.org/x/tools/gopls@latest` and put `$(go env GOPATH)/bin` in `PATH`.
+
 ## Docs and process
 
 - Tasks: `docs/tasks/` (index: `docs/tasks/INDEX.md`). Decisions: `docs/decisions/` (ADRs). Terms: `docs/GLOSSARY.md`.

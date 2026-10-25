@@ -18,6 +18,7 @@ You need:
 - Go. The version is in [go.mod](go.mod).
 - git 2.30 or later.
 - [Claude Code](https://docs.claude.com/claude-code), to test the launcher in a real session.
+- Optional: `gopls` (`go install golang.org/x/tools/gopls@latest`), with `$(go env GOPATH)/bin` in your `PATH`. The project enables the `gopls-lsp` Claude Code plugin in `.claude/settings.json`.
 
 Commands:
 
