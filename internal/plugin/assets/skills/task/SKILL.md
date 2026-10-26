@@ -33,7 +33,7 @@ Each unit of work of the project gets a task. Changes to the agent setup (`.clau
 1. Collect the inputs: the request of the user, documents, related code, ADRs (`adr_list`) and tasks (`task_list` with `status: all`). Do not repeat an investigation that is already in the conversation. Give a search of more than 3 files to the `dx:scout` agent, with a closed list of questions, and use its `path:line` findings.
 2. If a task has the same objective, refine it. Do not make a duplicate.
 3. Run `task_create` with the title (40 characters or less, not the title of another task), priority, milestone (`vMAJOR.MINOR.PATCH`, example `v0.1.0`), type, areas, dependencies, size, platforms, related IDs and the sections that you know, but not the Document History, section 13 or section 14. The tool sets the owner to the git `user.name`. The task starts as `Draft`.
-4. `depends_on` gives only open tasks that must be done first. The tools refuse an ID with no task file, the same task, a cycle, a `Done` or `Cancelled` task (put it in `related`) and a task of a later milestone. They warn when a dependency has a lower priority.
+4. `depends_on` gives only open tasks that must be done first. The tools refuse an ID with no task file, the same task, a cycle, a `Done` or `Cancelled` task (put it in `related`) and a task of a later milestone. They warn when a dependency has a lower priority. A change of `depends_on` checks only the new IDs, but the cycle check uses all IDs: an old dependency that became `Done` can stay.
 5. Write only verified facts. Write "Not applicable" for a section that does not apply.
 6. Add each unknown item with `task_question_add`. Do not guess.
 7. Use the terms of `docs/GLOSSARY.md`. Run `/dx:glossary` for a new or unclear term.

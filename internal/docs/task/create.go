@@ -52,7 +52,7 @@ func (s Store) Create(t New) (path, warnings string, err error) {
 	if err := s.checkNewTitle(t.Title); err != nil {
 		return "", "", err
 	}
-	warnings, err = s.checkDeps(Front{Milestone: t.Milestone, Priority: t.Priority, DependsOn: t.DependsOn})
+	warnings, err = s.checkDeps(Front{Milestone: t.Milestone, Priority: t.Priority, DependsOn: t.DependsOn}, nil)
 	if err != nil {
 		return "", "", err
 	}

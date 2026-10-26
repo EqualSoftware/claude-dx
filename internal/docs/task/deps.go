@@ -9,8 +9,10 @@ import (
 
 // checkDeps checks the dependencies of the task f before a write (ADR-013, step 1). f.ID is empty
 // for a new task. It refuses an ID with no task file, the same task, a Done or Cancelled task, a later
-// milestone and a cycle. It returns one warning line for each dependency with a lower priority.
-func (s Store) checkDeps(f Front) (string, error) {
+// milestone and a cycle. It returns one warning line for each dependency with a lower priority. It checks
+// only the IDs that are not in old, because an old dependency that became Done must not stop a change.
+// The cycle check uses all IDs.
+func (s Store) checkDeps(f Front, old []string) (string, error) {
 	if len(f.DependsOn) == 0 {
 		return "", nil
 	}
@@ -24,6 +26,9 @@ func (s Store) checkDeps(f Front) (string, error) {
 	}
 	var warnings string
 	for _, id := range f.DependsOn {
+		if slices.Contains(old, id) {
+			continue
+		}
 		warning, err := checkDep(f, id, byID)
 		if err != nil {
 			return "", err

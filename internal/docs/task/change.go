@@ -163,6 +163,10 @@ func (s Store) UpdateFields(id string, u Update) (string, error) {
 	}
 	var warnings string
 	err := s.edit(id, func(d *doc) error {
+		var old Front
+		if u.DependsOn != nil {
+			_ = markdown.Decode(d.front, &old) // a bad frontmatter fails after the change
+		}
 		for _, f := range u.fields() {
 			if f.set {
 				d.front = markdown.SetField(d.front, f.key, f.value)
@@ -180,7 +184,7 @@ func (s Store) UpdateFields(id string, u Update) (string, error) {
 		}
 		f.ID = kind.ID(mustNumber(d.path))
 		var err error
-		warnings, err = s.checkDeps(f)
+		warnings, err = s.checkDeps(f, old.DependsOn)
 		return err
 	})
 	return warnings, err

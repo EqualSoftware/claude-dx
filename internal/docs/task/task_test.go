@@ -464,6 +464,7 @@ func TestDependsOnRules(t *testing.T) {
 		_, _, err = s.Create(New{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feat", DependsOn: []string{id}})
 		refused(err, "Put it in related")
 	}
+	update(t, s, "TASK-001", Update{DependsOn: []string{}})
 	update(t, s, "TASK-002", Update{Milestone: "v0.2.0"})
 	_, err = s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002"}})
 	refused(err, "later milestone v0.2.0")
@@ -471,6 +472,28 @@ func TestDependsOnRules(t *testing.T) {
 	warnings, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002"}})
 	if err != nil || !strings.Contains(warnings, "TASK-002 has the lower priority P3") {
 		t.Fatalf("AC-6: warnings = %q, %v", warnings, err)
+	}
+}
+
+// TestOldDoneDependency is AC-1 to AC-3 of TASK-040.
+func TestOldDoneDependency(t *testing.T) {
+	s := newStore(t)
+	for _, title := range []string{"Main", "Old", "New", "Done"} {
+		create(t, s, title)
+	}
+	update(t, s, "TASK-001", Update{DependsOn: []string{"TASK-002"}})
+	force(t, s, "TASK-002", "Done")
+	force(t, s, "TASK-004", "Done")
+	if _, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002", "TASK-003"}}); err != nil {
+		t.Fatalf("AC-1: UpdateFields = %v", err)
+	}
+	_, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002", "TASK-003", "TASK-004"}})
+	if err == nil || !strings.Contains(err.Error(), "TASK-004 is Done") {
+		t.Fatalf("AC-2: UpdateFields = %v", err)
+	}
+	_, err = s.UpdateFields("TASK-003", Update{DependsOn: []string{"TASK-001"}})
+	if err == nil || !strings.Contains(err.Error(), "TASK-003 -> TASK-001 -> TASK-003") {
+		t.Fatalf("AC-3: UpdateFields = %v", err)
 	}
 }
 
