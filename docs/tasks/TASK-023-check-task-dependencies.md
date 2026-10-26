@@ -1,7 +1,7 @@
 ---
 id: TASK-023
 title: Check task dependencies
-status: Approved
+status: Done
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,8 @@ related: [ADR-005, ADR-006, ADR-013, TASK-006, TASK-025]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -142,9 +144,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`/dx:task` skill: the dependency rules).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. `TestDependsOnRules` (`internal/docs/task/task_test.go`): AC-1 TASK-099 is refused and docs/tasks is not made; AC-2 the cycle is refused with `TASK-002 -> TASK-001 -> TASK-002` and the file does not change; AC-3 the same task is refused; AC-4 Done and Cancelled are refused with "Put it in related"; AC-5 the later milestone v0.2.0 is refused; AC-6 a P3 dependency gives a warning. `TestUncheckedDoDMessage`: AC-7 gives "Definition of Done items 2, 3, 4, 5, 6 are not checked".
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `168f32f`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (`/dx:task` skill: the dependency rules). Commit `168f32f`: `internal/plugin/assets/skills/task/SKILL.md` "Create a task" step 4 gives the dependency rules.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: checks before a write, no new call flow.
+- [x] ADRs are recorded for architectural decisions (ADR-013 has the decision). ADR-013 step 1 records the decision.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new reusable lesson.
