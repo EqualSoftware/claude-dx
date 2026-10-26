@@ -1,7 +1,7 @@
 ---
 id: TASK-028
 title: Limit titles to 40 characters
-status: Draft
+status: Approved
 priority: P2
 type: fix
 size: S
@@ -15,9 +15,12 @@ related: [ADR-006, ADR-013, TASK-005, TASK-006]
 # TASK-028: Limit titles to 40 characters
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-25 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

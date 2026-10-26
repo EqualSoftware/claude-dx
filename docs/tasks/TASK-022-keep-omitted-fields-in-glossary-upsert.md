@@ -1,7 +1,7 @@
 ---
 id: TASK-022
 title: Keep omitted fields in glossary_upsert
-status: Draft
+status: Approved
 priority: P1
 type: fix
 size: S
@@ -15,9 +15,12 @@ related: [ADR-006, TASK-007]
 # TASK-022: Keep omitted fields in glossary_upsert
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-25 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

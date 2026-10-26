@@ -1,7 +1,7 @@
 ---
 id: TASK-030
 title: Task milestones and the ready list
-status: Draft
+status: Approved
 priority: P1
 type: feat
 size: M
@@ -15,9 +15,12 @@ related: [ADR-013, ADR-006, TASK-006, TASK-018, TASK-033]
 # TASK-030: Task milestones and the ready list
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-25 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

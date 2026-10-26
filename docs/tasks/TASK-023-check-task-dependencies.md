@@ -1,7 +1,7 @@
 ---
 id: TASK-023
 title: Check task dependencies
-status: Draft
+status: Approved
 priority: P1
 type: fix
 size: S
@@ -15,9 +15,12 @@ related: [ADR-005, ADR-006, ADR-013, TASK-006, TASK-025]
 # TASK-023: Check task dependencies
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-25 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

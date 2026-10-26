@@ -29,23 +29,23 @@ Sort by priority, then by ID.
 | [TASK-011](TASK-011-git-branch-and-remote-tools.md) | Git tools for branches and remotes | `Approved` | `P1` | `git` | TASK-010 |
 | [TASK-012](TASK-012-bash-git-hook-git-exec-and-report.md) | Bash git hook, git_exec and report | `Approved` | `P1` | `git`, `plugin`, `cli` | TASK-009 |
 | [TASK-013](TASK-013-commit-and-eureka-skills.md) | The /dx:commit and /dx:eureka skills | `Approved` | `P1` | `plugin` | TASK-010, TASK-011, TASK-026 |
-| [TASK-021](TASK-021-stop-adr-supersede-cycles.md) | Stop ADR supersede cycles | `Draft` | `P1` | `docs-tools` | None |
-| [TASK-022](TASK-022-keep-omitted-fields-in-glossary-upsert.md) | Keep omitted fields in glossary_upsert | `Draft` | `P1` | `docs-tools` | None |
-| [TASK-023](TASK-023-check-task-dependencies.md) | Check task dependencies | `Draft` | `P1` | `docs-tools` | TASK-030 |
-| [TASK-024](TASK-024-full-tool-names-in-the-dx-scout-rules.md) | Full tool names in the dx:scout rules | `Draft` | `P1` | `plugin` | None |
-| [TASK-026](TASK-026-remove-the-eureka-item-from-the-template.md) | Remove the eureka item from the template | `Draft` | `P1` | `docs-tools` | TASK-030 |
-| [TASK-030](TASK-030-task-milestones-and-the-ready-list.md) | Task milestones and the ready list | `Draft` | `P1` | `docs-tools`, `plugin` | TASK-036 |
-| [TASK-036](TASK-036-readme-index-for-each-document-folder.md) | README index for each document folder | `Draft` | `P1` | `docs-tools`, `plugin` | None |
+| [TASK-021](TASK-021-stop-adr-supersede-cycles.md) | Stop ADR supersede cycles | `Approved` | `P1` | `docs-tools` | None |
+| [TASK-022](TASK-022-keep-omitted-fields-in-glossary-upsert.md) | Keep omitted fields in glossary_upsert | `Approved` | `P1` | `docs-tools` | None |
+| [TASK-023](TASK-023-check-task-dependencies.md) | Check task dependencies | `Approved` | `P1` | `docs-tools` | TASK-030 |
+| [TASK-024](TASK-024-full-tool-names-in-the-dx-scout-rules.md) | Full tool names in the dx:scout rules | `Approved` | `P1` | `plugin` | None |
+| [TASK-026](TASK-026-remove-the-eureka-item-from-the-template.md) | Remove the eureka item from the template | `Approved` | `P1` | `docs-tools` | TASK-030 |
+| [TASK-030](TASK-030-task-milestones-and-the-ready-list.md) | Task milestones and the ready list | `Approved` | `P1` | `docs-tools`, `plugin` | TASK-036 |
+| [TASK-036](TASK-036-readme-index-for-each-document-folder.md) | README index for each document folder | `Approved` | `P1` | `docs-tools`, `plugin` | None |
 | [TASK-014](TASK-014-filesystem-tools.md) | Filesystem tools (v0.3) | `Draft` | `P2` | `fs` | TASK-012 |
 | [TASK-015](TASK-015-lsp-core-languages.md) | LSP manager and core language servers | `Draft` | `P2` | `lsp` | None |
 | [TASK-017](TASK-017-prepare-public-release.md) | Prepare the repository for release | `In Development` | `P2` | `repo` | None |
-| [TASK-028](TASK-028-limit-titles-to-40-characters.md) | Limit titles to 40 characters | `Draft` | `P2` | `docs-tools` | TASK-021, TASK-023 |
-| [TASK-031](TASK-031-warn-about-open-tasks-on-the-same-files.md) | Warn about open tasks on the same files | `Draft` | `P2` | `docs-tools` | TASK-028 |
-| [TASK-032](TASK-032-review-again-after-a-scope-change.md) | Review again after a scope change | `Draft` | `P2` | `docs-tools`, `plugin` | TASK-031 |
-| [TASK-034](TASK-034-allowed-task-status-changes.md) | Allowed task status changes | `Draft` | `P2` | `docs-tools` | TASK-032 |
-| [TASK-035](TASK-035-end-to-end-test-of-the-dx-mcp-server.md) | End-to-end test of the dx MCP server | `Draft` | `P2` | `mcp` | None |
+| [TASK-028](TASK-028-limit-titles-to-40-characters.md) | Limit titles to 40 characters | `Approved` | `P2` | `docs-tools` | TASK-021, TASK-023 |
+| [TASK-031](TASK-031-warn-about-open-tasks-on-the-same-files.md) | Warn about open tasks on the same files | `Approved` | `P2` | `docs-tools` | TASK-028 |
+| [TASK-032](TASK-032-review-again-after-a-scope-change.md) | Review again after a scope change | `Approved` | `P2` | `docs-tools`, `plugin` | TASK-031 |
+| [TASK-034](TASK-034-allowed-task-status-changes.md) | Allowed task status changes | `Approved` | `P2` | `docs-tools` | TASK-032 |
+| [TASK-035](TASK-035-end-to-end-test-of-the-dx-mcp-server.md) | End-to-end test of the dx MCP server | `Approved` | `P2` | `mcp` | None |
 | [TASK-016](TASK-016-lsp-other-languages.md) | LSP servers for other languages | `Draft` | `P3` | `lsp` | TASK-015 |
-| [TASK-027](TASK-027-keep-the-dev-plugin-of-a-running-session.md) | Keep the dev plugin of a running session | `Draft` | `P3` | `cli`, `plugin` | None |
+| [TASK-027](TASK-027-keep-the-dev-plugin-of-a-running-session.md) | Keep the dev plugin of a running session | `Approved` | `P3` | `cli`, `plugin` | None |
 
 ## Closed tasks
 

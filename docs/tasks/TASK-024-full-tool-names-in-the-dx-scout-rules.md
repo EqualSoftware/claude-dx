@@ -1,7 +1,7 @@
 ---
 id: TASK-024
 title: Full tool names in the dx:scout rules
-status: Draft
+status: Approved
 priority: P1
 type: fix
 size: S
@@ -15,9 +15,12 @@ related: [ADR-009, TASK-008, TASK-020]
 # TASK-024: Full tool names in the dx:scout rules
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-25 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

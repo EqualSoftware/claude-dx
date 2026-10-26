@@ -1,7 +1,7 @@
 ---
 id: TASK-036
 title: README index for each document folder
-status: Draft
+status: Approved
 priority: P1
 type: feat
 size: M
@@ -15,9 +15,12 @@ related: [ADR-006, ADR-009, TASK-006, TASK-030]
 # TASK-036: README index for each document folder
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-25 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

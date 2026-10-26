@@ -1,7 +1,7 @@
 ---
 id: TASK-027
 title: Keep the dev plugin of a running session
-status: Draft
+status: Approved
 priority: P3
 type: fix
 size: S
@@ -15,9 +15,12 @@ related: [ADR-001, TASK-002]
 # TASK-027: Keep the dev plugin of a running session
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-25 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

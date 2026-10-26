@@ -1,7 +1,7 @@
 ---
 id: TASK-032
 title: Review again after a scope change
-status: Draft
+status: Approved
 priority: P2
 type: feat
 size: S
@@ -15,9 +15,12 @@ related: [ADR-013, TASK-026, TASK-013]
 # TASK-032: Review again after a scope change
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-25 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

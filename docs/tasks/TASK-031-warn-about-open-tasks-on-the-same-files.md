@@ -1,7 +1,7 @@
 ---
 id: TASK-031
 title: Warn about open tasks on the same files
-status: Draft
+status: Approved
 priority: P2
 type: feat
 size: S
@@ -15,9 +15,12 @@ related: [ADR-013]
 # TASK-031: Warn about open tasks on the same files
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-25 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

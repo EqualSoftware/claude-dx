@@ -1,7 +1,7 @@
 ---
 id: TASK-026
 title: Remove the eureka item from the template
-status: Draft
+status: Approved
 priority: P1
 type: fix
 size: S
@@ -15,9 +15,12 @@ related: [TASK-006, TASK-013]
 # TASK-026: Remove the eureka item from the template
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-25 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 
