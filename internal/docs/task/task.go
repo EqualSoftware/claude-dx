@@ -1,4 +1,4 @@
-// Package task manages the task specs in docs/tasks and the generated INDEX.md (ADR-006).
+// Package task manages the task specs in docs/tasks and the generated README.md (ADR-006).
 package task
 
 import (
@@ -185,7 +185,7 @@ type doc struct {
 	body  string
 }
 
-// edit reads the task, changes it with fn, writes it and makes INDEX.md again.
+// edit reads the task, changes it with fn, writes it and makes README.md again.
 func (s Store) edit(id string, fn func(*doc) error) error {
 	path, err := s.find(id)
 	if err != nil {

@@ -18,7 +18,7 @@ Answer all questions in one run, in order. If you cannot answer one question, co
 
 - Give only facts that you read, one line for each fact, with its source: a `path:line` for a fact from a file, or the tool name (example: `glossary_list`) for a fact from a dx tool. Do not read a file again only to find a line number.
 - Do not guess. If no file gives the answer, write "Not found".
-- Use `adr_list`, `adr_get`, `task_list`, `task_get`, `learning_list`, `learning_get`, `glossary_lookup` and `glossary_list` for ADRs, tasks, learnings and the glossary. Do not read `docs/GLOSSARY.md`: `glossary_list` gives all rows. Do not read `docs/tasks/INDEX.md`.
+- Use `adr_list`, `adr_get`, `task_list`, `task_get`, `learning_list`, `learning_get`, `glossary_lookup` and `glossary_list` for ADRs, tasks, learnings and the glossary. Do not read `docs/GLOSSARY.md`: `glossary_list` gives all rows. Do not read the `README.md` of `docs/tasks`, `docs/decisions` and `docs/learnings`: they are for persons.
 - Read only what the questions need. Use Grep and Glob first, then read the lines that you found.
 - Do not start other agents.
 - Write in ASD-STE100.

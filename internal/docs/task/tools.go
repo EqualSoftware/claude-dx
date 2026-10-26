@@ -105,7 +105,7 @@ type renumberInput struct {
 
 // Register adds the task tools to the server.
 func Register(server *mcp.Server, s Store) {
-	add(server, "task_list", "List tasks: ID, status, priority, title, areas and dependencies. Filter by any frontmatter field. Default: open tasks. Do not read docs/tasks/INDEX.md; use this tool.",
+	add(server, "task_list", "List tasks: ID, status, priority, title, areas and dependencies. Filter by any frontmatter field. Default: open tasks. Do not read docs/tasks/README.md; use this tool.",
 		func(in listInput) (string, error) { return s.listText(in) })
 	add(server, "task_get", "Read one task, or one section of it.",
 		func(in getInput) (string, error) { return s.Get(in.ID, in.Section) })

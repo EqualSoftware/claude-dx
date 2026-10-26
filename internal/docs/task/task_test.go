@@ -74,8 +74,8 @@ func TestCreate(t *testing.T) {
 	if strings.Contains(doc, " # ") || strings.Contains(doc, "| Field | Value |") {
 		t.Error("task has a frontmatter comment or the Field/Value table")
 	}
-	if _, err := os.Stat(filepath.Join(s.Dir, "INDEX.md")); err != nil {
-		t.Error("INDEX.md was not made")
+	if _, err := os.Stat(filepath.Join(s.Dir, "README.md")); err != nil {
+		t.Error("README.md was not made")
 	}
 }
 
@@ -281,11 +281,11 @@ func TestRenumber(t *testing.T) {
 	must(t, err)
 }
 
-// TestIndexMatchesRepository makes INDEX.md for the tasks of this repository and compares it with
-// the committed INDEX.md. The committed file came from the equal-tasks-index script, so the format is the same.
+// TestIndexMatchesRepository makes README.md for the tasks of this repository and compares it with
+// the committed README.md. The committed file came from the equal-tasks-index script, so the format is the same.
 func TestIndexMatchesRepository(t *testing.T) {
 	repo := filepath.Join("..", "..", "..", "docs", "tasks")
-	want, err := os.ReadFile(filepath.Join(repo, "INDEX.md"))
+	want, err := os.ReadFile(filepath.Join(repo, "README.md"))
 	if err != nil {
 		t.Skip("no repository tasks")
 	}
@@ -300,9 +300,9 @@ func TestIndexMatchesRepository(t *testing.T) {
 	if err := s.WriteIndex(); err != nil {
 		t.Fatal(err)
 	}
-	got, _ := os.ReadFile(filepath.Join(s.Dir, "INDEX.md"))
+	got, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
 	if string(got) != string(want) {
-		t.Fatalf("INDEX.md differs from the committed file.\ngot:\n%s", got)
+		t.Fatalf("README.md differs from the committed file.\ngot:\n%s", got)
 	}
 }
 

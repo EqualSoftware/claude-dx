@@ -28,7 +28,7 @@ Record only decisions of the project. Do not record decisions about the agent se
 4. If the new ADR replaces an older ADR, run `adr_supersede` with the old and the new ID.
 5. When the user approves a `Proposed` ADR, run `adr_update` with `status: Accepted`.
 
-Do not change files in `docs/decisions` with Edit or Write. Use the ADR tools.
+Do not change files in `docs/decisions` with Edit or Write. Use the ADR tools. The tools also write the index `docs/decisions/README.md`. Do not read it: it is for persons. Use `adr_list`.
 
 ## Report
 

@@ -127,3 +127,41 @@ func TestListBadFrontmatter(t *testing.T) {
 		t.Fatalf("List = %v", err)
 	}
 }
+
+func TestIndex(t *testing.T) {
+	s := newStore(t)
+	for _, topic := range []string{"b-topic", "a-topic"} {
+		if err := s.Create(topic, "About "+topic+".", "Lesson."); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := s.Update("b-topic", "About b.", ""); err != nil {
+		t.Fatal(err)
+	}
+	readme := filepath.Join(s.Dir, "README.md")
+	data, _ := os.ReadFile(readme)
+	want := indexHeader + "| [a-topic](a-topic.md) | About a-topic. |\n| [b-topic](b-topic.md) | About b. |\n"
+	if string(data) != want {
+		t.Fatalf("README.md =\n%s\nwant\n%s", data, want)
+	}
+	list, _ := s.List()
+	if len(list) != 2 {
+		t.Fatalf("List has README.md: %v", list)
+	}
+	if err := s.Delete("a-topic"); err != nil {
+		t.Fatal(err)
+	}
+	data, _ = os.ReadFile(readme)
+	if strings.Contains(string(data), "a-topic") {
+		t.Fatalf("README.md after delete =\n%s", data)
+	}
+}
+
+func TestCreateRefusesReadme(t *testing.T) {
+	s := newStore(t)
+	for _, topic := range []string{"readme", "README"} {
+		if err := s.Create(topic, "D.", "B."); err == nil || !strings.Contains(err.Error(), "index") {
+			t.Fatalf("Create(%q) = %v", topic, err)
+		}
+	}
+}

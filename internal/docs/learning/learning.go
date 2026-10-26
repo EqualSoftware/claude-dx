@@ -42,7 +42,7 @@ func (s Store) List() ([]Learning, error) {
 	var list []Learning
 	for _, e := range entries {
 		topic, ok := strings.CutSuffix(e.Name(), ".md")
-		if !ok || e.IsDir() {
+		if !ok || e.IsDir() || strings.EqualFold(e.Name(), indexFile) {
 			continue
 		}
 		description, err := s.description(e.Name())
@@ -79,7 +79,7 @@ func (s Store) Get(topic string) (string, error) {
 	return string(data), err
 }
 
-// Create writes a new learning file. It fails if the topic exists.
+// Create writes a new learning file and makes README.md again. It fails if the topic exists.
 func (s Store) Create(topic, description, body string) error {
 	if err := validTopic(topic); err != nil {
 		return err
@@ -89,10 +89,13 @@ func (s Store) Create(topic, description, body string) error {
 	if errors.Is(err, fs.ErrExist) {
 		return fmt.Errorf("learning %q exists. Use learning_update to change it", topic)
 	}
-	return err
+	if err != nil {
+		return err
+	}
+	return s.WriteIndex()
 }
 
-// Update changes the description, or replaces the body, or both.
+// Update changes the description, or replaces the body, or both, and makes README.md again.
 func (s Store) Update(topic, description, body string) error {
 	if description == "" && body == "" {
 		return errors.New("give a description, or a body, or both")
@@ -112,16 +115,22 @@ func (s Store) Update(topic, description, body string) error {
 	if body != "" {
 		old = content(body)
 	}
-	return os.WriteFile(path, []byte(markdown.Join(front, old)), 0o644)
+	if err := os.WriteFile(path, []byte(markdown.Join(front, old)), 0o644); err != nil {
+		return err
+	}
+	return s.WriteIndex()
 }
 
-// Delete removes the learning file.
+// Delete removes the learning file and makes README.md again.
 func (s Store) Delete(topic string) error {
 	path, err := s.find(topic)
 	if err != nil {
 		return err
 	}
-	return os.Remove(path)
+	if err := os.Remove(path); err != nil {
+		return err
+	}
+	return s.WriteIndex()
 }
 
 // find returns the path of the learning file of topic.
@@ -140,6 +149,9 @@ func (s Store) find(topic string) (string, error) {
 }
 
 func validTopic(topic string) error {
+	if strings.EqualFold(topic+".md", indexFile) {
+		return fmt.Errorf("topic %q is not valid, because %s is the index of docs/learnings", topic, indexFile)
+	}
 	if topicPattern.MatchString(topic) {
 		return nil
 	}

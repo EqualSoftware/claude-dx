@@ -28,7 +28,8 @@ Use the LSP tool for Go navigation and refactoring (definitions, references, sym
 
 ## Docs and process
 
-- Tasks: `docs/tasks/` (index: `docs/tasks/INDEX.md`). Decisions: `docs/decisions/` (ADRs). Terms: `docs/GLOSSARY.md`.
+- Tasks: `docs/tasks/`. Decisions: `docs/decisions/` (ADRs). Learnings: `docs/learnings/`. Terms: `docs/GLOSSARY.md`.
+- The `README.md` of each document folder is a generated index for persons. Do not read it. Use `task_list`, `adr_list` and `learning_list`.
 - Work from an approved task. Record each architecture decision as an ADR.
 - Write docs, code comments, identifiers and commit messages in ASD-STE100 Simplified Technical English. Talk to the user in the language of the user.
 - Commits: Conventional Commits. The type sets the next version (ADR-012). Rebase only, no merge.

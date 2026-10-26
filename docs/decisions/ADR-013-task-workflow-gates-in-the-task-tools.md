@@ -27,7 +27,7 @@ The task tools check the task process at each status step. A check refuses a cha
    - The frontmatter has no template comments.
 2. Refine (`task_set_status` to `In Review` or `Approved`): warn when another open task gives the same file in its Implementation Plan and no `depends_on` path connects the two tasks. Then set the order or merge the tasks.
 3. Approve: a change of Requirements, Design or Acceptance Criteria of an `Approved` task sets it to `In Review`. The user approves it again. This is the only way to change the scope of an approved task.
-4. Select: `task_list(status: ready)` gives the open tasks with all dependencies `Done`, in milestone order, then priority order. `task_list(milestone)` filters one milestone. `INDEX.md` groups tasks by milestone.
+4. Select: `task_list(status: ready)` gives the open tasks with all dependencies `Done`, in milestone order, then priority order. `task_list(milestone)` filters one milestone. The task index `docs/tasks/README.md` groups tasks by milestone.
 5. Develop: a new finding during work is a new task, not a scope change.
 6. Merge rule (skill text): tasks with the same milestone, the same files and a similar goal are one task, if the size stays `S` or `M`.
 

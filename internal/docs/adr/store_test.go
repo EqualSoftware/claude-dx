@@ -174,3 +174,34 @@ func TestSupersede(t *testing.T) {
 		t.Error("an ADR replaced itself")
 	}
 }
+
+func TestIndex(t *testing.T) {
+	s := newStore(t)
+	for _, title := range []string{"Old", "New"} {
+		if _, err := s.Create(sample(title)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	readme := filepath.Join(s.Dir, "README.md")
+	data, _ := os.ReadFile(readme)
+	if !strings.HasSuffix(string(data), "| [ADR-002](ADR-002-new.md) | New | Proposed | 2026-10-25 |\n") {
+		t.Fatalf("README.md after create =\n%s", data)
+	}
+	if err := s.Update("ADR-002", "Accepted", "", ""); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Supersede("ADR-001", "ADR-002"); err != nil {
+		t.Fatal(err)
+	}
+	data, _ = os.ReadFile(readme)
+	want := indexHeader +
+		"| [ADR-001](ADR-001-old.md) | Old | Superseded by ADR-002 | 2026-10-25 |\n" +
+		"| [ADR-002](ADR-002-new.md) | New | Accepted | 2026-10-25 |\n"
+	if string(data) != want {
+		t.Fatalf("README.md =\n%s\nwant\n%s", data, want)
+	}
+	list, _, _ := s.List()
+	if len(list) != 2 {
+		t.Fatalf("List has README.md: %v", list)
+	}
+}

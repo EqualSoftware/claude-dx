@@ -5,7 +5,7 @@ description: Create, refine or update a task spec in docs/tasks with the dx task
 
 # Make or update a task
 
-The dx task tools read and write the task files in `docs/tasks/`. They set the numbers, the dates, the Document History rows and `INDEX.md`. Do not change task files with Edit or Write. Do not read `docs/tasks/INDEX.md`: it is for persons. Use `task_list`.
+The dx task tools read and write the task files in `docs/tasks/`. They set the numbers, the dates, the Document History rows and `README.md`. Do not change task files with Edit or Write. Do not read `docs/tasks/README.md`: it is for persons. Use `task_list`.
 
 Read only what you need: `task_get` with `section` returns one section.
 

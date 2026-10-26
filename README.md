@@ -6,7 +6,7 @@
 
 `claude-dx` writes no configuration into your project or into your Claude Code settings. It loads its plugin with launch flags.
 
-> Status: in development. See [docs/tasks/INDEX.md](docs/tasks/INDEX.md).
+> Status: in development. See [docs/tasks/](docs/tasks/).
 
 ## Why
 
@@ -66,7 +66,8 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md). To report a security problem, read [SEC
 ## Design
 
 - Decisions: [docs/decisions/](docs/decisions/)
-- Tasks: [docs/tasks/INDEX.md](docs/tasks/INDEX.md)
+- Tasks: [docs/tasks/](docs/tasks/)
+- Learnings: [docs/learnings/](docs/learnings/)
 - Terms: [docs/GLOSSARY.md](docs/GLOSSARY.md)
 
 ## License

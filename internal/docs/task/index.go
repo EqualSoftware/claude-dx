@@ -45,7 +45,7 @@ const closedHeader = `
 | :--- | :--- | :--- | :--- |
 `
 
-// WriteIndex makes docs/tasks/INDEX.md from the frontmatter of the task files.
+// WriteIndex makes docs/tasks/README.md from the frontmatter of the task files.
 // It is for persons on GitHub; the model uses task_list.
 func (s Store) WriteIndex() error {
 	tasks, _, err := s.List(Filter{"status": "all"})
@@ -63,7 +63,7 @@ func (s Store) WriteIndex() error {
 	for _, t := range closed {
 		fmt.Fprintf(&b, "| [%s](%s) | %s | `%s` | %s |\n", t.Front.ID, t.File, t.Front.Title, t.Front.Status, t.Closed)
 	}
-	return os.WriteFile(filepath.Join(s.Dir, "INDEX.md"), []byte(b.String()), 0o644)
+	return os.WriteFile(filepath.Join(s.Dir, "README.md"), []byte(b.String()), 0o644)
 }
 
 // split returns the open tasks sorted by priority then ID, and the closed tasks sorted by ID.

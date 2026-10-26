@@ -5,7 +5,7 @@ description: Record a verified, reusable technical lesson in docs/learnings with
 
 # Record a lesson
 
-A learning is a file `docs/learnings/<topic>.md` about one topic. It holds one or more lessons. The dx learning tools read and write these files. Do not change files in `docs/learnings` with Edit or Write.
+A learning is a file `docs/learnings/<topic>.md` about one topic. It holds one or more lessons. The dx learning tools read and write these files. They also write the index `docs/learnings/README.md`. Do not change files in `docs/learnings` with Edit or Write. Do not read `docs/learnings/README.md`: it is for persons. Use `learning_list`.
 
 ## When a lesson is valid
 

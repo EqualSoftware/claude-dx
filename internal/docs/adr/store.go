@@ -27,6 +27,7 @@ var (
 	kind       = docfile.NewKind("ADR")
 	statusLine = regexp.MustCompile(`(?m)^- Status: (.*)$`)
 	titleLine  = regexp.MustCompile(`(?m)^# ADR-\d{3}: (.*)$`)
+	dateLine   = regexp.MustCompile(`(?m)^- Date: (.*)$`)
 )
 
 // ErrNoDir means that docs/decisions does not exist. It is a normal state, not a failure.
@@ -47,6 +48,7 @@ type Entry struct {
 	Number int
 	Status string
 	Title  string
+	Date   string
 	File   string
 }
 
@@ -104,7 +106,7 @@ func (s Store) read(name string, n int) (Entry, error) {
 	if err != nil {
 		return Entry{}, err
 	}
-	return Entry{Number: n, File: name, Status: first(statusLine, data), Title: first(titleLine, data)}, nil
+	return Entry{Number: n, File: name, Status: first(statusLine, data), Title: first(titleLine, data), Date: first(dateLine, data)}, nil
 }
 
 // Get returns the ADR, or one of its sections.
@@ -124,7 +126,7 @@ func (s Store) Get(id, section string) (string, error) {
 	return text, nil
 }
 
-// Create writes a new ADR with the next number and returns its path relative to the docs root.
+// Create writes a new ADR with the next number, makes README.md again and returns its path.
 func (s Store) Create(adr New) (string, error) {
 	adr = s.defaults(adr)
 	if err := validStatus(adr.Status); err != nil {
@@ -140,7 +142,10 @@ func (s Store) Create(adr New) (string, error) {
 		}
 		return docfile.Create(path, b.Bytes())
 	})
-	return path, err
+	if err != nil {
+		return "", err
+	}
+	return path, s.WriteIndex()
 }
 
 func (s Store) defaults(adr New) New {
@@ -158,7 +163,7 @@ func (s Store) defaults(adr New) New {
 	return adr
 }
 
-// Update changes the status, or replaces one section, or both.
+// Update changes the status, or replaces one section, or both, and makes README.md again.
 func (s Store) Update(id, status, section, body string) error {
 	if status == "" && section == "" {
 		return errors.New("give a status, or a section and a body")
@@ -168,7 +173,7 @@ func (s Store) Update(id, status, section, body string) error {
 			return err
 		}
 	}
-	return s.edit(id, func(doc string) (string, error) {
+	err := s.edit(id, func(doc string) (string, error) {
 		if status != "" {
 			doc = statusLine.ReplaceAllLiteralString(doc, "- Status: "+status)
 		}
@@ -177,9 +182,14 @@ func (s Store) Update(id, status, section, body string) error {
 		}
 		return markdown.ReplaceSection(doc, section, body)
 	})
+	if err != nil {
+		return err
+	}
+	return s.WriteIndex()
 }
 
-// Supersede marks the old ADR as replaced by the new ADR, and adds the link to the new ADR.
+// Supersede marks the old ADR as replaced by the new ADR, adds the link to the new ADR and makes
+// README.md again.
 func (s Store) Supersede(oldID, newID string) error {
 	oldN, err := kind.Parse(oldID)
 	if err != nil {
@@ -201,9 +211,13 @@ func (s Store) Supersede(oldID, newID string) error {
 	if err != nil {
 		return err
 	}
-	return s.edit(newID, func(doc string) (string, error) {
+	err = s.edit(newID, func(doc string) (string, error) {
 		return addReplaces(doc, oldN)
 	})
+	if err != nil {
+		return err
+	}
+	return s.WriteIndex()
 }
 
 // addReplaces puts "Replaces ADR-NNN." at the start of Context, one time only.

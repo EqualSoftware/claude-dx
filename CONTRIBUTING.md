@@ -36,8 +36,9 @@ CI runs the same checks on macOS, Linux and Windows. All checks must pass.
 
 The project records its design in [docs/](docs/):
 
-- [Tasks](docs/tasks/INDEX.md): one spec for each unit of work.
+- [Tasks](docs/tasks/): one spec for each unit of work.
 - [Decisions](docs/decisions/): one ADR for each architecture decision.
+- [Learnings](docs/learnings/): verified technical lessons.
 - [Glossary](docs/GLOSSARY.md): the project terms.
 
 For a small fix, open a pull request directly. For a new feature or a design change, open an issue first, so we can agree on the task before you write code.
