@@ -1,7 +1,7 @@
 ---
 id: TASK-049
 title: Rename task files with one rename
-status: In Review
+status: Done
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -21,6 +21,9 @@ related: [TASK-042, TASK-047, ADR-007]
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
+| 2026-10-26 | Equal | Status: Approved. |
+| 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -128,8 +131,14 @@ Revert the change. No effect on task files.
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: TestMoveExists (AC-1): Move refuses an existing path with fs.ErrExist and both files do not change. TestMoveOpenFile (AC-2): Move renames a file that a reader holds open for 100 ms. TestRenameOnTitle and TestRenameExists (AC-3, TASK-042 AC-1 to AC-3) pass. TestRenumber (AC-4): TASK-001-dup.md does not exist and TASK-003-dup.md exists. Commit dfbfe34. The Windows CI run verifies AC-2 after the push.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet, go test -race ./... pass; GOOS=windows go vet passes; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: The learning go-windows-file-sharing has the os.Remove failure and the one-rename rule with docfile.Move. No area doc or CLAUDE.md text describes the task file rename.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: one helper docfile.Move in internal/docs/docfile/write.go and two callers, no design diagram.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: No architecture decision: the write rule of ADR-007 (temporary file and rename) also covers a move. No change of structure or file format.

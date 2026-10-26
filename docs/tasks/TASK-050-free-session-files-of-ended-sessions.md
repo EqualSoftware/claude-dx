@@ -1,7 +1,7 @@
 ---
 id: TASK-050
 title: Free session files of ended sessions
-status: In Review
+status: In Development
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -21,6 +21,8 @@ related: [TASK-041, ADR-014]
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
+| 2026-10-26 | Equal | Status: Approved. |
+| 2026-10-26 | Equal | Status: In Development. |
 
 ## 1. Summary
 
