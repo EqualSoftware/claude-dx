@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
+	"github.com/EqualSoftware/claude-dx/internal/project"
 )
 
 // Delete deletes the folder of a spec (ADR-016). Git keeps the old version, so it refuses changes that
@@ -31,7 +32,7 @@ func (s Store) Delete(slug, reason, moveTo string, discard bool) error {
 			return err
 		}
 		dir := filepath.Dir(path)
-		if err := s.checkCommitted(slug, dir); err != nil {
+		if err := s.checkDelete(slug, dir); err != nil {
 			return err
 		}
 		others, err := otherFiles(dir)
@@ -46,6 +47,39 @@ func (s Store) Delete(slug, reason, moveTo string, discard bool) error {
 		}
 		return s.WriteIndex()
 	})
+}
+
+// checkDelete refuses a spec that has tasks or changes that are not committed.
+func (s Store) checkDelete(slug, dir string) error {
+	if err := s.checkTasks(slug); err != nil {
+		return err
+	}
+	return s.checkCommitted(slug, dir)
+}
+
+// checkTasks refuses a spec that has local tasks in tasks/<slug>/ of the project data directory, which
+// is the folder of the docs lock (ADR-015). The spec package does not read the tasks (TASK-064).
+func (s Store) checkTasks(slug string) error {
+	entries, err := os.ReadDir(filepath.Join(filepath.Dir(s.Lock), project.Tasks, slug))
+	if docfile.NotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	n := 0
+	for _, e := range entries {
+		if !e.IsDir() && filepath.Ext(e.Name()) == ".md" {
+			n++
+		}
+	}
+	switch n {
+	case 0:
+		return nil
+	case 1:
+		return fmt.Errorf("spec %s has 1 task. Move or delete the task first, with task_move or task_delete", slug)
+	}
+	return fmt.Errorf("spec %s has %d tasks. Move or delete the tasks first, with task_move or task_delete", slug, n)
 }
 
 // checkCommitted refuses a folder with changes or files that git does not have.

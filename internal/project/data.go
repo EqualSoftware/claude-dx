@@ -10,9 +10,15 @@ import (
 	"strings"
 )
 
+// Names of entries in a project data directory (ADR-015, ADR-016).
+const (
+	DocsLock = "docs.lock" // the docs lock
+	Tasks    = "tasks"     // the folder of the local tasks: tasks/<spec>/<task-slug>.md
+)
+
 // dataNames are the entries of a project data directory that hold data. docs.lock is not data,
 // because it has no content and no process removes it (ADR-015).
-var dataNames = []string{"project.json", "tasks"}
+var dataNames = []string{"project.json", Tasks}
 
 // DataDir returns the project data directory (ADR-015): <Common>/dx in git, else
 // <cacheDir>/projects/<Key>. In git, the cache folder of the top level stays the data directory while it

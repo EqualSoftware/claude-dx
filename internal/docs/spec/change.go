@@ -222,6 +222,52 @@ func (s Store) SetRequirement(slug, rid, text, status string) (review bool, err 
 	return review, err
 }
 
+// RequirementsLocked returns the status of the spec and the IDs of its requirements. The caller holds
+// the docs lock (TASK-064).
+func (s Store) RequirementsLocked(slug string) (status string, rids []string, err error) {
+	d, _, err := s.readDoc(slug)
+	if err != nil {
+		return "", nil, err
+	}
+	if status, err = d.status(); err != nil {
+		return "", nil, err
+	}
+	for _, row := range requirements(d.body) {
+		rids = append(rids, row[1])
+	}
+	return status, rids, nil
+}
+
+// SetDoneLocked sets the requirements rids to Done and adds one Document History row, for example
+// "R-2, R-5: Done.". A requirement that is Done already does not change, so a retry is safe. The caller
+// holds the docs lock (TASK-064).
+func (s Store) SetDoneLocked(slug string, rids []string) error {
+	if len(rids) == 0 {
+		return nil
+	}
+	return s.editLocked(slug, func(d *doc) error {
+		if !slices.ContainsFunc(rids, func(rid string) bool { return requirementStatus(d, rid) != "Done" }) {
+			return errUnchanged
+		}
+		for _, rid := range rids {
+			if _, err := setRow(d, rid, "", "Done"); err != nil {
+				return err
+			}
+		}
+		return s.addHistory(d, strings.Join(rids, ", ")+": Done.")
+	})
+}
+
+// requirementStatus returns the status of rid in d, or "" if d has no rid.
+func requirementStatus(d *doc, rid string) string {
+	for _, m := range requirements(d.body) {
+		if strings.EqualFold(m[1], rid) {
+			return m[4]
+		}
+	}
+	return ""
+}
+
 // setRow changes the row of rid and returns the Document History notes.
 func setRow(d *doc, rid, text, status string) ([]string, error) {
 	section, _ := markdown.Section(d.body, "5")

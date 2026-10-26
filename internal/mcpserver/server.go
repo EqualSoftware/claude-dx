@@ -36,7 +36,7 @@ func New(version, dir string) (*mcp.Server, error) {
 		return nil, err
 	}
 	alloc := numbering.Allocator{Dir: p.DataDir(cacheDir)}
-	lock := filepath.Join(alloc.Dir, "docs.lock")
+	lock := filepath.Join(alloc.Dir, project.DocsLock)
 	// The file is only information for "claude-dx clean", so an error does not stop the server.
 	_ = writeProjectFile(filepath.Join(cacheDir, "projects", p.Key, "project.json"), p.Root, lock)
 	server := mcp.NewServer(&mcp.Implementation{Name: "dx", Version: version}, nil)

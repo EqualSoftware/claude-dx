@@ -208,25 +208,44 @@ func (d *doc) status() (string, error) {
 
 // edit reads the spec, changes it with fn, writes it and makes README.md again, with the docs lock.
 func (s Store) edit(slug string, fn func(*doc) error) error {
-	return docfile.Locked(s.Lock, func() error {
-		path, err := s.find(slug)
-		if err != nil {
-			return err
-		}
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		d := &doc{slug: slug}
-		d.front, d.body = markdown.Split(string(data))
-		if err := fn(d); err != nil {
-			return err
-		}
-		if err := docfile.Write(path, []byte(markdown.Join(d.front, d.body))); err != nil {
-			return err
-		}
-		return s.WriteIndex()
-	})
+	return docfile.Locked(s.Lock, func() error { return s.editLocked(slug, fn) })
+}
+
+// errUnchanged tells editLocked that fn changed nothing, so the spec is not written.
+var errUnchanged = errors.New("no change")
+
+// editLocked is edit for a caller that holds the docs lock.
+func (s Store) editLocked(slug string, fn func(*doc) error) error {
+	d, path, err := s.readDoc(slug)
+	if err != nil {
+		return err
+	}
+	err = fn(d)
+	if errors.Is(err, errUnchanged) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if err := docfile.Write(path, []byte(markdown.Join(d.front, d.body))); err != nil {
+		return err
+	}
+	return s.WriteIndex()
+}
+
+// readDoc returns the spec document of slug and its path.
+func (s Store) readDoc(slug string) (*doc, string, error) {
+	path, err := s.find(slug)
+	if err != nil {
+		return nil, "", err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, "", err
+	}
+	d := &doc{slug: slug}
+	d.front, d.body = markdown.Split(string(data))
+	return d, path, nil
 }
 
 func (s Store) today() string {
