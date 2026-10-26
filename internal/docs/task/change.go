@@ -17,7 +17,6 @@ import (
 var (
 	questionRow = regexp.MustCompile(`^\| (Q-(\d+)) \| (.*?) \| (.*?) \| (.*?) \|$`)
 	dodItem     = regexp.MustCompile(`^- \[([ x])\] (.*)$`)
-	sizeCell    = regexp.MustCompile("(?m)^\\| Size \\| `?([SML])`?(.*) \\|$")
 )
 
 // leafSections are the sections with no subsections. In Review needs all of them filled.
@@ -42,37 +41,71 @@ func (s Store) UpdateSection(id, section, content string) error {
 	})
 }
 
-// Update holds the frontmatter and table changes of UpdateFields. Nil or empty fields do not change.
+// Update holds the frontmatter changes of UpdateFields. Nil or empty fields do not change.
 type Update struct {
 	Title     string
 	Priority  string
+	Type      string
+	Size      string
+	Owner     string
+	Platforms []string
 	Area      []string
 	DependsOn []string
-	Fields    Fields
+	Related   []string
 }
 
-// UpdateFields changes the frontmatter and the table values.
-func (s Store) UpdateFields(id string, u Update) error {
-	if u.Priority != "" {
-		if err := validPriority(u.Priority); err != nil {
+// check returns an error for an invalid field.
+func (u Update) check() error {
+	for _, c := range []struct {
+		name, value string
+		valid       []string
+	}{{"priority", u.Priority, Priorities}, {"type", u.Type, Types}, {"size", u.Size, Sizes}} {
+		if c.value == "" {
+			continue
+		}
+		if err := oneOf(c.name, c.value, c.valid); err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+// field is one frontmatter change. set is false for a field that does not change.
+type field struct {
+	key   string
+	value any
+	set   bool
+}
+
+// fields returns the frontmatter changes in frontmatter order.
+func (u Update) fields() []field {
+	return []field{
+		{"title", u.Title, u.Title != ""},
+		{"priority", u.Priority, u.Priority != ""},
+		{"type", u.Type, u.Type != ""},
+		{"size", u.Size, u.Size != ""},
+		{"owner", u.Owner, u.Owner != ""},
+		{"platforms", u.Platforms, u.Platforms != nil},
+		{"area", u.Area, u.Area != nil},
+		{"depends_on", u.DependsOn, u.DependsOn != nil},
+		{"related", u.Related, u.Related != nil},
+	}
+}
+
+// UpdateFields changes the frontmatter fields.
+func (s Store) UpdateFields(id string, u Update) error {
+	if err := u.check(); err != nil {
+		return err
+	}
 	return s.edit(id, func(d *doc) error {
+		for _, f := range u.fields() {
+			if f.set {
+				d.front = markdown.SetField(d.front, f.key, f.value)
+			}
+		}
 		if u.Title != "" {
-			d.front = markdown.SetField(d.front, "title", u.Title)
 			d.body = setHeader(d.body, kind.ID(mustNumber(d.path)), u.Title)
 		}
-		if u.Priority != "" {
-			d.front = markdown.SetField(d.front, "priority", u.Priority)
-		}
-		if u.Area != nil {
-			d.front = markdown.SetField(d.front, "area", u.Area)
-		}
-		if u.DependsOn != nil {
-			d.front = markdown.SetField(d.front, "depends_on", u.DependsOn)
-		}
-		d.body = setFields(d.body, u.Fields)
 		return nil
 	})
 }
@@ -83,7 +116,11 @@ func (s Store) SetStatus(id, status, note string) error {
 		return fmt.Errorf("status %q is not valid. Use one of: %s", status, strings.Join(Statuses, ", "))
 	}
 	return s.edit(id, func(d *doc) error {
-		if problems := rules[status](d.body, note); len(problems) > 0 {
+		var f Front
+		if err := markdown.Decode(d.front, &f); err != nil {
+			return fmt.Errorf("bad frontmatter: %w", err)
+		}
+		if problems := rules[status](f, d.body, note); len(problems) > 0 {
 			return fmt.Errorf("cannot set %s: %s", status, strings.Join(problems, "; "))
 		}
 		d.front = markdown.SetField(d.front, "status", status)
@@ -95,34 +132,37 @@ func (s Store) SetStatus(id, status, note string) error {
 }
 
 // rules returns the problems that stop a change to each status.
-var rules = map[string]func(body, note string) []string{
+var rules = map[string]func(f Front, body, note string) []string{
 	"Draft":          none,
 	"In Review":      inReview,
-	"Approved":       func(body, _ string) []string { return openQuestions(body) },
+	"Approved":       func(_ Front, body, _ string) []string { return openQuestions(body) },
 	"In Development": none,
 	"Blocked":        needNote,
-	"Done":           func(body, _ string) []string { return uncheckedDoD(body) },
+	"Done":           func(_ Front, body, _ string) []string { return uncheckedDoD(body) },
 	"Cancelled":      needNote,
 }
 
-func none(string, string) []string { return nil }
+func none(Front, string, string) []string { return nil }
 
-func needNote(_, note string) []string {
+func needNote(_ Front, _, note string) []string {
 	if strings.TrimSpace(note) == "" {
 		return []string{"give a note with the reason"}
 	}
 	return nil
 }
 
-func inReview(body, _ string) []string {
+func inReview(f Front, body, _ string) []string {
 	problems := openQuestions(body)
 	for _, ref := range leafSections {
 		if text, _ := markdown.Section(body, ref); text == pristine[ref] {
 			problems = append(problems, "section "+ref+" has the template text. Fill it or write Not applicable")
 		}
 	}
-	if m := sizeCell.FindStringSubmatch(body); m == nil || m[1] == "L" || strings.Contains(m[2], " / ") {
-		problems = append(problems, "Size must be S or M. Split an L task into smaller tasks")
+	if f.Size == "" {
+		problems = append(problems, "give a size: S or M. Split a larger task into smaller tasks")
+	}
+	if len(f.Platforms) == 0 {
+		problems = append(problems, "give the platforms, or [Not applicable]")
 	}
 	return problems
 }

@@ -61,17 +61,18 @@ func TestDecode(t *testing.T) {
 	}
 }
 
-func TestSetFieldKeepsComment(t *testing.T) {
+func TestSetFieldReplacesLine(t *testing.T) {
 	front, _ := Split(task)
 	tests := []struct {
 		key   string
 		value any
 		want  string
 	}{
-		{"status", "In Review", "status: In Review  # Draft / In Review / Approved\n"},
-		{"title", "New: title", "title: 'New: title'  # quoted title\n"},
+		{"status", "In Review", "status: In Review\n"},
+		{"title", "New: title", "title: 'New: title'\n"},
 		{"area", []string{"cli", "docs"}, "area: [cli, docs]\n"},
 		{"depends_on", []string{}, "depends_on: []\n"},
+		{"platforms", []string{"Linux", "Windows (amd64, arm64)"}, "platforms: [Linux, 'Windows (amd64, arm64)']\n"},
 	}
 	for _, tt := range tests {
 		got := SetField(front, tt.key, tt.value)

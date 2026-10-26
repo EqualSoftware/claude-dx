@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -11,10 +12,30 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/result"
 )
 
+// listInput has one filter for each frontmatter field. The JSON name is the frontmatter key.
 type listInput struct {
-	Status   string `json:"status,omitempty" jsonschema:"open (default), all, or one status: Draft, In Review, Approved, In Development, Blocked, Done, Cancelled"`
-	Priority string `json:"priority,omitempty" jsonschema:"P0, P1, P2 or P3"`
-	Area     string `json:"area,omitempty" jsonschema:"one area"`
+	Status    string `json:"status,omitempty" jsonschema:"open (default), all, or one status: Draft, In Review, Approved, In Development, Blocked, Done, Cancelled"`
+	ID        string `json:"id,omitempty"`
+	Title     string `json:"title,omitempty" jsonschema:"the full title"`
+	Priority  string `json:"priority,omitempty" jsonschema:"P0, P1, P2 or P3"`
+	Type      string `json:"type,omitempty" jsonschema:"feat, fix, refactor, perf, test, docs, build, ci or chore"`
+	Size      string `json:"size,omitempty" jsonschema:"S or M"`
+	Owner     string `json:"owner,omitempty" jsonschema:"git user.name of the person who created the task"`
+	Platforms string `json:"platforms,omitempty" jsonschema:"one platform"`
+	Area      string `json:"area,omitempty" jsonschema:"one area"`
+	DependsOn string `json:"depends_on,omitempty" jsonschema:"one task ID: the tasks that wait for it"`
+	Related   string `json:"related,omitempty" jsonschema:"one ADR or task ID"`
+}
+
+// filter returns the filter with the frontmatter key of each input field.
+func (in listInput) filter() Filter {
+	f := Filter{}
+	v := reflect.ValueOf(in)
+	for i := range v.NumField() {
+		key, _, _ := strings.Cut(v.Type().Field(i).Tag.Get("json"), ",")
+		f[key] = v.Field(i).String()
+	}
+	return f
 }
 
 type getInput struct {
@@ -22,12 +43,16 @@ type getInput struct {
 	Section string `json:"section,omitempty" jsonschema:"one section only, by number (example 7.1) or title. Read one section when you need only that part"`
 }
 
+// createInput has the same fields as New, so one converts to the other.
 type createInput struct {
 	Title     string            `json:"title" jsonschema:"short task title, in ASD-STE100"`
 	Priority  string            `json:"priority" jsonschema:"P0, P1, P2 or P3"`
+	Type      string            `json:"type" jsonschema:"feat, fix, refactor, perf, test, docs, build, ci or chore. It sets the commit type"`
 	Area      []string          `json:"area" jsonschema:"the areas of the project, example [api] or [docs, ci]"`
-	DependsOn []string          `json:"depends_on,omitempty" jsonschema:"task IDs that must be done first"`
-	Fields    Fields            `json:"fields,omitempty"`
+	DependsOn []string          `json:"depends_on,omitempty" jsonschema:"open task IDs that must be done first"`
+	Size      string            `json:"size,omitempty" jsonschema:"S (less than 1 day) or M (1 to 3 days). Split a larger task. Required for In Review"`
+	Platforms []string          `json:"platforms,omitempty" jsonschema:"operating systems, architectures or runtimes, example [macOS, Linux, Windows], or [Not applicable]. Required for In Review"`
+	Related   []string          `json:"related,omitempty" jsonschema:"ADR and task IDs, docs, issues, external references"`
 	Sections  map[string]string `json:"sections,omitempty" jsonschema:"section number or title -> body with no heading. Sections that you do not give keep the template text"`
 }
 
@@ -41,9 +66,13 @@ type fieldsInput struct {
 	ID        string   `json:"id" jsonschema:"task ID"`
 	Title     string   `json:"title,omitempty"`
 	Priority  string   `json:"priority,omitempty" jsonschema:"P0, P1, P2 or P3"`
-	Area      []string `json:"area,omitempty"`
+	Type      string   `json:"type,omitempty" jsonschema:"feat, fix, refactor, perf, test, docs, build, ci or chore"`
+	Size      string   `json:"size,omitempty" jsonschema:"S or M"`
+	Owner     string   `json:"owner,omitempty" jsonschema:"git user.name of the person who owns the task"`
+	Platforms []string `json:"platforms,omitempty" jsonschema:"the full new list"`
+	Area      []string `json:"area,omitempty" jsonschema:"the full new list"`
 	DependsOn []string `json:"depends_on,omitempty" jsonschema:"the full new list; an empty list removes all"`
-	Fields    Fields   `json:"fields,omitempty"`
+	Related   []string `json:"related,omitempty" jsonschema:"the full new list; an empty list removes all"`
 }
 
 type statusInput struct {
@@ -76,7 +105,7 @@ type renumberInput struct {
 
 // Register adds the task tools to the server.
 func Register(server *mcp.Server, s Store) {
-	add(server, "task_list", "List tasks: ID, status, priority, title, areas and dependencies. Default: open tasks. Do not read docs/tasks/INDEX.md; use this tool.",
+	add(server, "task_list", "List tasks: ID, status, priority, title, areas and dependencies. Filter by any frontmatter field. Default: open tasks. Do not read docs/tasks/INDEX.md; use this tool.",
 		func(in listInput) (string, error) { return s.listText(in) })
 	add(server, "task_get", "Read one task, or one section of it.",
 		func(in getInput) (string, error) { return s.Get(in.ID, in.Section) })
@@ -86,9 +115,10 @@ func Register(server *mcp.Server, s Store) {
 		func(in sectionInput) (string, error) {
 			return "Updated section " + in.Section + " of " + in.ID + ".", s.UpdateSection(in.ID, in.Section, in.Body)
 		})
-	add(server, "task_update_fields", "Change the title, priority, areas or dependencies (frontmatter), or the table values of a task.",
+	add(server, "task_update_fields", "Change the frontmatter fields of a task: title, priority, type, size, owner, platforms, areas, dependencies or related.",
 		func(in fieldsInput) (string, error) {
-			u := Update{Title: in.Title, Priority: in.Priority, Area: in.Area, DependsOn: in.DependsOn, Fields: in.Fields}
+			u := Update{Title: in.Title, Priority: in.Priority, Type: in.Type, Size: in.Size, Owner: in.Owner,
+				Platforms: in.Platforms, Area: in.Area, DependsOn: in.DependsOn, Related: in.Related}
 			return "Updated " + in.ID + ".", s.UpdateFields(in.ID, u)
 		})
 	add(server, "task_set_status", "Change the status of a task and add a Document History row. The tool refuses a change that breaks a status rule and gives the reasons.",
@@ -122,11 +152,10 @@ func add[In any](server *mcp.Server, name, description string, fn func(In) (stri
 }
 
 func (s Store) listText(in listInput) (string, error) {
-	status := in.Status
-	if status == "" {
-		status = "open"
+	if in.Status == "" {
+		in.Status = "open"
 	}
-	tasks, warnings, err := s.List(Filter{Status: status, Priority: in.Priority, Area: in.Area})
+	tasks, warnings, err := s.List(in.filter())
 	if err != nil {
 		return "", err
 	}

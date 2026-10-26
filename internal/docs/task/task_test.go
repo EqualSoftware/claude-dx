@@ -32,7 +32,7 @@ func must(t *testing.T, err error) {
 
 func create(t *testing.T, s Store, title string) {
 	t.Helper()
-	if _, err := s.Create(New{Title: title, Priority: "P1", Area: []string{"cli"}}); err != nil {
+	if _, err := s.Create(New{Title: title, Priority: "P1", Type: "feat", Area: []string{"cli"}}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -49,8 +49,8 @@ func read(t *testing.T, s Store, id string) string {
 func TestCreate(t *testing.T) {
 	s := newStore(t)
 	path, err := s.Create(New{
-		Title: "Add cache: fast", Priority: "P1", Area: []string{"cli", "docs"}, DependsOn: []string{"TASK-009"},
-		Fields:   Fields{Type: "`feat`", Size: "`S` (< 1 day)"},
+		Title: "Add cache: fast", Priority: "P1", Type: "feat", Area: []string{"cli", "docs"}, DependsOn: []string{"TASK-009"},
+		Size: "S", Platforms: []string{"macOS", "Windows (amd64, arm64)"}, Related: []string{"ADR-013"},
 		Sections: map[string]string{"1": "The summary.", "Goals": "- G-1: Fast."},
 	})
 	if err != nil {
@@ -61,15 +61,18 @@ func TestCreate(t *testing.T) {
 	}
 	doc := read(t, s, "TASK-001")
 	for _, want := range []string{
-		"id: TASK-001\n", "title: 'Add cache: fast'", "status: Draft  # Draft", "priority: P1  # P0",
-		"area: [cli, docs]", "depends_on: [TASK-009]", "# TASK-001: Add cache: fast\n",
-		"| Type | `feat` |", "| Size | `S` (< 1 day) |", "| Owner | [Name or role] |",
+		"id: TASK-001\ntitle: 'Add cache: fast'\nstatus: Draft\npriority: P1\ntype: feat\nsize: S\nowner: Tester\n" +
+			"platforms: [macOS, 'Windows (amd64, arm64)']\narea: [cli, docs]\ndepends_on: [TASK-009]\nrelated: [ADR-013]\n---\n",
+		"# TASK-001: Add cache: fast\n\n## Document History\n",
 		"| 2026-10-25 | Tester | Initial draft specification |",
 		"## 1. Summary\n\nThe summary.\n", "## 3. Goals\n\n- G-1: Fast.\n",
 	} {
 		if !strings.Contains(doc, want) {
 			t.Errorf("task does not contain %q", want)
 		}
+	}
+	if strings.Contains(doc, " # ") || strings.Contains(doc, "| Field | Value |") {
+		t.Error("task has a frontmatter comment or the Field/Value table")
 	}
 	if _, err := os.Stat(filepath.Join(s.Dir, "INDEX.md")); err != nil {
 		t.Error("INDEX.md was not made")
@@ -79,9 +82,12 @@ func TestCreate(t *testing.T) {
 func TestCreateRefusesBadInput(t *testing.T) {
 	s := newStore(t)
 	bad := []New{
-		{Title: "", Priority: "P1"},
-		{Title: "X", Priority: "P9"},
-		{Title: "X", Priority: "P1", Sections: map[string]string{"99": "x"}},
+		{Title: "", Priority: "P1", Type: "feat"},
+		{Title: "X", Priority: "P9", Type: "feat"},
+		{Title: "X", Priority: "P1"},
+		{Title: "X", Priority: "P1", Type: "feature"},
+		{Title: "X", Priority: "P1", Type: "feat", Size: "L"},
+		{Title: "X", Priority: "P1", Type: "feat", Sections: map[string]string{"99": "x"}},
 	}
 	for _, in := range bad {
 		if _, err := s.Create(in); err == nil {
@@ -113,11 +119,34 @@ func TestListFilter(t *testing.T) {
 	if err := s.SetStatus("TASK-002", "Cancelled", "Not necessary."); err != nil {
 		t.Fatal(err)
 	}
-	open, _, _ := s.List(Filter{Status: "open"})
-	all, _, _ := s.List(Filter{Status: "all"})
-	cancelled, _, _ := s.List(Filter{Status: "Cancelled", Area: "cli"})
+	open, _, _ := s.List(Filter{"status": "open"})
+	all, _, _ := s.List(Filter{"status": "all"})
+	cancelled, _, _ := s.List(Filter{"status": "cancelled", "area": "cli"})
 	if len(open) != 1 || len(all) != 2 || len(cancelled) != 1 || cancelled[0].Closed != "2026-10-25" {
 		t.Fatalf("open %d, all %d, cancelled %+v", len(open), len(all), cancelled)
+	}
+}
+
+func TestListFilterAnyField(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "One")
+	create(t, s, "Two")
+	must(t, s.UpdateFields("TASK-002", Update{DependsOn: []string{"TASK-001"}, Platforms: []string{"Windows"}}))
+	tests := []struct {
+		filter Filter
+		want   int
+	}{
+		{Filter{"depends_on": "TASK-001"}, 1},
+		{Filter{"platforms": "windows"}, 1},
+		{Filter{"owner": "tester", "type": "feat"}, 2},
+		{Filter{"size": "M"}, 0},
+		{Filter{"status": "all", "priority": ""}, 2},
+	}
+	for _, tt := range tests {
+		got, _, err := s.List(tt.filter)
+		if err != nil || len(got) != tt.want {
+			t.Errorf("List(%v) = %d tasks, %v; want %d", tt.filter, len(got), err, tt.want)
+		}
 	}
 }
 
@@ -128,7 +157,8 @@ func TestSetStatusRules(t *testing.T) {
 		status, note, want string
 	}{
 		{"In Review", "", "section 1 has the template text"},
-		{"In Review", "", "Size must be S or M"},
+		{"In Review", "", "give a size"},
+		{"In Review", "", "give the platforms"},
 		{"Blocked", "", "give a note"},
 		{"Done", "", "Definition of Done item 1 is not checked"},
 		{"Finished", "", "is not valid"},
@@ -143,7 +173,7 @@ func TestSetStatusRules(t *testing.T) {
 		t.Fatal(err)
 	}
 	doc := read(t, s, "TASK-001")
-	if !strings.Contains(doc, "status: In Development  # Draft") || !strings.Contains(doc, "| 2026-10-25 | Tester | Status: In Development. |") {
+	if !strings.Contains(doc, "status: In Development\n") || !strings.Contains(doc, "| 2026-10-25 | Tester | Status: In Development. |") {
 		t.Fatalf("status change not written:\n%s", doc)
 	}
 }
@@ -154,7 +184,7 @@ func TestInReviewWhenComplete(t *testing.T) {
 	for _, ref := range leafSections {
 		sections[ref] = "Filled " + ref + "."
 	}
-	if _, err := s.Create(New{Title: "Full", Priority: "P1", Area: []string{"cli"}, Fields: Fields{Size: "`M` (1–3 days)"}, Sections: sections}); err != nil {
+	if _, err := s.Create(New{Title: "Full", Priority: "P1", Type: "feat", Area: []string{"cli"}, Size: "M", Platforms: []string{"Linux"}, Sections: sections}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.SetStatus("TASK-001", "In Review", ""); err != nil {
@@ -208,18 +238,23 @@ func TestCheckDoD(t *testing.T) {
 func TestUpdateFields(t *testing.T) {
 	s := newStore(t)
 	create(t, s, "One")
-	u := Update{Title: "New title", Priority: "P0", DependsOn: []string{}, Fields: Fields{Owner: "Maintainer"}}
+	u := Update{Title: "New title", Priority: "P0", Type: "fix", Size: "M", Owner: "Equal", DependsOn: []string{}, Related: []string{"ADR-001"}}
 	if err := s.UpdateFields("TASK-001", u); err != nil {
 		t.Fatal(err)
 	}
 	doc := read(t, s, "TASK-001")
-	for _, want := range []string{"title: New title", "# TASK-001: New title\n", "priority: P0", "depends_on: []", "area: [cli]", "| Owner | Maintainer |"} {
+	for _, want := range []string{
+		"title: New title\nstatus: Draft\npriority: P0\ntype: fix\nsize: M\nowner: Equal\nplatforms: []\narea: [cli]\ndepends_on: []\nrelated: [ADR-001]\n",
+		"# TASK-001: New title\n",
+	} {
 		if !strings.Contains(doc, want) {
 			t.Errorf("task does not contain %q", want)
 		}
 	}
-	if err := s.UpdateFields("TASK-001", Update{Priority: "P5"}); err == nil {
-		t.Error("bad priority did not fail")
+	for _, bad := range []Update{{Priority: "P5"}, {Type: "feature"}, {Size: "L"}} {
+		if err := s.UpdateFields("TASK-001", bad); err == nil {
+			t.Errorf("UpdateFields(%+v) did not fail", bad)
+		}
 	}
 }
 

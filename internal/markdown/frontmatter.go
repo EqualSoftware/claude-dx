@@ -38,42 +38,23 @@ func Decode(front string, v any) error {
 	return yaml.Unmarshal([]byte(front), v)
 }
 
-// SetField sets key to value (a string or a []string) and keeps a comment at the end of the line.
+// SetField sets key to value (a string or a []string). It replaces the full line of the key.
 // If the key does not exist, SetField adds it at the end.
 func SetField(front, key string, value any) string {
 	line := key + ": " + format(value)
-	pattern := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(key) + `:(.*)$`)
-	m := pattern.FindStringSubmatchIndex(front)
+	pattern := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(key) + `:.*$`)
+	m := pattern.FindStringIndex(front)
 	if m == nil {
 		return front + line + "\n"
 	}
-	return front[:m[0]] + line + comment(front[m[2]:m[3]]) + front[m[1]:]
+	return front[:m[0]] + line + front[m[1]:]
 }
 
-// format writes a string as a YAML scalar (quoted only if necessary) and a []string as a flow list.
+// format writes a string as a YAML scalar and a []string as a flow list. Both are quoted only if necessary.
 func format(value any) string {
-	if list, ok := value.([]string); ok {
-		return "[" + strings.Join(list, ", ") + "]"
-	}
-	out, _ := yaml.Marshal(value)
+	var node yaml.Node
+	_ = node.Encode(value) // A string or a []string always encodes.
+	node.Style = yaml.FlowStyle
+	out, _ := yaml.Marshal(&node)
 	return strings.TrimSuffix(string(out), "\n")
-}
-
-// comment returns the " # ..." part at the end of a YAML value, or "".
-func comment(value string) string {
-	start := 0
-	trimmed := strings.TrimLeft(value, " ")
-	if q := trimmed[:min(1, len(trimmed))]; q == `"` || q == "'" {
-		offset := len(value) - len(trimmed)
-		start = offset + 1 + strings.Index(trimmed[1:], q) + 1
-	}
-	i := strings.Index(value[start:], " #")
-	if i < 0 {
-		return ""
-	}
-	j := start + i
-	for j > 0 && value[j-1] == ' ' {
-		j--
-	}
-	return value[j:]
 }

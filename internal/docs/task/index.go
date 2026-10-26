@@ -48,7 +48,7 @@ const closedHeader = `
 // WriteIndex makes docs/tasks/INDEX.md from the frontmatter of the task files.
 // It is for persons on GitHub; the model uses task_list.
 func (s Store) WriteIndex() error {
-	tasks, _, err := s.List(Filter{Status: "all"})
+	tasks, _, err := s.List(Filter{"status": "all"})
 	if err != nil {
 		return err
 	}

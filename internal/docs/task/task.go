@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"slices"
 	"sort"
@@ -36,6 +37,12 @@ var Statuses = []string{"Draft", "In Review", "Approved", "In Development", "Blo
 // Priorities are the valid priorities.
 var Priorities = []string{"P0", "P1", "P2", "P3"}
 
+// Types are the valid task types. They are the Conventional Commits types, because the type sets the commit type (ADR-012).
+var Types = []string{"feat", "fix", "refactor", "perf", "test", "docs", "build", "ci", "chore"}
+
+// Sizes are the valid sizes. An L task must be split.
+var Sizes = []string{"S", "M"}
+
 // Store reads and writes the task files of one project.
 type Store struct {
 	Dir    string              // absolute path of docs/tasks
@@ -50,8 +57,31 @@ type Front struct {
 	Title     string   `yaml:"title"`
 	Status    string   `yaml:"status"`
 	Priority  string   `yaml:"priority"`
+	Type      string   `yaml:"type"`
+	Size      string   `yaml:"size"`
+	Owner     string   `yaml:"owner"`
+	Platforms []string `yaml:"platforms"`
 	Area      []string `yaml:"area"`
 	DependsOn []string `yaml:"depends_on"`
+	Related   []string `yaml:"related"`
+}
+
+// has reports if the field with the YAML key has the value, with no case difference.
+// A list field has the value if one item is equal to it.
+func (f Front) has(key, value string) bool {
+	v := reflect.ValueOf(f)
+	for i := range v.NumField() {
+		if v.Type().Field(i).Tag.Get("yaml") != key {
+			continue
+		}
+		switch field := v.Field(i).Interface().(type) {
+		case string:
+			return strings.EqualFold(field, value)
+		case []string:
+			return slices.ContainsFunc(field, func(item string) bool { return strings.EqualFold(item, value) })
+		}
+	}
+	return false
 }
 
 // Task is one task in a list.
@@ -61,27 +91,27 @@ type Task struct {
 	Closed string // date of the last Document History row
 }
 
-// Filter selects tasks in List. Empty fields select all. Status "open" selects all but Done and Cancelled.
-type Filter struct {
-	Status   string
-	Priority string
-	Area     string
-}
+// Filter selects tasks in List: a frontmatter key and the value to find. Empty values select all.
+// Status "open" selects all but Done and Cancelled, and "all" selects all.
+type Filter map[string]string
 
 func (f Filter) match(t Task) bool {
-	return f.matchStatus(t.Front.Status) &&
-		(f.Priority == "" || f.Priority == t.Front.Priority) &&
-		(f.Area == "" || slices.Contains(t.Front.Area, f.Area))
+	for key, value := range f {
+		if !matchField(t.Front, key, value) {
+			return false
+		}
+	}
+	return true
 }
 
-func (f Filter) matchStatus(status string) bool {
-	switch f.Status {
-	case "", "all":
+func matchField(f Front, key, value string) bool {
+	switch {
+	case value == "", key == "status" && value == "all":
 		return true
-	case "open":
-		return status != "Done" && status != "Cancelled"
+	case key == "status" && value == "open":
+		return f.Status != "Done" && f.Status != "Cancelled"
 	}
-	return f.Status == status
+	return f.has(key, value)
 }
 
 // List returns the tasks that match f, sorted by ID, and one warning line for each file that it cannot read
@@ -226,9 +256,10 @@ func sortedNames(files map[int][]string) []string {
 	return names
 }
 
-func validPriority(p string) error {
-	if slices.Contains(Priorities, p) {
+// oneOf returns an error if value is not in valid. name is the field name for the message.
+func oneOf(name, value string, valid []string) error {
+	if slices.Contains(valid, value) {
 		return nil
 	}
-	return fmt.Errorf("priority %q is not valid. Use one of: %s", p, strings.Join(Priorities, ", "))
+	return fmt.Errorf("%s %q is not valid. Use one of: %s", name, value, strings.Join(valid, ", "))
 }

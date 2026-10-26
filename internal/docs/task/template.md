@@ -1,23 +1,18 @@
 ---
 id: TASK-NNN
-title: Short task title  # no brackets; quote it if it has ": " or " #"
-status: Draft  # Draft / In Review / Approved / In Development / Blocked / Done / Cancelled
-priority: P2  # P0 / P1 / P2 / P3
-area: [<area>]  # the areas of the project, for example [api], [docs, ci]
-depends_on: []  # for example [TASK-004]
+title: Short task title
+status: Draft
+priority: P2
+type: feat
+size: ""
+owner: Agent
+platforms: []
+area: []
+depends_on: []
+related: []
 ---
 
 # TASK-NNN: [Task Title]
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` / `fix` / `refactor` / `perf` / `test` / `docs` / `build` / `ci` / `chore` |
-| Owner | [Name or role] |
-| Reviewers | [Names or roles] |
-| Platforms | [Operating systems, architectures or runtimes; or Not applicable] |
-| Size | `S` (< 1 day) / `M` (1–3 days) / `L` (> 3 days: split the task) |
-| Blocks | [TASK-NNN, or None] |
-| Related | [ADR-NNN, docs, issues, external references] |
 
 ## Document History
 | Date | Author | Description / Change Notes |
