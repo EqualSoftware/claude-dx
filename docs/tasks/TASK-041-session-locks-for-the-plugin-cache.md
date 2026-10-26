@@ -1,7 +1,7 @@
 ---
 id: TASK-041
 title: Session locks for the plugin cache
-status: In Review
+status: Approved
 priority: P2
 milestone: v0.1.0
 type: feat
@@ -21,6 +21,7 @@ related: [ADR-001, ADR-003, TASK-003, TASK-027]
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-26 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

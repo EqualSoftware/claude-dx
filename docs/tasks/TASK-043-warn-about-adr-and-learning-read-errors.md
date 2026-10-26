@@ -1,7 +1,7 @@
 ---
 id: TASK-043
 title: Warn about ADR and learning read errors
-status: In Review
+status: Approved
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -21,6 +21,7 @@ related: [TASK-005, TASK-007]
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-26 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

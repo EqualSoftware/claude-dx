@@ -1,7 +1,7 @@
 ---
 id: TASK-046
 title: Build provenance for release files
-status: In Review
+status: Approved
 priority: P3
 milestone: v0.1.0
 type: ci
@@ -21,6 +21,7 @@ related: [ADR-004, ADR-012, TASK-001]
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-26 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

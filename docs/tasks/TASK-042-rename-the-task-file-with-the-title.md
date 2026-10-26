@@ -1,7 +1,7 @@
 ---
 id: TASK-042
 title: Rename the task file with the title
-status: In Review
+status: Approved
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -21,6 +21,7 @@ related: [TASK-028, TASK-036]
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
+| 2026-10-26 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 

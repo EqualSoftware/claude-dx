@@ -24,17 +24,17 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-037](TASK-037-protect-the-controlled-task-sections.md) | Controlled task sections and DoD tools | `In Review` | `P1` | `docs-tools`, `plugin` | None |
-| [TASK-038](TASK-038-replace-block-lists-in-the-frontmatter.md) | Replace block lists in the frontmatter | `In Review` | `P1` | `docs-tools` | None |
-| [TASK-039](TASK-039-check-the-glossary-row-fields.md) | Check the glossary row fields | `In Review` | `P2` | `docs-tools` | None |
-| [TASK-040](TASK-040-check-only-the-new-task-dependencies.md) | Check only the new task dependencies | `In Review` | `P2` | `docs-tools` | TASK-037 |
-| [TASK-041](TASK-041-session-locks-for-the-plugin-cache.md) | Session locks for the plugin cache | `In Review` | `P2` | `cli`, `plugin` | None |
-| [TASK-042](TASK-042-rename-the-task-file-with-the-title.md) | Rename the task file with the title | `In Review` | `P2` | `docs-tools` | TASK-040 |
-| [TASK-043](TASK-043-warn-about-adr-and-learning-read-errors.md) | Warn about ADR and learning read errors | `In Review` | `P2` | `docs-tools` | None |
-| [TASK-044](TASK-044-refuse-a-title-with-an-empty-file-slug.md) | Refuse a title with an empty file slug | `In Review` | `P2` | `docs-tools` | None |
-| [TASK-047](TASK-047-atomic-writes-and-locks-for-doc-edits.md) | Atomic writes and locks for doc edits | `In Review` | `P2` | `docs-tools` | TASK-037, TASK-039, TASK-040, TASK-042, TASK-043, TASK-044 |
-| [TASK-045](TASK-045-align-result-tables-by-character.md) | Align result tables by character | `In Review` | `P3` | `mcp` | None |
-| [TASK-046](TASK-046-build-provenance-for-release-files.md) | Build provenance for release files | `In Review` | `P3` | `ci` | TASK-041 |
+| [TASK-037](TASK-037-protect-the-controlled-task-sections.md) | Controlled task sections and DoD tools | `Approved` | `P1` | `docs-tools`, `plugin` | None |
+| [TASK-038](TASK-038-replace-block-lists-in-the-frontmatter.md) | Replace block lists in the frontmatter | `Approved` | `P1` | `docs-tools` | None |
+| [TASK-039](TASK-039-check-the-glossary-row-fields.md) | Check the glossary row fields | `Approved` | `P2` | `docs-tools` | None |
+| [TASK-040](TASK-040-check-only-the-new-task-dependencies.md) | Check only the new task dependencies | `Approved` | `P2` | `docs-tools` | TASK-037 |
+| [TASK-041](TASK-041-session-locks-for-the-plugin-cache.md) | Session locks for the plugin cache | `Approved` | `P2` | `cli`, `plugin` | None |
+| [TASK-042](TASK-042-rename-the-task-file-with-the-title.md) | Rename the task file with the title | `Approved` | `P2` | `docs-tools` | TASK-040 |
+| [TASK-043](TASK-043-warn-about-adr-and-learning-read-errors.md) | Warn about ADR and learning read errors | `Approved` | `P2` | `docs-tools` | None |
+| [TASK-044](TASK-044-refuse-a-title-with-an-empty-file-slug.md) | Refuse a title with an empty file slug | `Approved` | `P2` | `docs-tools` | None |
+| [TASK-047](TASK-047-atomic-writes-and-locks-for-doc-edits.md) | Atomic writes and locks for doc edits | `Approved` | `P2` | `docs-tools` | TASK-037, TASK-039, TASK-040, TASK-042, TASK-043, TASK-044 |
+| [TASK-045](TASK-045-align-result-tables-by-character.md) | Align result tables by character | `Approved` | `P3` | `mcp` | None |
+| [TASK-046](TASK-046-build-provenance-for-release-files.md) | Build provenance for release files | `Approved` | `P3` | `ci` | TASK-041 |
 
 ## v0.2.0
 
