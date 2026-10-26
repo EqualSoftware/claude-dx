@@ -1,7 +1,7 @@
 ---
 id: TASK-060
 title: Run claude as a child process on Unix
-status: In Development
+status: Done
 priority: P1
 milestone: v0.1.0
 type: refactor
@@ -23,6 +23,7 @@ related: [ADR-015, ADR-014, ADR-003]
 | 2026-10-26 | Equal | Status: In Review. |
 | 2026-10-26 | Equal | Status: Approved. |
 | 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -134,8 +135,14 @@ Revert the change. The session lock of ADR-014 works with exec and with a child 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: Commit 757a705. AC-1: TestStartExitCode. AC-2: TestStartForwardsSIGTERM. AC-3: TestStartIgnoresSIGINT (the fake claude also checks that SIGINT is not ignored, FR-2). FR-4: TestStartSignalExitCode gives 137. Each test fails when its fix is removed. AC-4 (macOS, manual, 2026-10-26, claude-dx of 68953b5): Ctrl+C closes claude; Ctrl+Z and fg work; after the close of the terminal window, pgrep shows no claude-dx or claude process of that session.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: Commit 757a705: go build, go vet (darwin, linux, windows), go test ./... and go test -race -count=5 ./internal/launcher/ pass; golangci-lint v2.15.0 gives 0 issues for darwin, linux and windows; govulncheck finds no vulnerabilities.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: ADR-003 Decision gives the child process and the signal rules (757a705). Learning go-signals-child-process (c973791). No area doc or CLAUDE.md describes the exec.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: one function and two signal lists, with no design diagram.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: ADR-015 records the decision (launcher as parent). ADR-003 Decision changed to match it (757a705).
