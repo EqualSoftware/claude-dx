@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -18,10 +19,10 @@ func Dir() (string, error) {
 	return filepath.Join(base, "claude-dx"), nil
 }
 
-// Clean removes the cache directory dir, but not the file keep and its parent directories. It
+// Clean removes the cache directory dir, but not the files in keep and their parent directories. It
 // continues after an error (example: a file in use on Windows) and returns one line for each path
 // that it cannot remove.
-func Clean(dir, keep string) ([]string, error) {
+func Clean(dir string, keep []string) ([]string, error) {
 	var paths []string
 	err := filepath.WalkDir(dir, func(path string, _ fs.DirEntry, err error) error {
 		if err != nil {
@@ -39,7 +40,7 @@ func Clean(dir, keep string) ([]string, error) {
 	var failed []string
 	// WalkDir gives a directory before its files, so the reverse order removes the files first.
 	for i := len(paths) - 1; i >= 0; i-- {
-		if paths[i] == keep || strings.HasPrefix(keep, paths[i]+string(filepath.Separator)) {
+		if slices.ContainsFunc(keep, func(k string) bool { return contains(paths[i], k) }) {
 			continue
 		}
 		err := os.Remove(paths[i])
@@ -49,6 +50,11 @@ func Clean(dir, keep string) ([]string, error) {
 		failed = append(failed, paths[i]+": "+err.Error())
 	}
 	return failed, nil
+}
+
+// contains reports whether path is file or one of its parent directories.
+func contains(path, file string) bool {
+	return path == file || strings.HasPrefix(file, path+string(filepath.Separator))
 }
 
 // hasFailedChild reports whether a path in failed is in dir. Then dir is not empty, and the

@@ -11,8 +11,11 @@ import (
 
 // lock locks one byte at offset 1<<62. A Windows lock also stops reads of the locked bytes from
 // other handles, so a lock after the end of the file lets them read the data.
-func lock(f *os.File, wait bool) error {
-	flags := uint32(windows.LOCKFILE_EXCLUSIVE_LOCK)
+func lock(f *os.File, exclusive, wait bool) error {
+	var flags uint32
+	if exclusive {
+		flags |= windows.LOCKFILE_EXCLUSIVE_LOCK
+	}
 	if !wait {
 		flags |= windows.LOCKFILE_FAIL_IMMEDIATELY
 	}

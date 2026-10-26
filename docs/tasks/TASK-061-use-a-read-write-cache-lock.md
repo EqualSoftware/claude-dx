@@ -1,7 +1,7 @@
 ---
 id: TASK-061
 title: Use a read-write cache lock
-status: Approved
+status: Done
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,8 @@ related: [ADR-015, ADR-014, TASK-041, TASK-050, TASK-051]
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
 | 2026-10-26 | Equal | Status: Approved. |
+| 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -170,8 +172,14 @@ Revert the change and ADR-015. The removed session code comes back with the reve
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: AC-1 TestCleanRefusesInUse, TestCacheCleanRefusesSession; AC-2 TestStartWaitsForClean; AC-3 TestStartTwoSessions; AC-4 TestStartRemovesUnused, TestStartKeepsWhileInUse; AC-5 TestCleanKeepsLockFiles; AC-6 TestCacheCleanRefusesMCPServer; AC-7 TestCleanAfterChildOfClaude (Unix). A-1 TestSharedLock, TestExclusiveLockExcludesShared (helper processes). All pass on macOS (go test ./...); Windows and Linux by CI after push.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet (also GOOS=windows and GOOS=linux), go test ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: README.md:62 and :68 and the help text in cmd/claude-dx/main.go:29 describe the cache lock. Glossary: Cache lock and Cache changed, Session lock deleted. CLAUDE.md needs no change.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: The project has no area docs yet. The sequence diagram of section 7.1 describes the code and stays in this task; TASK-067 moves it to the cache-and-update spec.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: ADR-015 (Accepted) records the read-write cache lock and supersedes ADR-014.

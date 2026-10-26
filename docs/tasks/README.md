@@ -24,7 +24,6 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-061](TASK-061-use-a-read-write-cache-lock.md) | Use a read-write cache lock | `Approved` | `P1` | `cli`, `plugin` | TASK-060 |
 | [TASK-063](TASK-063-spec-documents-and-spec-tools.md) | Spec documents and spec tools | `Draft` | `P1` | `mcp`, `docs` | TASK-058 |
 | [TASK-064](TASK-064-local-tasks-in-the-git-common-directory.md) | Local tasks in the git common directory | `Draft` | `P1` | `mcp`, `docs` | TASK-063 |
 | [TASK-065](TASK-065-lock-pushed-adrs-in-adr-update.md) | Lock pushed ADRs in adr_update | `Draft` | `P1` | `mcp`, `docs` | TASK-058 |
@@ -120,3 +119,4 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | [TASK-056](TASK-056-refuse-a-used-title-in-a-title-change.md) | Refuse a used title in a title change | `Done` | 2026-10-26 |
 | [TASK-057](TASK-057-escape-pipes-in-readme-index-rows.md) | Escape pipes in README index rows | `Done` | 2026-10-26 |
 | [TASK-060](TASK-060-run-claude-as-a-child-process-on-unix.md) | Run claude as a child process on Unix | `Done` | 2026-10-26 |
+| [TASK-061](TASK-061-use-a-read-write-cache-lock.md) | Use a read-write cache lock | `Done` | 2026-10-26 |

@@ -26,7 +26,7 @@ Usage:
   claude-dx [claude arguments]     Start Claude Code with dx.
   claude-dx -- [claude arguments]  Pass all arguments to Claude Code.
   claude-dx update                 Install the latest release.
-  claude-dx cache clean            Remove all data of claude-dx.
+  claude-dx cache clean            Remove all data of claude-dx but the lock files.
   claude-dx doctor                 Check the setup.
   claude-dx --version              Show the claude-dx version.
   claude-dx --help                 Show this help.
@@ -86,6 +86,11 @@ func runUpdate(stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail(stderr, err)
 	}
+	release, err := session.Use(dir)
+	if err != nil {
+		return fail(stderr, err)
+	}
+	defer func() { _ = release() }()
 	binary, err := launcher.Executable()
 	if err != nil {
 		return fail(stderr, err)
@@ -99,8 +104,8 @@ func runUpdate(stdout, stderr io.Writer) int {
 	return 0
 }
 
-// cleanCache removes the cache. It fails if a session runs, or if a path stays, for example a file
-// in use on Windows.
+// cleanCache removes the cache but its lock files. It fails if a session runs, or if a path stays,
+// for example a file in use on Windows.
 func cleanCache(args []string, stdout, stderr io.Writer) int {
 	if len(args) != 1 || args[0] != "clean" {
 		fmt.Fprintln(stderr, "Usage: claude-dx cache clean")
@@ -120,7 +125,7 @@ func cleanCache(args []string, stdout, stderr io.Writer) int {
 	if len(failed) > 0 {
 		return 1
 	}
-	fmt.Fprintf(stdout, "Removed %s.\n", dir)
+	fmt.Fprintf(stdout, "Removed the data in %s.\n", dir)
 	return 0
 }
 
@@ -128,6 +133,10 @@ func runDoctor(stdout, stderr io.Writer) int {
 	dir, err := cache.Dir()
 	if err != nil {
 		return fail(stderr, err)
+	}
+	// With no lock, the cache is not writable, and the doctor checks report it.
+	if release, err := session.Use(dir); err == nil {
+		defer func() { _ = release() }()
 	}
 	binary, err := launcher.Executable()
 	if err != nil {

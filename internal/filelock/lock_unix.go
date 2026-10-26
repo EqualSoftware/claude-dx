@@ -8,8 +8,11 @@ import (
 	"syscall"
 )
 
-func lock(f *os.File, wait bool) error {
-	how := syscall.LOCK_EX
+func lock(f *os.File, exclusive, wait bool) error {
+	how := syscall.LOCK_SH
+	if exclusive {
+		how = syscall.LOCK_EX
+	}
 	if !wait {
 		how |= syscall.LOCK_NB
 	}

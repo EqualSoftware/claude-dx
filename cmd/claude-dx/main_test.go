@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -179,6 +178,30 @@ func TestMCPServerInitialize(t *testing.T) {
 	}
 }
 
+// TestCacheCleanRefusesMCPServer is AC-6 of TASK-061: the MCP server holds a shared cache lock
+// while it runs.
+func TestCacheCleanRefusesMCPServer(t *testing.T) {
+	env := setup(t)
+	client := mcp.NewClient(&mcp.Implementation{Name: "test", Version: "v0"}, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	env.writeState(t, "v9.9.9") // a new update.json: the server does no network request
+	cmd := exec.Command(env.dx, "mcp")
+	cmd.Env = env.environ(os.Getenv("PATH"))
+	session, err := client.Connect(ctx, &mcp.CommandTransport{Command: cmd}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	code, _, stderr := env.launch(t, env.bin, "cache", "clean")
+	if code != 1 || stderr != "claude-dx: a claude-dx session uses the cache. Close it and try again\n" {
+		t.Fatalf("cache clean with a server: exit code = %d, stderr = %q", code, stderr)
+	}
+	_ = session.Close()
+	if code, _, stderr = env.launch(t, env.bin, "cache", "clean"); code != 0 {
+		t.Fatalf("cache clean after the server: exit code = %d, stderr = %q", code, stderr)
+	}
+}
+
 func TestLaunchShowsUpdateNotice(t *testing.T) {
 	env := setup(t)
 	env.writeState(t, "v10.0.0")
@@ -205,11 +228,11 @@ func TestCacheClean(t *testing.T) {
 	env.launch(t, env.bin, "--resume") // extracts the plugin
 	dir := env.dxCache(t)
 	code, stdout, stderr := env.launch(t, env.bin, "cache", "clean")
-	if code != 0 || stdout != "Removed "+dir+".\n" {
+	if code != 0 || stdout != "Removed the data in "+dir+".\n" {
 		t.Fatalf("exit code = %d, stdout = %q, stderr = %q", code, stdout, stderr)
 	}
-	if _, err := os.Stat(dir); err == nil {
-		t.Fatal("the cache exists")
+	if _, err := os.Stat(filepath.Join(dir, "plugin")); err == nil {
+		t.Fatal("the plugin exists")
 	}
 	if code, _, stderr = env.launch(t, env.bin, "cache"); code != 1 || stderr != "Usage: claude-dx cache clean\n" {
 		t.Fatalf("cache with no subcommand: exit code = %d, stderr = %q", code, stderr)
@@ -232,7 +255,7 @@ func TestCacheCleanRefusesSession(t *testing.T) {
 		t.Fatalf("fake claude output = %q, %v", line, err)
 	}
 	code, _, stderr := env.launch(t, env.bin, "cache", "clean")
-	want := fmt.Sprintf("claude-dx: a claude-dx session uses the cache (PID %d). Close it and try again\n", cmd.Process.Pid)
+	want := "claude-dx: a claude-dx session uses the cache. Close it and try again\n"
 	if code != 1 || stderr != want {
 		t.Fatalf("exit code = %d, stderr = %q, want %q", code, stderr, want)
 	}

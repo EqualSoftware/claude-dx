@@ -12,8 +12,8 @@ Sort the terms in alphabetical order.
 | :--- | :--- | :--- | :--- | :--- |
 | ADR | Architecture Decision Record. A file in `docs/decisions/` that records one architecture decision. | process | design doc | `docs/decisions/` |
 | ASD-STE100 | Simplified Technical English. The language rule for dx documents, tool arguments, tool results, skills and commit messages. | process | simple English, STE | ADR-009 |
-| Cache | The directory `os.UserCacheDir()/claude-dx`. It holds the extracted plugin, LSP servers, `update.json`, `unmapped.log`, the session files in `sessions/` with the cache lock `sessions.lock`, and the counters and locks of each project in `projects/<key>/`. | cli | data dir, home dir | ADR-001 |
-| Cache lock | The exclusive OS lock on `<cache>/sessions.lock`. A session start and `cache clean` hold it for a short time, so they do not run at the same time. It is not a session lock. | cli | sessions lock | ADR-014 |
+| Cache | The directory `os.UserCacheDir()/claude-dx`. It holds the extracted plugin, LSP servers, `update.json`, `unmapped.log`, the cache lock `cache.lock`, and the counters and locks of each project in `projects/<key>/`. | cli | data dir, home dir | ADR-001 |
+| Cache lock | The read-write OS lock on `<cache>/cache.lock`. Each claude-dx process that uses the cache holds a shared lock, and `cache clean` needs the exclusive lock. No process removes the file. | cli | sessions lock, session lock | ADR-015 |
 | Definition of Done | The checklist in the last section of a task. All items must be checked, with evidence, before the task is `Done`. | process | DoD, done criteria | `docs/tasks/` |
 | Docs lock | The exclusive OS lock on `<cache>/projects/<key>/docs.lock`, with a mutex of the dx server. Each tool that changes a task, ADR, learning, the glossary or a README index holds it for the full read, change and write. A create takes the docs lock first, then the numbering lock, to prevent a deadlock. | docs-tools | edit lock | ADR-007 |
 | dx plugin | The Claude Code plugin named `dx` that the binary embeds and the launcher loads with `--plugin-dir`. It holds the skills, the scout agent, the hooks and the MCP server declaration. | plugin | extension, add-on | ADR-001 |
@@ -30,7 +30,6 @@ Sort the terms in alphabetical order.
 | Project root | The git top level of the current directory, or the current directory outside git. Tools refuse paths outside it. | mcp | workspace, base dir | ADR-005 |
 | Ready task | An open task that is not `Blocked` and has all dependencies `Done`. `task_list(status: ready)` gives these tasks. | process | next task, unblocked task | ADR-013 |
 | Scout | The read-only agent `dx:scout` on Haiku. Skills give it fact searches of more than 3 files. | plugin | explorer, searcher | ADR-009 |
-| Session lock | The exclusive OS lock on `<cache>/sessions/<pid>.lock`, one file for each claude-dx session. On Unix, claude and its child processes hold it, and a child can hold it after claude ends, so a held lock does not prove that the session runs. A session file with a free lock, or on Unix with the PID of no process, is of a session that ended. | cli | pid file | ADR-014 |
 | Shared rules | The short dx rules text (`rules.md` in the dx plugin) that the launcher gives to Claude Code with `--append-system-prompt-file`. | plugin | RULES.md | ADR-009 |
 | Task | A spec file in `docs/tasks/` for one unit of work. | process | ticket, issue | `docs/tasks/` |
 | Unmapped operation | A git operation that no dx git tool covers. The model runs it with `git_exec`, and the dx server logs it to `unmapped.log`. | git | unknown command | ADR-008 |

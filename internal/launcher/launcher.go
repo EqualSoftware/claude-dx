@@ -36,7 +36,7 @@ func Run(version string, args []string) (int, error) {
 	if notice := update.Notice(cacheDir, version); notice != "" {
 		fmt.Fprintln(os.Stderr, notice)
 	}
-	pluginDir, end, err := session.Start(cacheDir, func() (string, error) {
+	pluginDir, end, err := session.Start(cacheDir, plugin.DirName(version, binary), func() (string, error) {
 		dir, err := plugin.Ensure(cacheDir, version, binary)
 		if err != nil {
 			return "", fmt.Errorf("cannot extract the dx plugin: %w", err)

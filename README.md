@@ -59,13 +59,13 @@ gh attestation verify claude-dx_<version>_<os>_<arch>.tar.gz --repo EqualSoftwar
 claude-dx [claude arguments]     # Start Claude Code with dx.
 claude-dx -- [claude arguments]  # Pass all arguments to Claude Code.
 claude-dx update                 # Install the latest release.
-claude-dx cache clean            # Remove all data of claude-dx.
+claude-dx cache clean            # Remove all data of claude-dx but the lock files.
 claude-dx doctor                 # Check the setup.
 ```
 
 The dx server checks for a new release one time in 24 hours, in the background. When a new release exists, `claude-dx` shows one line at start. It never updates without `claude-dx update`.
 
-Each session holds a lock file in the cache. At start, `claude-dx` removes the plugin files of old versions that no session uses. `claude-dx cache clean` removes nothing while a session runs: close all `claude-dx` sessions first.
+Each `claude-dx` process holds a shared lock on `cache.lock` in the cache. At start, if no other process uses the cache, `claude-dx` removes the plugin files of old versions. `claude-dx cache clean` removes nothing while a session runs: close all `claude-dx` sessions first. It keeps the lock files.
 
 claude-dx gives the dx rules to Claude Code with `--append-system-prompt-file`. Your `--append-system-prompt` also applies. Do not give `--append-system-prompt-file`: Claude Code uses only the last one, so the dx rules stop.
 

@@ -17,6 +17,7 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/docs/task"
 	"github.com/EqualSoftware/claude-dx/internal/numbering"
 	"github.com/EqualSoftware/claude-dx/internal/project"
+	"github.com/EqualSoftware/claude-dx/internal/session"
 	"github.com/EqualSoftware/claude-dx/internal/update"
 )
 
@@ -40,20 +41,28 @@ func New(version, dir string) (*mcp.Server, error) {
 	return server, nil
 }
 
-// Run serves MCP on stdin and stdout until the client disconnects.
+// Run serves MCP on stdin and stdout until the client disconnects. It holds a shared cache lock
+// while it runs, so "cache clean" does not remove the cache of a session (ADR-015).
 // Claude Code starts the server in the directory of the session.
 func Run(ctx context.Context, version string) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return err
 	}
+	cacheDir, err := cache.Dir()
+	if err != nil {
+		return err
+	}
+	release, err := session.Use(cacheDir)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = release() }()
 	server, err := New(version, dir)
 	if err != nil {
 		return err
 	}
-	if cacheDir, err := cache.Dir(); err == nil {
-		go update.Updater{URL: update.LatestURL, Version: version, Cache: cacheDir}.Check(ctx)
-	}
+	go update.Updater{URL: update.LatestURL, Version: version, Cache: cacheDir}.Check(ctx)
 	return server.Run(ctx, &mcp.StdioTransport{})
 }
 
