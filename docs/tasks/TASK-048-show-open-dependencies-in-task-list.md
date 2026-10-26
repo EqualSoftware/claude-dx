@@ -1,7 +1,7 @@
 ---
 id: TASK-048
 title: Show open dependencies in task_list
-status: In Review
+status: Done
 priority: P2
 milestone: v0.1.0
 type: feat
@@ -21,6 +21,9 @@ related: [TASK-030, ADR-013]
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
+| 2026-10-26 | Equal | Status: Approved. |
+| 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -138,8 +141,14 @@ Remove `Task.Deps` and write the IDs again in `listText`. No file format changes
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: TestListDepsStatus (AC-1, AC-2, AC-3; filter id: TASK-004 does not select the dependencies) passes: deps:TASK-001, TASK-002 (Draft), TASK-003 (missing). AC-4: internal/docs/task/tools.go:122 has "a task must match all filters" and "A dependency that is not Done shows its status". Commit 67474cf.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet, go test ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: Not applicable: the task_list description is the doc of the output. No area doc or CLAUDE.md text describes the deps column.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: one helper function deps in internal/docs/task/task.go, no design diagram.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: No architecture decision: a change of the text of one tool output, no change of structure or file format.
