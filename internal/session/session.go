@@ -29,15 +29,16 @@ func Use(cacheDir string) (release func() error, err error) {
 	return filelock.RLock(filepath.Join(cacheDir, lockName))
 }
 
-// Start removes the plugin directories but own if no other process uses the cache. Then it takes
-// the shared cache lock and calls ensure to get the plugin directory, because "cache clean" can
-// remove the plugin before the shared lock. end releases the lock: call it when claude ends.
-func Start(cacheDir, own string, ensure func() (string, error)) (pluginDir string, end func(), err error) {
+// Start removes the plugin directories but own and calls alone if no other process uses the cache.
+// Then it takes the shared cache lock and calls ensure to get the plugin directory, because "cache
+// clean" can remove the plugin before the shared lock. end releases the lock: call it when claude ends.
+func Start(cacheDir, own string, alone func(), ensure func() (string, error)) (pluginDir string, end func(), err error) {
 	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
 		return "", nil, err
 	}
 	if f, err := filelock.TryLock(filepath.Join(cacheDir, lockName)); err == nil {
 		removeUnused(filepath.Join(cacheDir, "plugin"), own)
+		alone()
 		_ = f.Close()
 	}
 	release, err := Use(cacheDir)

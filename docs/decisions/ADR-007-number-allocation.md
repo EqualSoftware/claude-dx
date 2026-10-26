@@ -1,6 +1,6 @@
 # ADR-007: Allocate numbers with a counter and lock
 
-- Status: Accepted
+- Status: Superseded by ADR-019
 - Date: 2026-10-25
 - Owners: Maintainer
 

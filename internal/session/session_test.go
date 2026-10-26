@@ -30,7 +30,7 @@ func exists(path string) bool {
 // start runs Start with an ensure that makes <cacheDir>/plugin/new.
 func start(t *testing.T, cacheDir string) func() {
 	t.Helper()
-	dir, end, err := Start(cacheDir, "new", func() (string, error) {
+	dir, end, err := Start(cacheDir, "new", func() {}, func() (string, error) {
 		dir := filepath.Join(cacheDir, "plugin", "new")
 		return dir, os.MkdirAll(dir, 0o755)
 	})
@@ -89,7 +89,7 @@ func TestStartWaitsForClean(t *testing.T) {
 	}
 	got := make(chan time.Time, 1)
 	go func() {
-		_, end, err := Start(cacheDir, "new", func() (string, error) {
+		_, end, err := Start(cacheDir, "new", func() {}, func() (string, error) {
 			got <- time.Now()
 			return "new", nil
 		})
@@ -157,7 +157,7 @@ func TestCleanMissingCache(t *testing.T) {
 
 func TestStartEnsureError(t *testing.T) {
 	cacheDir := t.TempDir()
-	if _, _, err := Start(cacheDir, "new", func() (string, error) { return "", os.ErrPermission }); !errors.Is(err, os.ErrPermission) {
+	if _, _, err := Start(cacheDir, "new", func() {}, func() (string, error) { return "", os.ErrPermission }); !errors.Is(err, os.ErrPermission) {
 		t.Fatalf("Start = %v", err)
 	}
 	// Start released the shared lock, so the exclusive lock is free.
@@ -166,4 +166,24 @@ func TestStartEnsureError(t *testing.T) {
 		t.Fatalf("TryLock after a Start error = %v", err)
 	}
 	_ = f.Close()
+}
+
+// TestStartCallsAlone is the session part of AC-5 and AC-6 of TASK-068: Start calls alone only when
+// no other process uses the cache.
+func TestStartCallsAlone(t *testing.T) {
+	cacheDir := t.TempDir()
+	for _, inUse := range []bool{false, true} {
+		if inUse {
+			use(t, cacheDir)
+		}
+		called := false
+		_, end, err := Start(cacheDir, "new", func() { called = true }, func() (string, error) { return "new", nil })
+		if err != nil {
+			t.Fatal(err)
+		}
+		end()
+		if called == inUse {
+			t.Fatalf("with another process %v, alone called = %v", inUse, called)
+		}
+	}
 }

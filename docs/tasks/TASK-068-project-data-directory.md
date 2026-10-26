@@ -1,7 +1,7 @@
 ---
 id: TASK-068
 title: Project data directory
-status: Approved
+status: Done
 priority: P1
 milestone: v0.1.0
 type: feat
@@ -22,6 +22,8 @@ related: [ADR-018, ADR-007, ADR-015]
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
 | 2026-10-26 | Equal | The user approved the task in the conversation. |
+| 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -201,12 +203,20 @@ Revert the change and the new ADR. Data in `<Common>/dx/` stays until a person r
 | Q-13 | JSON formats: Project file (cache) `{"path": "/abs/root", "last_used": "2026-10-26T12:00:00Z"}` (RFC 3339, UTC); Project file (data) `{"counters": {"adr": 18}}`. Recommended: yes. | Maintainer | Yes. Cache: {"path", "last_used" in RFC 3339 UTC}. Data: {"counters": {"adr": N}}. |
 | Q-14 | Name of the move function: `func (p Project) MoveData(cacheDir string) error` in package project? Recommended: yes. | Maintainer | Yes. MoveData in package project. |
 | Q-15 | The move copies regular files and directories with their permission bits? Recommended: yes, as TASK-058 does. | Maintainer | Yes. Keep the permission bits. |
+| Q-16 | If the MCP server cannot write the Project file (cache) at start (R-4), does it stop with the error, or start and ignore it? Recommended: start and ignore it, because the file is only information for claude-dx clean, and the docs tools do not need it. | Maintainer | Yes. Start and ignore the error. |
+| Q-17 | If the launcher cannot find the current directory or the project (os.Getwd or project.Open fails) before the move, does it skip the move with no message? Recommended: yes, because no data moves, the old folder stays the data directory (R-1), and the MCP server reports the same error when it starts. | Maintainer | Yes. Skip the move with no message. |
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: AC-1 TestDataDir; AC-2 TestDataDirPendingMove; AC-3 TestProjectFile; AC-4 and AC-1 server part TestDataDirAndProjectFile; AC-5 TestMoveData and TestStartCallsAlone; AC-6 TestStartCallsAlone and TestDataDirPendingMove; AC-7 TestMoveDataFails and TestMoveDataWarning (Unix); Q-15 TestMoveDataKeepsMode; AC-8 ADR-019 supersedes ADR-007. go test ./... passes on macOS; Windows and Linux by CI after push.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet (also GOOS=windows and GOOS=linux), go test ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: Glossary: Cache, Docs lock and Project key changed. Code comments cite ADR-019. README.md and CLAUDE.md do not describe the counters or the docs lock.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: The project has no area docs yet. The sequence diagram of section 7.1 describes the code; TASK-067 moves it to a spec.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: ADR-019 (Accepted) supersedes ADR-007. ADR-015, ADR-016 and ADR-018 record the project data directory, the move and the project files.

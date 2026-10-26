@@ -39,7 +39,7 @@ var Sections = []string{"Context", "Decision", "Alternatives", "Consequences", "
 // Store reads and writes the ADR files of one project.
 type Store struct {
 	Dir   string              // absolute path of docs/decisions
-	Alloc numbering.Allocator // number allocation (ADR-007)
+	Alloc numbering.Allocator // number allocation (ADR-019)
 	Now   func() time.Time    // clock; nil means time.Now
 	Lock  string              // path of the docs lock (TASK-047); required
 }

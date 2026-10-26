@@ -134,3 +134,20 @@ func TestNextParallelProcesses(t *testing.T) {
 		}
 	}
 }
+
+// TestProjectFile is AC-3 of TASK-068: the counter is in project.json, and an old counters.json is
+// not read.
+func TestProjectFile(t *testing.T) {
+	a := Allocator{Dir: t.TempDir()}
+	if err := os.WriteFile(filepath.Join(a.Dir, "counters.json"), []byte(`{"task":50}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	docs := t.TempDir()
+	if n, err := a.Next("task", docs, taskPattern, createTask(docs)); err != nil || n != 1 {
+		t.Fatalf("Next = %d, %v; want 1", n, err)
+	}
+	data, err := os.ReadFile(filepath.Join(a.Dir, "project.json"))
+	if err != nil || string(data) != `{"counters":{"task":1}}` {
+		t.Fatalf("project.json = %q, %v", data, err)
+	}
+}

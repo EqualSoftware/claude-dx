@@ -3,15 +3,18 @@ package mcpserver
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/EqualSoftware/claude-dx/internal/cache"
 	"github.com/EqualSoftware/claude-dx/internal/docs/adr"
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/docs/glossary"
 	"github.com/EqualSoftware/claude-dx/internal/docs/learning"
 	"github.com/EqualSoftware/claude-dx/internal/docs/task"
@@ -31,8 +34,10 @@ func New(version, dir string) (*mcp.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	alloc := numbering.Allocator{Dir: filepath.Join(cacheDir, "projects", p.Key)}
+	alloc := numbering.Allocator{Dir: p.DataDir(cacheDir)}
 	lock := filepath.Join(alloc.Dir, "docs.lock")
+	// The file is only information for "claude-dx clean", so an error does not stop the server.
+	_ = writeProjectFile(filepath.Join(cacheDir, "projects", p.Key, "project.json"), p.Root, lock)
 	server := mcp.NewServer(&mcp.Implementation{Name: "dx", Version: version}, nil)
 	adr.Register(server, adr.Store{Dir: filepath.Join(p.Root, "docs", "decisions"), Alloc: alloc, Lock: lock})
 	task.Register(server, task.Store{Dir: filepath.Join(p.Root, "docs", "tasks"), Alloc: alloc, Author: gitUser(p.Root), Lock: lock})
@@ -76,4 +81,22 @@ func gitUser(root string) func() string {
 		}
 		return strings.TrimSpace(string(out))
 	}
+}
+
+// writeProjectFile writes the Project file (cache) of ADR-018 with the project root and the last use
+// date, with the docs lock of the project.
+func writeProjectFile(path, root, lock string) error {
+	data, err := json.Marshal(struct {
+		Path     string `json:"path"`
+		LastUsed string `json:"last_used"`
+	}{root, time.Now().UTC().Format(time.RFC3339)})
+	if err != nil {
+		return err
+	}
+	return docfile.Locked(lock, func() error {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return err
+		}
+		return docfile.Write(path, data)
+	})
 }

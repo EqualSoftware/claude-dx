@@ -11,7 +11,7 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-004](ADR-004-self-update-from-github-releases.md) | Install and update from GitHub Releases | Accepted | 2026-10-25 |
 | [ADR-005](ADR-005-mcp-tool-design.md) | One MCP tool for each operation | Accepted | 2026-10-25 |
 | [ADR-006](ADR-006-document-management-tools.md) | Manage documents with MCP tools | Accepted | 2026-10-25 |
-| [ADR-007](ADR-007-number-allocation.md) | Allocate numbers with a counter and lock | Accepted | 2026-10-25 |
+| [ADR-007](ADR-007-number-allocation.md) | Allocate numbers with a counter and lock | Superseded by ADR-019 | 2026-10-25 |
 | [ADR-008](ADR-008-git-tools.md) | Git with MCP tools, no git in Bash | Accepted | 2026-10-25 |
 | [ADR-009](ADR-009-skills-agent-and-rules.md) | Skills, scout agent and shared rules | Accepted | 2026-10-25 |
 | [ADR-010](ADR-010-filesystem-tools-complement-native-tools.md) | File tools replace shell file commands | Accepted | 2026-10-25 |
@@ -23,3 +23,4 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-016](ADR-016-specs-in-git-tasks-in-git-dx.md) | Specs in git, tasks in .git/dx | Accepted | 2026-10-26 |
 | [ADR-017](ADR-017-adrs-do-not-change-after-a-push.md) | ADRs do not change after a push | Accepted | 2026-10-26 |
 | [ADR-018](ADR-018-interactive-clean-command.md) | Interactive clean command | Accepted | 2026-10-26 |
+| [ADR-019](ADR-019-number-allocation-in-the-data-dir.md) | Number allocation in the data dir | Accepted | 2026-10-26 |

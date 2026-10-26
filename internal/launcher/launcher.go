@@ -3,12 +3,14 @@ package launcher
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 
 	"github.com/EqualSoftware/claude-dx/internal/cache"
 	"github.com/EqualSoftware/claude-dx/internal/plugin"
+	"github.com/EqualSoftware/claude-dx/internal/project"
 	"github.com/EqualSoftware/claude-dx/internal/session"
 	"github.com/EqualSoftware/claude-dx/internal/update"
 )
@@ -36,7 +38,12 @@ func Run(version string, args []string) (int, error) {
 	if notice := update.Notice(cacheDir, version); notice != "" {
 		fmt.Fprintln(os.Stderr, notice)
 	}
-	pluginDir, end, err := session.Start(cacheDir, plugin.DirName(version, binary), func() (string, error) {
+	alone := func() {
+		if dir, err := os.Getwd(); err == nil {
+			moveData(cacheDir, dir, os.Stderr)
+		}
+	}
+	pluginDir, end, err := session.Start(cacheDir, plugin.DirName(version, binary), alone, func() (string, error) {
 		dir, err := plugin.Ensure(cacheDir, version, binary)
 		if err != nil {
 			return "", fmt.Errorf("cannot extract the dx plugin: %w", err)
@@ -52,6 +59,21 @@ func Run(version string, args []string) (int, error) {
 		return 1, ErrClaudeNotFound
 	}
 	return start(claude, Args(pluginDir, args))
+}
+
+// moveData moves the data of the project of dir from the cache to the git common directory after git
+// init (ADR-016), and writes a warning to w if the move fails. session.Start calls it only while no
+// other claude-dx process runs. If the project is not found, it does nothing: the MCP server reports
+// the same error.
+func moveData(cacheDir, dir string, w io.Writer) {
+	p, err := project.Open(dir)
+	if err != nil {
+		return
+	}
+	old, dx := p.DataDir(cacheDir), filepath.Join(p.Common, "dx")
+	if err := p.MoveData(cacheDir); err != nil {
+		fmt.Fprintf(w, "claude-dx: cannot move the project data from %s to %s: %v. The data stays in %s.\n", old, dx, err, old)
+	}
 }
 
 // settings allows all dx tools with no prompt (ADR-005). Tools that change git state

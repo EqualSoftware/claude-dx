@@ -29,7 +29,6 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | [TASK-065](TASK-065-lock-pushed-adrs-in-adr-update.md) | Lock pushed ADRs in adr_update | `Draft` | `P1` | `mcp`, `docs` | TASK-058 |
 | [TASK-066](TASK-066-resume-command-and-sessionstart-hook.md) | Resume command and SessionStart hook | `Draft` | `P1` | `cli`, `plugin` | TASK-064 |
 | [TASK-067](TASK-067-migrate-tasks-to-specs.md) | Migrate tasks to specs | `Draft` | `P1` | `docs`, `plugin` | TASK-064, TASK-065, TASK-066, TASK-070 |
-| [TASK-068](TASK-068-project-data-directory.md) | Project data directory | `Approved` | `P1` | `mcp`, `cli` | TASK-062 |
 | [TASK-069](TASK-069-interactive-clean-command.md) | Interactive clean command | `Draft` | `P1` | `cli`, `cache` | TASK-061, TASK-068 |
 
 ## v0.2.0
@@ -120,4 +119,5 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | [TASK-060](TASK-060-run-claude-as-a-child-process-on-unix.md) | Run claude as a child process on Unix | `Done` | 2026-10-26 |
 | [TASK-061](TASK-061-use-a-read-write-cache-lock.md) | Use a read-write cache lock | `Done` | 2026-10-26 |
 | [TASK-062](TASK-062-lock-the-docs-for-read-tools.md) | Lock the docs for read tools | `Done` | 2026-10-26 |
+| [TASK-068](TASK-068-project-data-directory.md) | Project data directory | `Done` | 2026-10-26 |
 | [TASK-070](TASK-070-ask-choices-found-during-work.md) | Ask choices found during work | `Done` | 2026-10-26 |

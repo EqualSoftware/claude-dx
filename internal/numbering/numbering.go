@@ -1,4 +1,4 @@
-// Package numbering allocates ADR and task numbers with no duplicates on one machine (ADR-007).
+// Package numbering allocates ADR and task numbers with no duplicates on one machine (ADR-019).
 package numbering
 
 import (
@@ -9,9 +9,11 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 )
 
-// Allocator keeps the counters of one project in Dir (<cache>/projects/<key>).
+// Allocator keeps the counters of one project in project.json of Dir, the project data directory.
 type Allocator struct {
 	Dir string
 }
@@ -62,31 +64,38 @@ func Highest(dir string, pattern *regexp.Regexp) (int, error) {
 	return highest, nil
 }
 
+// projectFile is the Project file (data) of ADR-018: project.json in the project data directory.
+type projectFile struct {
+	Counters map[string]int `json:"counters"`
+}
+
 func (a Allocator) path() string {
-	return filepath.Join(a.Dir, "counters.json")
+	return filepath.Join(a.Dir, "project.json")
 }
 
 func (a Allocator) read() (map[string]int, error) {
-	counters := map[string]int{}
+	var f projectFile
 	data, err := os.ReadFile(a.path())
 	if errors.Is(err, fs.ErrNotExist) {
-		return counters, nil
+		return map[string]int{}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return counters, json.Unmarshal(data, &counters)
+	if err := json.Unmarshal(data, &f); err != nil {
+		return nil, err
+	}
+	if f.Counters == nil {
+		f.Counters = map[string]int{}
+	}
+	return f.Counters, nil
 }
 
-// write replaces counters.json atomically, so a crash never leaves a partial file.
+// write replaces project.json atomically, so a crash never leaves a partial file.
 func (a Allocator) write(counters map[string]int) error {
-	data, err := json.Marshal(counters)
+	data, err := json.Marshal(projectFile{Counters: counters})
 	if err != nil {
 		return err
 	}
-	tmp := a.path() + ".tmp"
-	if err := os.WriteFile(tmp, data, 0o644); err != nil {
-		return err
-	}
-	return os.Rename(tmp, a.path())
+	return docfile.Write(a.path(), data)
 }

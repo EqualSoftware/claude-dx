@@ -1,4 +1,4 @@
-// Package project finds the project root and key, and keeps paths inside the root (ADR-005, ADR-007).
+// Package project finds the project root and key, and keeps paths inside the root (ADR-005, ADR-015, ADR-019).
 package project
 
 import (
@@ -16,6 +16,8 @@ type Project struct {
 	Root string
 	// Key identifies the repository. All worktrees of one repository have the same key.
 	Key string
+	// Common is the git common directory, or empty outside git. All worktrees of one repository share it.
+	Common string
 }
 
 // Open finds the project that contains dir.
@@ -28,11 +30,11 @@ func Open(dir string) (Project, error) {
 	if top, ok := git(dir, "--show-toplevel"); ok {
 		root = top
 	}
-	keySource := root
-	if common, ok := git(dir, "--git-common-dir"); ok {
-		keySource = common
+	common, ok := git(dir, "--git-common-dir")
+	if !ok {
+		return Project{Root: root, Key: key(root)}, nil
 	}
-	return Project{Root: root, Key: key(keySource)}, nil
+	return Project{Root: root, Key: key(common), Common: common}, nil
 }
 
 // Resolve returns the absolute path of rel, or an error if the path is outside the root.

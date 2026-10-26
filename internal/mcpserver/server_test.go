@@ -2,11 +2,14 @@ package mcpserver
 
 import (
 	"context"
+	"encoding/json"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
@@ -105,5 +108,38 @@ func TestToolsFlow(t *testing.T) {
 		if res.IsError || text != s.want {
 			t.Fatalf("%s = %q, error %v; want %q", s.name, text, res.IsError, s.want)
 		}
+	}
+}
+
+// TestDataDirAndProjectFile is AC-1 and AC-4 of TASK-068: the server uses the docs lock and the
+// counter in <git-common-dir>/dx, and writes the Project file (cache).
+func TestDataDirAndProjectFile(t *testing.T) {
+	session := connect(t)
+	res, err := session.CallTool(context.Background(), &mcp.CallToolParams{Name: "learning_create", Arguments: map[string]any{
+		"topic": "x", "description": "d", "body": "b",
+	}})
+	if err != nil || res.IsError {
+		t.Fatalf("learning_create = %v, %+v", err, res)
+	}
+	cacheDir, _ := cache.Dir()
+	repo := filepath.Join(os.Getenv("HOME"), "repo") // connect sets HOME to its temporary directory
+	if _, err := os.Stat(filepath.Join(repo, ".git", "dx", "docs.lock")); err != nil {
+		t.Fatalf("docs.lock is not in .git/dx: %v", err)
+	}
+	files, _ := filepath.Glob(filepath.Join(cacheDir, "projects", "*", "project.json"))
+	if len(files) != 1 {
+		t.Fatalf("Project files (cache) = %v, want 1", files)
+	}
+	var f struct {
+		Path     string `json:"path"`
+		LastUsed string `json:"last_used"`
+	}
+	data, _ := os.ReadFile(files[0])
+	if err := json.Unmarshal(data, &f); err != nil {
+		t.Fatal(err)
+	}
+	root, _ := filepath.EvalSymlinks(repo)
+	if _, err := time.Parse(time.RFC3339, f.LastUsed); err != nil || f.Path != root || !strings.HasSuffix(f.LastUsed, "Z") {
+		t.Fatalf("Project file (cache) = %+v, %v; want path %q and an RFC 3339 UTC date", f, err, root)
 	}
 }
