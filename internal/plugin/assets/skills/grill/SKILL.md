@@ -47,6 +47,12 @@ When the frontier is empty, read the document again, section by section (`task_g
 
 For example: a return type, a name, an order, a rule that you derived from the answers.
 
+Check these items in each requirement:
+- each error path and each fallback,
+- each user-facing text (messages, help, docs),
+- each existing command or tool that the change affects,
+- each conflict with an Accepted ADR (`adr_list`, `adr_get`).
+
 1. Ask: "Can a new agent understand and accept this line without this conversation?" If not, the line is not clear.
 2. Make each hidden decision and each line that is not clear into a question of a new round, with a recommendation (section 3).
 3. Repeat until no hidden decision is left.

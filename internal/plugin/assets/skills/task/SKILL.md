@@ -17,7 +17,7 @@ The task tools check each step of the flow of ADR-013:
 2. Refine: `/dx:grill`, then `In Review`. The tools warn about other open tasks on the same files.
 3. Approve: `Approved` only when the user approves. A change of section 3, 4, 6, 7 or 9 of an `Approved` task sets it to `In Review`, and the user approves it again.
 4. Select: `task_list` with `status: ready` gives the next work.
-5. Develop: `In Development`. A new finding during work is a new task, not a change of the scope.
+5. Develop: `In Development`. A choice that the task does not decide is a question to the user before you write it (rules). A new finding during work is a new task, not a change of the scope.
 6. Close: check each Definition of Done item with `task_dod_check`, then `Done`.
 
 Merge rule: tasks with the same milestone, the same files and a similar goal are one task, if the size stays `S` or `M`.
