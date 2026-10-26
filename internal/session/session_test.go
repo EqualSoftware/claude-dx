@@ -39,6 +39,10 @@ func fakeSession(t *testing.T, cacheDir, pid, dirName string, held bool) string 
 	return path
 }
 
+// livePID is the PID of a process that runs for the full test: the parent of the test binary. A held
+// session file must have the PID of a running process (TASK-050).
+var livePID = strconv.Itoa(os.Getppid())
+
 func exists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
@@ -61,7 +65,7 @@ func start(t *testing.T, cacheDir string) func() {
 func TestStartRemovesUnused(t *testing.T) {
 	cacheDir := t.TempDir()
 	mkdirs(t, cacheDir, "plugin/old", "plugin/running", "plugin/v1.tmp-123")
-	fakeSession(t, cacheDir, "100", "running", true)
+	fakeSession(t, cacheDir, livePID, "running", true)
 	ended := fakeSession(t, cacheDir, "200", "old", false)
 	end := start(t, cacheDir)
 	plugin := filepath.Join(cacheDir, "plugin")
@@ -84,13 +88,13 @@ func TestStartRemovesUnused(t *testing.T) {
 	}
 }
 
-// AC-2.
+// AC-2, and AC-3 of TASK-050.
 func TestCleanRefusesRunningSession(t *testing.T) {
 	cacheDir := t.TempDir()
 	mkdirs(t, cacheDir, "plugin/v1")
-	fakeSession(t, cacheDir, "100", "v1", true)
+	fakeSession(t, cacheDir, livePID, "v1", true)
 	_, err := Clean(cacheDir)
-	if err == nil || err.Error() != "a claude-dx session uses the cache (PID 100). Close it and try again" {
+	if err == nil || err.Error() != "a claude-dx session uses the cache (PID "+livePID+"). Close it and try again" {
 		t.Fatalf("Clean = %v", err)
 	}
 	if !exists(filepath.Join(cacheDir, "plugin", "v1")) {

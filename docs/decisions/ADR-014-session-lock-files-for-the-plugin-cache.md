@@ -8,7 +8,12 @@
 The launcher extracts one plugin directory for each release and for each dev build (ADR-001, TASK-027). No code removed old directories, so the cache grew with each build. `cache clean` could remove files that a running session reads later. On Unix the launcher replaces itself with claude (exec), so no claude-dx code runs when a session ends. Windows cannot remove an open file, and a Windows file lock also stops reads of the locked bytes from other handles.
 
 ## Decision
+
 Each session holds an exclusive OS lock on `<cache>/sessions/<pid>.lock`. The file content is the name of the plugin directory of the session. On Unix the descriptor has no close-on-exec, so claude holds the lock after exec; the OS releases it when the process ends, also after a crash. On Windows the launcher holds the file until claude ends, then removes it. The global lock `<cache>/sessions.lock` serializes the session start (`plugin.Ensure`, session file, cleanup) and `cache clean`. A session file with a free lock is of a session that ended. At each start, the launcher removes each plugin directory that no running session uses. `cache clean` removes nothing while a session holds its lock; else it removes `sessions.lock` last, after it releases the lock. On Windows, `filelock` locks one byte at offset 1<<62, after the end of the file, so other handles can read the file. The code is in `internal/session`.
+
+On Unix, the children of claude also get the session descriptor, so a child that runs after claude ends keeps the lock (TASK-050). Thus:
+- The launcher removes an old session file of its own PID before it writes its file, because two running processes do not have one PID. The new file has a free lock.
+- A held session file with the PID of no process (`kill(pid, 0)` returns `ESRCH`) is of a session that ended. Another error counts as a running session, because a wrong removal is worse than a stale file. On Windows no child gets the session handle, so a held file always counts as running.
 
 ## Alternatives
 - One shared lock in each plugin directory: Rejected. Session files can be removed when a session ends with no cleanup, and need only an exclusive lock.

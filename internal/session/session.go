@@ -75,8 +75,11 @@ func Clean(cacheDir string) ([]string, error) {
 }
 
 // hold writes the plugin directory name to the session file and locks it. The descriptor stays
-// open after exec, so the lock stays while the session runs.
+// open after exec, so the lock stays while the session runs. It first removes an old file of the
+// same PID: two running processes do not have one PID, so that file is of an ended session, and a
+// child of that session can still hold its lock (TASK-050). On Unix the new file has a free lock.
 func hold(path, dirName string) (*os.File, error) {
+	_ = os.Remove(path)
 	if err := os.WriteFile(path, []byte(dirName+"\n"), 0o644); err != nil {
 		return nil, err
 	}
@@ -92,8 +95,9 @@ func hold(path, dirName string) (*os.File, error) {
 }
 
 // running returns the plugin directory name of each running session, by PID. A session file with
-// a free lock is of a session that ended, so running removes it. A file that it cannot lock for
-// another reason counts as a running session, because a wrong removal is worse than a stale file.
+// a free lock, or with the PID of no process, is of a session that ended, so running removes it. A
+// file that it cannot lock for another reason counts as a running session, because a wrong removal
+// is worse than a stale file.
 func running(cacheDir string) map[string]string {
 	dir := filepath.Join(cacheDir, "sessions")
 	entries, _ := os.ReadDir(dir)
@@ -107,6 +111,10 @@ func running(cacheDir string) map[string]string {
 		f, err := filelock.TryLock(path)
 		if err == nil {
 			_ = f.Close()
+			_ = os.Remove(path)
+			continue
+		}
+		if !alive(pid) {
 			_ = os.Remove(path)
 			continue
 		}
