@@ -13,6 +13,15 @@ func TestTable(t *testing.T) {
 	}
 }
 
+// TestTableRunes is AC-1 of TASK-045: a cell with "é" does not move the next column.
+func TestTableRunes(t *testing.T) {
+	got := Table([][]string{{"é", "a"}, {"ab", "b"}})
+	want := "é   a\nab  b\n"
+	if got != want {
+		t.Fatalf("Table =\n%q\nwant\n%q", got, want)
+	}
+}
+
 func TestErrorf(t *testing.T) {
 	r := Errorf("ADR-%03d does not exist.", 7)
 	if !r.IsError || len(r.Content) != 1 {

@@ -24,13 +24,14 @@ func Errorf(format string, args ...any) *mcp.CallToolResult {
 	return result
 }
 
-// Table aligns rows in columns, with two spaces between columns.
+// Table aligns rows in columns, with two spaces between columns. It counts characters, not bytes, so
+// non-ASCII letters do not move the next columns. One character is one column, also a wide character.
 // It is compact for the model: no borders, no header, no padding after the last column.
 func Table(rows [][]string) string {
 	widths := map[int]int{}
 	for _, row := range rows {
 		for i, cell := range row {
-			widths[i] = max(widths[i], len(cell))
+			widths[i] = max(widths[i], utf8.RuneCountInString(cell))
 		}
 	}
 	var b strings.Builder
@@ -40,7 +41,7 @@ func Table(rows [][]string) string {
 				b.WriteString(cell)
 				break
 			}
-			b.WriteString(cell + strings.Repeat(" ", widths[i]-len(cell)+2))
+			b.WriteString(cell + strings.Repeat(" ", widths[i]-utf8.RuneCountInString(cell)+2))
 		}
 		b.WriteString("\n")
 	}
