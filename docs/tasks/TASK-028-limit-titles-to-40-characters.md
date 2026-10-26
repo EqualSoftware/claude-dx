@@ -1,7 +1,7 @@
 ---
 id: TASK-028
 title: Limit titles to 40 characters
-status: Approved
+status: Done
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,8 @@ related: [ADR-006, ADR-013, TASK-005, TASK-006]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -128,9 +130,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`/dx:task` and `/dx:adr` skills: the title limit).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. `TestTitleRules` (`internal/docs/task/task_test.go`): AC-1 41 characters are refused and docs/tasks is not made; AC-3 a title of 40 characters passes; a duplicate task title gives TASK-001. `TestTitleRules` (`internal/docs/adr/store_test.go`): AC-2 41 characters are refused; AC-4 "use sqlite" is refused and gives ADR-001. `TestCheckTitle` and `TestSlug` (`internal/docs/docfile/docfile_test.go`) check the cut at 40.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `cab6f35`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (`/dx:task` and `/dx:adr` skills: the title limit). Commit `cab6f35`: the `/dx:task` skill step 3 and the `/dx:adr` skill step 3 give the title limit and the duplicate rule; the `title` field descriptions give the limit.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: checks before a write, no new call flow.
+- [x] ADRs are recorded for architectural decisions (ADR-013 has the decision). ADR-013 step 1 records the decision.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new reusable lesson.
