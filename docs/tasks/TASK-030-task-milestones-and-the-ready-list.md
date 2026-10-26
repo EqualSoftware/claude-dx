@@ -1,8 +1,9 @@
 ---
 id: TASK-030
 title: Task milestones and the ready list
-status: Approved
+status: Done
 priority: P1
+milestone: v0.1.0
 type: feat
 size: M
 owner: Equal
@@ -21,6 +22,7 @@ related: [ADR-013, ADR-006, TASK-006, TASK-018, TASK-033]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -141,9 +143,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README roadmap, `/dx:task` skill, ADR-006).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1: `TestCreateRefusesBadInput` (`internal/docs/task/task_test.go:82`) refuses no milestone and `0.1`. AC-2: `TestListMilestone`. AC-3, AC-4: `TestListReady` gives only the Approved tasks with all dependencies Done, v0.2.0 before v0.10.0. AC-5: `TestIndexMilestones`, and `TestIndexMatchesRepository` with `docs/tasks/README.md` at `5c7c822` (headings v0.1.0 to v0.5.0, then Closed).
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `5c7c822`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (README roadmap, `/dx:task` skill, ADR-006). Commit `396c715`: the README roadmap gives milestones; `internal/plugin/assets/skills/task/SKILL.md` gives `milestone` and `status: ready`; ADR-006 Decision gives the field and the ready filter.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no call flow or state change. Section 7.3 gives the file format.
+- [x] ADRs are recorded for architectural decisions (ADR-013 has the decision). ADR-013 steps 1 and 4 record the decision. ADR-006 refers to it.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new reusable lesson.
