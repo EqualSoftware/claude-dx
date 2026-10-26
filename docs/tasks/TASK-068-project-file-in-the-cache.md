@@ -49,7 +49,7 @@ The cache folder of a project has a hash as its name, so `claude-dx clean` canno
 
 ## 6. Requirements
 
-- R-1: `project.json` has `path`, `last_used` and `counters` (the content of `counters.json` now).
+- R-1: `project.json` has `path`, `last_used` and `counters`. After TASK-064, `counters` has only `adr`, because tasks and specs have no numbers.
 - R-2: The MCP server writes `path` and `last_used` at start.
 - R-3: All writes hold the docs lock and are atomic (`docfile.Write`), because the MCP server start and the number allocation both write the file.
 - R-4: Remove `counters.json` with no migration, because the allocation uses `max(counter, highest number in the checkout) + 1` (ADR-007), so a lost counter gives no duplicate number in the checkout.
