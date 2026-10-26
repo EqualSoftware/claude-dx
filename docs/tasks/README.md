@@ -24,7 +24,7 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-039](TASK-039-check-the-glossary-row-fields.md) | Check the glossary row fields | `Approved` | `P2` | `docs-tools` | None |
+| [TASK-039](TASK-039-check-the-glossary-row-fields.md) | Check the glossary row fields | `In Development` | `P2` | `docs-tools` | None |
 | [TASK-040](TASK-040-check-only-the-new-task-dependencies.md) | Check only the new task dependencies | `Approved` | `P2` | `docs-tools` | TASK-037 |
 | [TASK-041](TASK-041-session-locks-for-the-plugin-cache.md) | Session locks for the plugin cache | `Approved` | `P2` | `cli`, `plugin` | None |
 | [TASK-042](TASK-042-rename-the-task-file-with-the-title.md) | Rename the task file with the title | `Approved` | `P2` | `docs-tools` | TASK-040 |

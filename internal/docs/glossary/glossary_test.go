@@ -135,6 +135,30 @@ func TestUpsertConflict(t *testing.T) {
 	upsert(t, s, "task", "ticket", "card") // the same term with other text is not a conflict
 }
 
+func TestUpsertRequiredFields(t *testing.T) {
+	s := newStore(t)
+	_, err := s.Upsert(Row{Term: "Task", Definition: " ", Source: "x"})
+	if err == nil || err.Error() != "give the definition and the area" {
+		t.Fatalf("Upsert with no definition and area = %v", err)
+	}
+	if _, err := os.Stat(s.Path); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("refused upsert made the file: %v", err)
+	}
+	if added, err := s.Upsert(Row{Term: "Task", Definition: "D.", Area: "process", Source: "x"}); err != nil || !added {
+		t.Fatalf("Upsert with no do_not_use = %v, %v", added, err)
+	}
+}
+
+func TestUpsertRefusesBadWords(t *testing.T) {
+	s := newStore(t)
+	for _, w := range []string{"a, b", " "} {
+		_, err := s.Upsert(Row{Term: "Task", Definition: "D.", Area: "process", DoNotUse: []string{"ticket", w}, Source: "x"})
+		if err == nil || !strings.Contains(err.Error(), "Give each word as one list item") {
+			t.Fatalf("Upsert with do_not_use %q = %v", w, err)
+		}
+	}
+}
+
 func TestParseError(t *testing.T) {
 	s := newStore(t)
 	upsert(t, s, "ADR")

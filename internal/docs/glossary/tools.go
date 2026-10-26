@@ -38,7 +38,7 @@ func Register(server *mcp.Server, s Store) {
 		})
 	add(server, "glossary_list", "List the terms of docs/GLOSSARY.md, one row for each term (| Term | Definition | Area | Do not use | Source |). Use it when you need many terms; use glossary_lookup for one term.",
 		func(in listInput) (string, error) { return s.listText(in.Area) })
-	add(server, "glossary_upsert", "Add a term to docs/GLOSSARY.md, or replace the row of the term. A replaced row keeps the spelling of the term, and keeps the Do not use words if you omit do_not_use. The tool keeps alphabetical order and refuses a conflict with another row.",
+	add(server, "glossary_upsert", "Add a term to docs/GLOSSARY.md, or replace the row of the term. All fields but do_not_use are required. A replaced row keeps the spelling of the term, and keeps the Do not use words if you omit do_not_use. The tool keeps alphabetical order and refuses a conflict with another row.",
 		func(in upsertInput) (string, error) {
 			added, err := s.Upsert(Row(in))
 			if added {

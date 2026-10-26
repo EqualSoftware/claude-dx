@@ -87,6 +87,9 @@ func (s Store) List(area string) ([]Row, error) {
 // is nil. An empty list removes the words. It makes the file if it does not exist. added is true
 // for a new term.
 func (s Store) Upsert(row Row) (added bool, err error) {
+	if err := check(row); err != nil {
+		return false, err
+	}
 	t, err := s.read()
 	if errors.Is(err, ErrNoFile) {
 		t, err = parse(templateText)
@@ -130,6 +133,36 @@ func (s Store) Delete(term string) error {
 	}
 	t.rows = slices.Delete(t.rows, i, i+1)
 	return s.write(t)
+}
+
+// check refuses a row with an empty required field, and a Do not use word that is empty or has a
+// comma, because the file splits the words at commas.
+func check(row Row) error {
+	var missing []string
+	for _, f := range []struct{ name, value string }{
+		{"the term", row.Term}, {"the definition", row.Definition}, {"the area", row.Area}, {"the source", row.Source},
+	} {
+		if strings.TrimSpace(f.value) == "" {
+			missing = append(missing, f.name)
+		}
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("give %s", join(missing))
+	}
+	for _, w := range row.DoNotUse {
+		if strings.TrimSpace(w) == "" || strings.Contains(w, ",") {
+			return fmt.Errorf("the do_not_use word %q is empty or has a comma. Give each word as one list item", w)
+		}
+	}
+	return nil
+}
+
+// join writes a list as "a, b and c".
+func join(items []string) string {
+	if len(items) == 1 {
+		return items[0]
+	}
+	return strings.Join(items[:len(items)-1], ", ") + " and " + items[len(items)-1]
 }
 
 // conflict refuses a term that is a Do not use word of another row, and a Do not use word that

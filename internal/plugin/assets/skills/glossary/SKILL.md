@@ -27,10 +27,10 @@ Do not add general words (for example "file", "function") or terms with the usua
 3. If the term exists:
    - Same meaning: do nothing. Use the existing term.
    - Changed meaning: change the row with `glossary_upsert`. Give the search for the old use in `docs/` and `.claude/` to the `dx:scout` agent, and report the places that need an update.
-4. If the term is new, run `glossary_upsert`. The tool keeps alphabetical order.
+4. If the term is new, run `glossary_upsert`. The tool keeps alphabetical order. `term`, `definition`, `area` and `source` are required.
    - `definition`: one or two sentences. Say what it is, not how to use it.
    - `area`: `project`, `process`, `build` or the name of an area of the project.
-   - `do_not_use`: the synonyms to avoid, or empty. On a change of a row, omit it to keep the old words, or give `[]` to remove all. A change keeps the spelling of the term: to change the spelling, use `glossary_delete`, then `glossary_upsert`.
+   - `do_not_use`: the synonyms to avoid, or empty. Give each word as one list item, with no comma. On a change of a row, omit it to keep the old words, or give `[]` to remove all. A change keeps the spelling of the term: to change the spelling, use `glossary_delete`, then `glossary_upsert`.
    - `source`: the file that defines or uses the term.
 5. If `glossary_upsert` refuses a conflict, or two terms have one meaning, ask the user which term to keep. Put the other term in `do_not_use`. Remove a row with `glossary_delete`.
 6. If a doc defines the same term, keep the full definition in the glossary. In the doc, link to the glossary.

@@ -1,7 +1,7 @@
 ---
 id: TASK-039
 title: Check the glossary row fields
-status: Approved
+status: In Development
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,7 @@ related: [TASK-007, TASK-022]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
+| 2026-10-26 | Equal | Status: In Development. |
 
 ## 1. Summary
 
@@ -44,7 +45,7 @@ related: [TASK-007, TASK-022]
 ## 5. Context
 ### 5.1 Current State
 
-`upsertInput` (`internal/docs/glossary/tools.go:22`) has `area` and `do_not_use` with `omitempty`. `Upsert` keeps the old Do not use words when `DoNotUse` is nil (TASK-022).
+`upsertInput` (`internal/docs/glossary/tools.go:21`) has `do_not_use` with `omitempty`. `area` has no `omitempty`, so the schema already marks it as required. `Upsert` keeps the old Do not use words when `DoNotUse` is nil (TASK-022).
 
 ### 5.2 Assumptions
 
@@ -73,7 +74,7 @@ One check function for the row in `internal/docs/glossary/glossary.go`, called a
 
 ### 7.2 Public API
 
-`glossary_upsert`: `area` is required (no `omitempty`).
+`glossary_upsert`: `area` stays required (no `omitempty`, as before). The tool description says that all fields but `do_not_use` are required.
 
 ### 7.3 Data and File Formats
 
