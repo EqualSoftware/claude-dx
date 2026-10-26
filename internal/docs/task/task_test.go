@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/markdown"
 	"github.com/EqualSoftware/claude-dx/internal/numbering"
 )
@@ -403,6 +404,42 @@ func TestRenumber(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(s.Dir, "TASK-003-dup.md")); err != nil {
 		t.Fatalf("the new file does not exist: %v", err)
+	}
+}
+
+// TestRenumberMoveFails is AC-1 of TASK-054.
+func TestRenumberMoveFails(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "One")
+	path := filepath.Join(s.Dir, "TASK-001-one.md")
+	before, err := os.ReadFile(path)
+	must(t, err)
+	move = func(string, string) error { return os.ErrExist }
+	t.Cleanup(func() { move = docfile.Move })
+	if _, _, err := s.Renumber("TASK-001-one.md"); !errors.Is(err, os.ErrExist) {
+		t.Fatalf("Renumber = %v; want the error of Move", err)
+	}
+	after, err := os.ReadFile(path)
+	must(t, err)
+	if string(after) != string(before) {
+		t.Fatalf("the old file changed:\n%s", after)
+	}
+}
+
+// TestRenumberBadFrontmatter is AC-2 of TASK-054.
+func TestRenumberBadFrontmatter(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "One")
+	path := filepath.Join(s.Dir, "TASK-001-one.md")
+	bad := []byte("---\nid: TASK-001\ntitle: [One\n---\n\n# TASK-001: One\n")
+	must(t, os.WriteFile(path, bad, 0o644))
+	if _, _, err := s.Renumber("TASK-001-one.md"); err == nil || !strings.Contains(err.Error(), "bad frontmatter") {
+		t.Fatalf("Renumber = %v; want a bad frontmatter error", err)
+	}
+	after, err := os.ReadFile(path)
+	must(t, err)
+	if string(after) != string(bad) {
+		t.Fatalf("the file changed:\n%s", after)
 	}
 }
 

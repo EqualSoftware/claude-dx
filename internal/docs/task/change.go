@@ -554,6 +554,9 @@ func oneLine(text string) string {
 	return strings.Join(strings.Fields(text), " ")
 }
 
+// move is docfile.Move. A test replaces it, because a target that exists also raises the next number.
+var move = docfile.Move
+
 // Renumber gives the task in file the next free number. It returns the new ID and the tasks
 // that refer to the old ID. It does not change them, because the old ID can name more than one file.
 // It holds the docs lock.
@@ -577,7 +580,9 @@ func (s Store) renumber(file string) (string, []string, error) {
 	oldID := kind.ID(mustNumber(file))
 	front, body := markdown.Split(string(data))
 	var f Front
-	_ = markdown.Decode(front, &f)
+	if err := markdown.Decode(front, &f); err != nil {
+		return "", nil, fmt.Errorf("%s: bad frontmatter: %w", file, err)
+	}
 	var newID string
 	// The file moves with one rename, so a failure never leaves a third file (TASK-049).
 	_, err = s.Alloc.Next("task", s.Dir, kind.Pattern, func(n int) error {
@@ -587,7 +592,12 @@ func (s Store) renumber(file string) (string, []string, error) {
 		if err := docfile.Write(old, []byte(doc)); err != nil {
 			return err
 		}
-		return docfile.Move(old, filepath.Join(s.Dir, newID+strings.TrimPrefix(file, oldID)))
+		err := move(old, filepath.Join(s.Dir, newID+strings.TrimPrefix(file, oldID)))
+		if err != nil {
+			// Write the old content back, so the name and the content have one ID (TASK-054).
+			return errors.Join(err, docfile.Write(old, data))
+		}
+		return nil
 	})
 	if err != nil {
 		return "", nil, err
