@@ -9,7 +9,7 @@ size: S
 owner: Equal
 platforms: [Not applicable]
 area: [plugin]
-depends_on: [TASK-010, TASK-011, TASK-026]
+depends_on: [TASK-010, TASK-011, TASK-026, TASK-062]
 related: [ADR-008, ADR-009, ADR-013, TASK-005, TASK-007]
 ---
 

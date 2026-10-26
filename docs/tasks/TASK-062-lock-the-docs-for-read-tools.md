@@ -1,7 +1,7 @@
 ---
 id: TASK-062
 title: Lock the docs for read tools
-status: Draft
+status: In Review
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -16,9 +16,11 @@ related: [ADR-015, ADR-007, TASK-047]
 # TASK-062: Lock the docs for read tools
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
+| 2026-10-26 | Equal | Status: In Review. |
 
 ## 1. Summary
 

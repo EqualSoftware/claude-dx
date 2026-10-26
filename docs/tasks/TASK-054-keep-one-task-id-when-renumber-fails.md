@@ -1,7 +1,7 @@
 ---
 id: TASK-054
 title: Keep one task ID when renumber fails
-status: Draft
+status: In Review
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -9,16 +9,18 @@ size: S
 owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [docs-tools]
-depends_on: []
+depends_on: [TASK-053]
 related: [TASK-049, ADR-007]
 ---
 
 # TASK-054: Keep one task ID when renumber fails
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
+| 2026-10-26 | Equal | Status: In Review. |
 
 ## 1. Summary
 

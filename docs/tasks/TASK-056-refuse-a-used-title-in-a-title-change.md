@@ -1,7 +1,7 @@
 ---
 id: TASK-056
 title: Refuse a used title in a title change
-status: Draft
+status: In Review
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -9,16 +9,18 @@ size: S
 owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [docs-tools]
-depends_on: []
+depends_on: [TASK-054]
 related: [TASK-042]
 ---
 
 # TASK-056: Refuse a used title in a title change
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
+| 2026-10-26 | Equal | Status: In Review. |
 
 ## 1. Summary
 

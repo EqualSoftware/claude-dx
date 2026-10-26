@@ -1,7 +1,7 @@
 ---
 id: TASK-061
 title: Use a read-write cache lock
-status: Draft
+status: In Review
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -16,9 +16,11 @@ related: [ADR-015, ADR-014, TASK-041, TASK-050, TASK-051]
 # TASK-061: Use a read-write cache lock
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
+| 2026-10-26 | Equal | Status: In Review. |
 
 ## 1. Summary
 
@@ -124,7 +126,7 @@ See ADR-015 Alternatives.
 | 1 | `internal/filelock/lock_unix.go`, `internal/filelock/lock_windows.go`, `internal/filelock/*_test.go` | FR-1, with tests. | `go test ./internal/filelock/` |
 | 2 | `internal/session/session.go`, `internal/session/inherit_unix.go`, `internal/session/inherit_windows.go`, `internal/session/*_test.go`, `internal/launcher/launcher.go` | FR-2 to FR-5, with tests. Remove the session files, `running`, `alive`, `hold` and `inherit`. | `go test ./internal/session/ ./internal/launcher/` |
 | 3 | `internal/mcpserver/server.go`, `cmd/claude-dx/main.go`, their tests | FR-6. | `go test ./internal/mcpserver/ ./cmd/claude-dx/` |
-| 4 | ADR-015 and ADR-014 (with `adr_supersede`), `docs/GLOSSARY.md` (with `glossary_upsert` and `glossary_delete`) | Supersede ADR-014. Change `Cache lock` and `Cache`. Delete `Session lock`. | `adr_get ADR-014`, `glossary_lookup Cache lock` |
+| 4 | `docs/GLOSSARY.md` (with `glossary_upsert` and `glossary_delete`) | Change `Cache lock` and `Cache`. Delete `Session lock`. ADR-015 already supersedes ADR-014. | `glossary_lookup Cache lock` |
 
 ## 9. Acceptance Criteria
 

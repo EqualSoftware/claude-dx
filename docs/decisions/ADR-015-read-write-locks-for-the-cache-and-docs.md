@@ -1,10 +1,13 @@
 # ADR-015: Read-write locks for the cache and docs
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-26
 - Owners: Maintainer
 
 ## Context
+
+Replaces ADR-014.
+
 ADR-014 detects a running session with one lock file for each PID. On Unix the launcher replaces itself with claude (exec), and the children of claude inherit the lock, so a held lock does not prove that a session runs. TASK-050 added a PID check, but a reused PID keeps an ended session as running, and PID plus start time is not unique (LWN 943387). The global lock `sessions.lock` is removed by `cache clean`, so on Unix a process that waits gets the lock of a removed file, and two processes hold the cache lock. `cache clean` also removes `projects/<key>/docs.lock`, which an MCP server of an ended session can hold. The docs tools that read take no lock, so a read during a change of more than one file (`adr_supersede`, `task_renumber`, `task_create` and the README) can see half of the change. Requirements: no session opens while `cache clean` runs, `cache clean` never runs while a session runs, and many sessions of one project run at the same time.
 
 ## Decision

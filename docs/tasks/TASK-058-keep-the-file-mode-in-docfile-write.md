@@ -1,7 +1,7 @@
 ---
 id: TASK-058
 title: Keep the file mode in docfile.Write
-status: Draft
+status: In Review
 priority: P3
 milestone: v0.1.0
 type: fix
@@ -9,16 +9,18 @@ size: S
 owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [docs-tools]
-depends_on: []
+depends_on: [TASK-062]
 related: [ADR-007, TASK-049]
 ---
 
 # TASK-058: Keep the file mode in docfile.Write
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
+| 2026-10-26 | Equal | Status: In Review. |
 
 ## 1. Summary
 

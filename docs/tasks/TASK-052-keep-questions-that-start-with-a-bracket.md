@@ -1,7 +1,7 @@
 ---
 id: TASK-052
 title: Keep questions that start with a bracket
-status: Draft
+status: In Review
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -16,9 +16,11 @@ related: [ADR-013]
 # TASK-052: Keep questions that start with a bracket
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
+| 2026-10-26 | Equal | Status: In Review. |
 
 ## 1. Summary
 

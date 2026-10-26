@@ -1,6 +1,6 @@
 # ADR-014: Session lock files for the plugin cache
 
-- Status: Accepted
+- Status: Superseded by ADR-015
 - Date: 2026-10-26
 - Owners: Maintainer
 

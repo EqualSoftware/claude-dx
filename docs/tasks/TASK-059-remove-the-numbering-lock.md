@@ -1,7 +1,7 @@
 ---
 id: TASK-059
 title: Remove the numbering lock
-status: Draft
+status: In Review
 priority: P2
 milestone: v0.1.0
 type: refactor
@@ -9,16 +9,18 @@ size: S
 owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [docs-tools]
-depends_on: []
+depends_on: [TASK-057, TASK-061, TASK-055]
 related: [ADR-007, ADR-015, TASK-047]
 ---
 
 # TASK-059: Remove the numbering lock
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
+| 2026-10-26 | Equal | Status: In Review. |
 
 ## 1. Summary
 
