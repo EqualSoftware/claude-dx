@@ -9,6 +9,7 @@ import (
 
 	"github.com/EqualSoftware/claude-dx/internal/cache"
 	"github.com/EqualSoftware/claude-dx/internal/plugin"
+	"github.com/EqualSoftware/claude-dx/internal/session"
 	"github.com/EqualSoftware/claude-dx/internal/update"
 )
 
@@ -36,10 +37,18 @@ func Run(version string, args []string) (int, error) {
 	if notice := update.Notice(cacheDir, version); notice != "" {
 		fmt.Fprintln(os.Stderr, notice)
 	}
-	pluginDir, err := plugin.Ensure(cacheDir, version, binary)
+	pluginDir, end, err := session.Start(cacheDir, func() (string, error) {
+		dir, err := plugin.Ensure(cacheDir, version, binary)
+		if err != nil {
+			return "", fmt.Errorf("cannot extract the dx plugin: %w", err)
+		}
+		return dir, nil
+	})
 	if err != nil {
-		return 1, fmt.Errorf("cannot extract the dx plugin: %w", err)
+		return 1, err
 	}
+	// On Unix, end runs only if exec fails. On Windows, it runs when claude ends.
+	defer end()
 	claude, err := exec.LookPath("claude")
 	if err != nil {
 		return 1, ErrClaudeNotFound

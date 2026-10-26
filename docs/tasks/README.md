@@ -25,7 +25,7 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | [TASK-040](TASK-040-check-only-the-new-task-dependencies.md) | Check only the new task dependencies | `Approved` | `P2` | `docs-tools` | TASK-037 |
-| [TASK-041](TASK-041-session-locks-for-the-plugin-cache.md) | Session locks for the plugin cache | `Approved` | `P2` | `cli`, `plugin` | None |
+| [TASK-041](TASK-041-session-locks-for-the-plugin-cache.md) | Session locks for the plugin cache | `In Development` | `P2` | `cli`, `plugin` | None |
 | [TASK-042](TASK-042-rename-the-task-file-with-the-title.md) | Rename the task file with the title | `Approved` | `P2` | `docs-tools` | TASK-040 |
 | [TASK-043](TASK-043-warn-about-adr-and-learning-read-errors.md) | Warn about ADR and learning read errors | `Approved` | `P2` | `docs-tools` | None |
 | [TASK-044](TASK-044-refuse-a-title-with-an-empty-file-slug.md) | Refuse a title with an empty file slug | `Approved` | `P2` | `docs-tools` | None |

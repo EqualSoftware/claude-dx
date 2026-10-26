@@ -13,6 +13,7 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/launcher"
 	"github.com/EqualSoftware/claude-dx/internal/mcpserver"
 	"github.com/EqualSoftware/claude-dx/internal/plugin"
+	"github.com/EqualSoftware/claude-dx/internal/session"
 	"github.com/EqualSoftware/claude-dx/internal/update"
 )
 
@@ -98,7 +99,8 @@ func runUpdate(stdout, stderr io.Writer) int {
 	return 0
 }
 
-// cleanCache removes the cache. It fails if a path stays, for example a file in use on Windows.
+// cleanCache removes the cache. It fails if a session runs, or if a path stays, for example a file
+// in use on Windows.
 func cleanCache(args []string, stdout, stderr io.Writer) int {
 	if len(args) != 1 || args[0] != "clean" {
 		fmt.Fprintln(stderr, "Usage: claude-dx cache clean")
@@ -108,7 +110,7 @@ func cleanCache(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail(stderr, err)
 	}
-	failed, err := cache.Clean(dir)
+	failed, err := session.Clean(dir)
 	if err != nil {
 		return fail(stderr, err)
 	}

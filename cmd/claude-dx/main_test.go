@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -211,6 +213,36 @@ func TestCacheClean(t *testing.T) {
 	}
 	if code, _, stderr = env.launch(t, env.bin, "cache"); code != 1 || stderr != "Usage: claude-dx cache clean\n" {
 		t.Fatalf("cache with no subcommand: exit code = %d, stderr = %q", code, stderr)
+	}
+}
+
+// TestCacheCleanRefusesSession checks AC-2 of TASK-041 with a fake claude that runs until its
+// stdin closes.
+func TestCacheCleanRefusesSession(t *testing.T) {
+	env := setup(t)
+	dir := env.dxCache(t)
+	cmd := exec.Command(env.dx, "--resume")
+	cmd.Env = append(env.environ(env.bin), "FAKECLAUDE_WAIT=1")
+	stdin, _ := cmd.StdinPipe()
+	stdout, _ := cmd.StdoutPipe()
+	if err := cmd.Start(); err != nil {
+		t.Fatal(err)
+	}
+	if line, err := bufio.NewReader(stdout).ReadString('\n'); err != nil || line != "ready\n" {
+		t.Fatalf("fake claude output = %q, %v", line, err)
+	}
+	code, _, stderr := env.launch(t, env.bin, "cache", "clean")
+	want := fmt.Sprintf("claude-dx: a claude-dx session uses the cache (PID %d). Close it and try again\n", cmd.Process.Pid)
+	if code != 1 || stderr != want {
+		t.Fatalf("exit code = %d, stderr = %q, want %q", code, stderr, want)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "plugin")); err != nil {
+		t.Fatalf("cache clean removed the plugin of a running session: %v", err)
+	}
+	_ = stdin.Close()
+	_ = cmd.Wait()
+	if code, _, stderr = env.launch(t, env.bin, "cache", "clean"); code != 0 {
+		t.Fatalf("cache clean after the session: exit code = %d, stderr = %q", code, stderr)
 	}
 }
 

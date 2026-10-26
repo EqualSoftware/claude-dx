@@ -18,3 +18,4 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-011](ADR-011-lsp-servers.md) | Download LSP servers on demand | Accepted | 2026-10-25 |
 | [ADR-012](ADR-012-semver-with-release-please.md) | SemVer with release-please | Accepted | 2026-10-25 |
 | [ADR-013](ADR-013-task-workflow-gates-in-the-task-tools.md) | Task workflow gates in the task tools | Accepted | 2026-10-25 |
+| [ADR-014](ADR-014-session-lock-files-for-the-plugin-cache.md) | Session lock files for the plugin cache | Accepted | 2026-10-26 |

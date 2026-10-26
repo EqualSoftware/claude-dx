@@ -18,9 +18,10 @@ func Dir() (string, error) {
 	return filepath.Join(base, "claude-dx"), nil
 }
 
-// Clean removes the cache directory dir. It continues after an error (example: a file in use on
-// Windows) and returns one line for each path that it cannot remove.
-func Clean(dir string) ([]string, error) {
+// Clean removes the cache directory dir, but not the file keep and its parent directories. It
+// continues after an error (example: a file in use on Windows) and returns one line for each path
+// that it cannot remove.
+func Clean(dir, keep string) ([]string, error) {
 	var paths []string
 	err := filepath.WalkDir(dir, func(path string, _ fs.DirEntry, err error) error {
 		if err != nil {
@@ -38,6 +39,9 @@ func Clean(dir string) ([]string, error) {
 	var failed []string
 	// WalkDir gives a directory before its files, so the reverse order removes the files first.
 	for i := len(paths) - 1; i >= 0; i-- {
+		if paths[i] == keep || strings.HasPrefix(keep, paths[i]+string(filepath.Separator)) {
+			continue
+		}
 		err := os.Remove(paths[i])
 		if err == nil || hasFailedChild(failed, paths[i]) {
 			continue

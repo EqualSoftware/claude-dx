@@ -1,7 +1,7 @@
 ---
 id: TASK-041
 title: Session locks for the plugin cache
-status: Approved
+status: In Development
 priority: P2
 milestone: v0.1.0
 type: feat
@@ -22,6 +22,7 @@ related: [ADR-001, ADR-003, TASK-003, TASK-027]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
+| 2026-10-26 | Equal | Status: In Development. |
 
 ## 1. Summary
 
@@ -63,12 +64,12 @@ Each claude-dx session holds a lock file in `<cache>/sessions/`. The launcher re
 ## 6. Requirements
 ### 6.1 Functional
 
-- FR-1: `filelock` gets `TryLock(path)`: it takes an exclusive lock with no wait and returns a sentinel error when another process holds it. Unix: `LOCK_EX|LOCK_NB`. Windows: `LOCKFILE_FAIL_IMMEDIATELY`.
+- FR-1: `filelock` gets `TryLock(path) (*os.File, error)`: it takes an exclusive lock with no wait. `Close` releases the lock. It returns the sentinel error `ErrLocked` when another process holds it (Q-9). Unix: `LOCK_EX|LOCK_NB`. Windows: `LOCKFILE_FAIL_IMMEDIATELY`. On Windows, `Lock` and `TryLock` lock one byte after the end of the file, because a Windows lock also stops reads of the locked bytes from other handles.
 - FR-2: Session file: `<cache>/sessions/<pid>.lock`. The name is the PID of the launcher (on Unix also the PID of claude after `exec`). The content is the name of the plugin directory of the session.
 - FR-3: At start, the launcher holds the exclusive lock `<cache>/sessions.lock` (wait) and does these steps: `plugin.Ensure`, write and lock its session file, then the cleanup (FR-4). Then it releases `sessions.lock`. `Ensure` runs inside the lock, so the cleanup never removes the `*.tmp-*` directory of an extraction that runs.
 - FR-4: Cleanup: for each session file, `TryLock`. If the lock is free, the session ended: remove the file. If it is held, keep its plugin directory. Then remove each directory in `<cache>/plugin` that no running session uses and that is not the new directory, and each `*.tmp-*` directory. Ignore the errors of the cleanup.
 - FR-5: The session lock is released when the session ends, also after a crash, because the OS releases the lock of a process that ends. Unix: the session file descriptor has no close-on-exec, so claude holds the lock until it ends; the next start or `cache clean` removes the file. Windows: the launcher holds the descriptor until claude ends, then closes it and removes the file.
-- FR-6: `claude-dx cache clean` holds `sessions.lock`, and checks all session files with `TryLock` before it removes a file. If a session holds its lock, the command removes nothing and fails with `a claude-dx session uses the cache (PID <pid>). Close it and try again.`
+- FR-6: `claude-dx cache clean` holds `sessions.lock`, and checks all session files with `TryLock` before it removes a file. If a session holds its lock, the command removes nothing and fails with `a claude-dx session uses the cache (PID <pid>). Close it and try again.` Else it removes all paths but `sessions.lock`, releases the lock, then removes `sessions.lock` and the cache directory (Q-7).
 
 ### 6.2 Non-Functional
 
@@ -91,7 +92,7 @@ sequenceDiagram
   L->>L: exec claude (Unix) or run child (Windows)
 ```
 
-A new package `internal/session` has `Start(cacheDir, dirName)` and `Busy(cacheDir)`. The launcher calls `Start`. `cache clean` calls `Busy`.
+A new package `internal/session` has `Start(cacheDir, ensure func() (string, error)) (pluginDir string, end func(), err error)` and `Clean(cacheDir) ([]string, error)` (Q-8). The launcher calls `Start` with a function that calls `plugin.Ensure`, and calls `end` when `start` returns. `cache clean` calls `session.Clean`. `session.Clean` calls `cache.Clean(dir, keep)`, which removes all paths but `keep` (Q-7).
 
 ### 7.2 Public API
 
@@ -160,6 +161,9 @@ Delete `internal/session`, `TryLock` and their calls. The `sessions/` files stay
 | Q-4 | File name, content and global lock. Recommended: the PID as name, the plugin directory as content, and `sessions.lock` for start and cleanup. | Equal | Yes (grill Q-21). |
 | Q-5 | New package `internal/session`, `plugin.Ensure` inside `sessions.lock`, size M? | Equal | Yes. The lock must always be released when the session ends (grill Q-27). |
 | Q-6 | Unix keeps `exec`, so no claude-dx code runs when the session ends. Is it enough that the OS releases the lock and the next start or `cache clean` removes the file? | Equal | Yes. On Windows, the launcher removes the file when claude ends (grill Q-31). |
+| Q-7 | `<cache>/sessions.lock` is in the cache, and Windows cannot remove a file that is open. How does `cache clean` remove it? Recommended: with the lock, check the sessions and remove all paths but `sessions.lock`; then release the lock and remove `sessions.lock` and the cache directory. | Equal | Remove it last: with the lock, check the sessions and remove all paths but sessions.lock; then release the lock and remove sessions.lock and the cache directory. |
+| Q-8 | FR-3 runs `plugin.Ensure` inside `sessions.lock`, but `Start(cacheDir, dirName)` gets the name after `Ensure`. Which signature? Recommended: `Start(cacheDir, ensure func() (string, error)) (pluginDir string, end func(), err error)`. | Equal | Start(cacheDir, ensure func() (string, error)) (pluginDir string, end func(), err error). The launcher calls defer end(). |
+| Q-9 | On Unix the session must clear close-on-exec, so it needs the descriptor. What does `filelock.TryLock` return? Recommended: `(*os.File, error)`; Close releases the lock, and `ErrLocked` means another process holds it. | Equal | TryLock(path) (*os.File, error). Close releases the lock. ErrLocked means that another process holds it. |
 
 The status cannot be `Approved` while a question is `Open`.
 

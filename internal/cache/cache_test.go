@@ -14,14 +14,14 @@ func TestClean(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, "update.json"), []byte("{}"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	failed, err := Clean(dir)
+	failed, err := Clean(dir, "")
 	if err != nil || len(failed) != 0 {
 		t.Fatalf("Clean = %v, %v", failed, err)
 	}
 	if _, err := os.Stat(dir); err == nil {
 		t.Fatal("the cache directory exists")
 	}
-	if failed, err := Clean(dir); err != nil || failed != nil {
+	if failed, err := Clean(dir, ""); err != nil || failed != nil {
 		t.Fatalf("Clean of a missing directory = %v, %v", failed, err)
 	}
 }
