@@ -1,4 +1,4 @@
-# ADR-009: Skills, the scout agent and the shared rules of the dx plugin
+# ADR-009: Skills, scout agent and shared rules
 
 - Status: Accepted
 - Date: 2026-10-25

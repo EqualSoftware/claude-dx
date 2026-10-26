@@ -1,13 +1,13 @@
 ---
 id: TASK-015
-title: LSP manager and tools for Go, TypeScript, JavaScript, Python, C and C++ (v0.4)
+title: LSP manager and core language servers
 status: Draft
 priority: P2
 area: [lsp]
-depends_on: [TASK-004]
+depends_on: []
 ---
 
-# TASK-015: LSP manager and tools for Go, TypeScript, JavaScript, Python, C and C++ (v0.4)
+# TASK-015: LSP manager and core language servers
 
 | Field | Value |
 | :--- | :--- |
@@ -17,7 +17,7 @@ depends_on: [TASK-004]
 | Platforms | macOS, Linux, Windows |
 | Size | Open |
 | Blocks | None |
-| Related | ADR-011 |
+| Related | ADR-011, TASK-004 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

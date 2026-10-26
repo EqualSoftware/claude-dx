@@ -1,13 +1,13 @@
 ---
 id: TASK-011
-title: Git tools for branches, rebase and remotes
+title: Git tools for branches and remotes
 status: Approved
 priority: P1
 area: [git]
 depends_on: [TASK-010]
 ---
 
-# TASK-011: Git tools for branches, rebase and remotes
+# TASK-011: Git tools for branches and remotes
 
 | Field | Value |
 | :--- | :--- |

@@ -1,4 +1,4 @@
-# ADR-003: Pass arguments through to Claude Code, with a small set of dx commands
+# ADR-003: Pass arguments through to Claude Code
 
 - Status: Accepted
 - Date: 2026-10-25

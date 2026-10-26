@@ -1,13 +1,13 @@
 ---
 id: TASK-008
-title: Grill skill, scout agent and shared rules
+title: Grill skill, scout agent and rules
 status: Done
 priority: P1
 area: [plugin]
 depends_on: [TASK-002, TASK-006]
 ---
 
-# TASK-008: Grill skill, scout agent and shared rules
+# TASK-008: Grill skill, scout agent and rules
 
 | Field | Value |
 | :--- | :--- |

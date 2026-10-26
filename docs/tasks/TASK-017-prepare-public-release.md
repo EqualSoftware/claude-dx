@@ -1,13 +1,13 @@
 ---
 id: TASK-017
-title: Prepare the repository for public release
+title: Prepare the repository for release
 status: In Development
 priority: P2
 area: [repo]
 depends_on: []
 ---
 
-# TASK-017: Prepare the repository for public release
+# TASK-017: Prepare the repository for release
 
 | Field | Value |
 | :--- | :--- |

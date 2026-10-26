@@ -1,13 +1,13 @@
 ---
 id: TASK-006
-title: Task tools, INDEX.md and the /dx:task skill
+title: Task tools and the /dx:task skill
 status: Done
 priority: P1
 area: [docs-tools, plugin]
 depends_on: [TASK-002, TASK-004]
 ---
 
-# TASK-006: Task tools, INDEX.md and the /dx:task skill
+# TASK-006: Task tools and the /dx:task skill
 
 | Field | Value |
 | :--- | :--- |

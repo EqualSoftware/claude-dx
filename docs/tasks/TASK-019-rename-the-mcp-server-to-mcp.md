@@ -1,13 +1,13 @@
 ---
 id: TASK-019
-title: Rename the MCP server of the dx plugin to mcp
+title: Rename the dx MCP server to mcp
 status: Done
 priority: P1
 area: [plugin, mcp]
 depends_on: [TASK-004]
 ---
 
-# TASK-019: Rename the MCP server of the dx plugin to mcp
+# TASK-019: Rename the dx MCP server to mcp
 
 | Field | Value |
 | :--- | :--- |

@@ -1,4 +1,4 @@
-# ADR-005: One MCP tool for each operation, with compact text results
+# ADR-005: One MCP tool for each operation
 
 - Status: Accepted
 - Date: 2026-10-25

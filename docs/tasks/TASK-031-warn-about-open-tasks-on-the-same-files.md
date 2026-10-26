@@ -1,23 +1,23 @@
 ---
-id: TASK-024
-title: Give full MCP tool names in the rules of dx:scout  # no brackets; quote it if it has ": " or " #"
-status: Draft  # Draft / In Review / Approved / In Development / Blocked / Done / Cancelled
-priority: P1  # P0 / P1 / P2 / P3
-area: [plugin]  # the areas of the project, for example [api], [docs, ci]
-depends_on: [TASK-008]  # for example [TASK-004]
+id: TASK-031
+title: Warn about open tasks on the same files
+status: Draft
+priority: P2
+area: [docs-tools]
+depends_on: [TASK-028]
 ---
 
-# TASK-024: Give full MCP tool names in the rules of dx:scout
+# TASK-031: Warn about open tasks on the same files
 
 | Field | Value |
 | :--- | :--- |
-| Type | fix |
+| Type | feat |
 | Owner | Maintainer |
 | Reviewers | Maintainer |
 | Platforms | macOS, Linux, Windows |
 | Size | S |
 | Blocks | None |
-| Related | ADR-009, TASK-008, TASK-020 |
+| Related | ADR-013 |
 
 ## Document History
 | Date | Author | Description / Change Notes |
@@ -26,19 +26,20 @@ depends_on: [TASK-008]  # for example [TASK-004]
 
 ## 1. Summary
 
-`dx:scout` calls dx tools by the short names in its rules. Make the rules give names that the model can call.
+When a task goes to `In Review` or `Approved`, `task_set_status` warns if another open task gives the same file in its Implementation Plan and no `depends_on` path connects the two tasks (ADR-013, step 2).
 
 ## 2. Problem and Motivation
 
-In the v0.1.0 QA session (Claude Code 2.1.308, binary from `7063947`), `dx:scout` (model `haiku`) called `glossary_list` two times, and Claude Code returned `No such tool available: glossary_list`. Then it called `mcp__plugin_dx_mcp__glossary_list`. 2 of 7 tool calls failed. `internal/plugin/assets/agents/scout.md:19` and `:21` give only short names. The frontmatter (`scout.md:6`) gives the full names.
+In the v0.1.0 QA session, TASK-023, TASK-025 and TASK-028 changed `internal/docs/task/` with no order between them. Parallel work on them gives rebase conflicts, and a person does not see the overlap.
 
 ## 3. Goals
 
-- G-1: `dx:scout` makes no tool call with a name that does not exist.
+- G-1: Each overlap of files between open tasks has an order or a merge before approval.
 
 ## 4. Out of Scope
 
-- The shared rules (`rules.md`) and the skills, because the main model did not fail in the session. A new task covers them if a failure occurs.
+- A refusal: an overlap can have a reason.
+- Overlap of directories that are not in the plan.
 
 ## 5. Context
 ### 5.1 Current State
@@ -54,19 +55,20 @@ In the v0.1.0 QA session (Claude Code 2.1.308, binary from `7063947`), `dx:scout
 ## 6. Requirements
 
 ### 6.1 Functional
-- FR-1: The rules of `scout.md` tell that the dx tools have the prefix `mcp__plugin_dx_mcp__`, or give the full names.
-- FR-2: The source of a fact from a dx tool stays the short name, because it is shorter in the report.
+- FR-1: The tool reads the paths in backticks in the Files column of section 8 of each open task.
+- FR-2: For each other open task that gives one of the same paths and has no `depends_on` path to or from this task, the result adds one line: `Warning: TASK-X also changes <path>. Set the order with depends_on, or merge the tasks.`
+- FR-3: The status change is done also with a warning, because the user decides.
 
 ### 6.2 Non-Functional
-- NFR-1: The agent prompt does not become longer by more than one line.
+- NFR-1: One read of each open task file for each status change to `In Review` or `Approved`.
 
 ## 7. Design
 
 ### 7.1 Architecture
-One text change in `internal/plugin/assets/agents/scout.md`.
+A check function in `internal/docs/task/`, called by `task_set_status`.
 
 ### 7.2 Public API
-Not applicable.
+No change to the inputs. The result can have warning lines.
 
 ### 7.3 Data and File Formats
 Not applicable.
@@ -86,7 +88,8 @@ Not applicable.
 
 ## 9. Acceptance Criteria
 
-- AC-1: Given the brief of the TASK-020 AC-2 session, when `dx:scout` runs, then no tool call fails with `No such tool available`.
+- AC-1: Given TASK-A and TASK-B with `internal/x.go` in section 8 and no dependency, when TASK-A goes to `Approved`, then the result has a warning about TASK-B.
+- AC-2: Given the same tasks and TASK-B depends on TASK-A, when TASK-A goes to `Approved`, then the result has no warning.
 
 ## 10. Validation and Metrics
 | Metric | Baseline | Target | How to measure |
@@ -103,7 +106,7 @@ Not applicable.
 
 ## 12. Removal and Compatibility
 
-Revert the text change.
+Delete the check function and its call.
 
 ## 13. Open Questions
 | ID | Question | Owner | Answer |

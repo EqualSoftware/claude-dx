@@ -1,4 +1,4 @@
-# ADR-010: Filesystem tools replace only shell file operations
+# ADR-010: File tools replace shell file commands
 
 - Status: Accepted
 - Date: 2026-10-25

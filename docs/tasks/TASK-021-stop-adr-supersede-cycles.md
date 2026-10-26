@@ -1,13 +1,13 @@
 ---
 id: TASK-021
-title: Prevent ADR supersede cycles and status changes of superseded ADRs  # no brackets; quote it if it has ": " or " #"
-status: Draft  # Draft / In Review / Approved / In Development / Blocked / Done / Cancelled
-priority: P1  # P0 / P1 / P2 / P3
-area: [docs-tools]  # the areas of the project, for example [api], [docs, ci]
-depends_on: [TASK-005]  # for example [TASK-004]
+title: Stop ADR supersede cycles
+status: Draft
+priority: P1
+area: [docs-tools]
+depends_on: []
 ---
 
-# TASK-021: Prevent ADR supersede cycles and status changes of superseded ADRs
+# TASK-021: Stop ADR supersede cycles
 
 | Field | Value |
 | :--- | :--- |

@@ -1,4 +1,4 @@
-# ADR-002: Run the MCP server on stdio, one process for each session
+# ADR-002: One stdio MCP server for each session
 
 - Status: Accepted
 - Date: 2026-10-25

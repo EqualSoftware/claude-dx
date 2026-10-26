@@ -1,13 +1,13 @@
 ---
 id: TASK-004
-title: MCP server core, project root and number allocation
+title: MCP server core and number allocation
 status: Done
 priority: P0
 area: [mcp]
 depends_on: [TASK-001]
 ---
 
-# TASK-004: MCP server core, project root and number allocation
+# TASK-004: MCP server core and number allocation
 
 | Field | Value |
 | :--- | :--- |

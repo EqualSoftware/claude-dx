@@ -1,4 +1,4 @@
-# ADR-006: Manage ADRs, tasks, learnings and the glossary with MCP tools
+# ADR-006: Manage documents with MCP tools
 
 - Status: Accepted
 - Date: 2026-10-25

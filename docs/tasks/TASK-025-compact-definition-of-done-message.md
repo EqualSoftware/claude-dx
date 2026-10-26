@@ -1,13 +1,13 @@
 ---
-id: TASK-027
-title: Do not remove the dev plugin directory of a running session  # no brackets; quote it if it has ": " or " #"
-status: Draft  # Draft / In Review / Approved / In Development / Blocked / Done / Cancelled
-priority: P3  # P0 / P1 / P2 / P3
-area: [cli, plugin]  # the areas of the project, for example [api], [docs, ci]
-depends_on: [TASK-002]  # for example [TASK-004]
+id: TASK-025
+title: Compact Definition of Done message
+status: Cancelled
+priority: P3
+area: [docs-tools]
+depends_on: [TASK-006]
 ---
 
-# TASK-027: Do not remove the dev plugin directory of a running session
+# TASK-025: Compact Definition of Done message
 
 | Field | Value |
 | :--- | :--- |
@@ -17,29 +17,30 @@ depends_on: [TASK-002]  # for example [TASK-004]
 | Platforms | macOS, Linux, Windows |
 | Size | S |
 | Blocks | None |
-| Related | ADR-001, TASK-002 |
+| Related | ADR-005, TASK-006 |
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Merged into TASK-023 (FR-8, AC-7), because both change internal/docs/task/change.go (ADR-013 merge rule). |
 
 ## 1. Summary
 
-For a `dev` build, `plugin.Ensure` removes and extracts `<cache>/plugin/dev` at each start (`internal/plugin/plugin.go:25`, `:46`). A second session removes the plugin files of a session that runs.
+When `task_set_status` refuses `Done`, it gives the unchecked Definition of Done items in one short phrase.
 
 ## 2. Problem and Motivation
 
-The maintainer uses `dev` builds of claude-dx on this project. When a second session starts, the first session loses `rules.md`, the skills and the agents until the extraction ends, and then reads files of the new build. On Windows, the remove can fail when a file is open. Release builds are not affected.
+`internal/docs/task/change.go:144` adds one full phrase for each unchecked item. In the v0.1.0 QA session, the refusal was: `Definition of Done item 1 is not checked; Definition of Done item 2 is not checked; ...` (6 times). ADR-005 asks for compact results.
 
 ## 3. Goals
 
-- G-1: The start of a `dev` session does not change the plugin files of another session.
+- G-1: The refusal for unchecked items is one phrase.
 
 ## 4. Out of Scope
 
-- Release builds.
-- Removal of old dev directories by `cache clean`: it removes all data.
+- Other refusal messages.
 
 ## 5. Context
 ### 5.1 Current State
@@ -55,21 +56,21 @@ The maintainer uses `dev` builds of claude-dx on this project. When a second ses
 ## 6. Requirements
 
 ### 6.1 Functional
-- FR-1: A `dev` build extracts to a directory with a key of the embedded files, example `dev-<hash>`, and uses it again when it exists, because the same files give the same key.
+- FR-1: The refusal gives `Definition of Done items 2, 3, 4 are not checked`, or `Definition of Done item 2 is not checked` for one item.
 
 ### 6.2 Non-Functional
-- NFR-1: The key comes from the embedded files and the binary path at start. No network call.
+- NFR-1: Not applicable.
 
 ## 7. Design
 
 ### 7.1 Architecture
-`plugin.Ensure` (`internal/plugin/plugin.go:22`).
+Collect the item numbers at `internal/docs/task/change.go:144`, then make one phrase. Change the test at `internal/docs/task/task_test.go:133`.
 
 ### 7.2 Public API
 Not applicable.
 
 ### 7.3 Data and File Formats
-New cache directories `<cache>/plugin/dev-<hash>`.
+Not applicable.
 
 ### 7.4 User-facing Behavior
 Not applicable.
@@ -86,7 +87,7 @@ Not applicable.
 
 ## 9. Acceptance Criteria
 
-- AC-1: Given a `dev` session that runs, when a second `dev` session with other embedded files starts, then the files of the first session do not change.
+- AC-1: Given a task with items 2 to 6 not checked, when `task_set_status(Done)` runs, then the refusal has one phrase with the numbers 2, 3, 4, 5, 6.
 
 ## 10. Validation and Metrics
 | Metric | Baseline | Target | How to measure |
@@ -103,7 +104,7 @@ Not applicable.
 
 ## 12. Removal and Compatibility
 
-Revert to the `dev` directory. `cache clean` removes the old directories.
+Revert the message change.
 
 ## 13. Open Questions
 | ID | Question | Owner | Answer |

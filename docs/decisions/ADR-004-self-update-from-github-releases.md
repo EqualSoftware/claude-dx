@@ -1,4 +1,4 @@
-# ADR-004: Install and update only from GitHub Releases
+# ADR-004: Install and update from GitHub Releases
 
 - Status: Accepted
 - Date: 2026-10-25

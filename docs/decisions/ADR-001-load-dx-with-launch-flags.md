@@ -1,4 +1,4 @@
-# ADR-001: Load dx with launch flags, not with project configuration
+# ADR-001: Load dx with launch flags
 
 - Status: Accepted
 - Date: 2026-10-25

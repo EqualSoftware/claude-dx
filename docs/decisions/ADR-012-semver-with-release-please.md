@@ -1,4 +1,4 @@
-# ADR-012: Use SemVer and calculate versions with release-please
+# ADR-012: SemVer with release-please
 
 - Status: Accepted
 - Date: 2026-10-25

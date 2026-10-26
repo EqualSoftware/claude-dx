@@ -1,10 +1,10 @@
 ---
 id: TASK-022
-title: Keep omitted fields in glossary_upsert  # no brackets; quote it if it has ": " or " #"
-status: Draft  # Draft / In Review / Approved / In Development / Blocked / Done / Cancelled
-priority: P1  # P0 / P1 / P2 / P3
-area: [docs-tools]  # the areas of the project, for example [api], [docs, ci]
-depends_on: [TASK-007]  # for example [TASK-004]
+title: Keep omitted fields in glossary_upsert
+status: Draft
+priority: P1
+area: [docs-tools]
+depends_on: []
 ---
 
 # TASK-022: Keep omitted fields in glossary_upsert

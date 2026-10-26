@@ -4,7 +4,7 @@ title: Filesystem tools (v0.3)
 status: Draft
 priority: P2
 area: [fs]
-depends_on: [TASK-004, TASK-012]
+depends_on: [TASK-012]
 ---
 
 # TASK-014: Filesystem tools (v0.3)
@@ -17,7 +17,7 @@ depends_on: [TASK-004, TASK-012]
 | Platforms | macOS, Linux, Windows |
 | Size | Open |
 | Blocks | None |
-| Related | ADR-010 |
+| Related | ADR-010, TASK-004 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

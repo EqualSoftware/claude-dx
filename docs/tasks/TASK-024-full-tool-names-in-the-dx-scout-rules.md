@@ -1,13 +1,13 @@
 ---
-id: TASK-025
-title: Give a compact list of the unchecked Definition of Done items  # no brackets; quote it if it has ": " or " #"
-status: Draft  # Draft / In Review / Approved / In Development / Blocked / Done / Cancelled
-priority: P3  # P0 / P1 / P2 / P3
-area: [docs-tools]  # the areas of the project, for example [api], [docs, ci]
-depends_on: [TASK-006]  # for example [TASK-004]
+id: TASK-024
+title: Full tool names in the dx:scout rules
+status: Draft
+priority: P1
+area: [plugin]
+depends_on: []
 ---
 
-# TASK-025: Give a compact list of the unchecked Definition of Done items
+# TASK-024: Full tool names in the dx:scout rules
 
 | Field | Value |
 | :--- | :--- |
@@ -17,7 +17,7 @@ depends_on: [TASK-006]  # for example [TASK-004]
 | Platforms | macOS, Linux, Windows |
 | Size | S |
 | Blocks | None |
-| Related | ADR-005, TASK-006 |
+| Related | ADR-009, TASK-008, TASK-020 |
 
 ## Document History
 | Date | Author | Description / Change Notes |
@@ -26,19 +26,19 @@ depends_on: [TASK-006]  # for example [TASK-004]
 
 ## 1. Summary
 
-When `task_set_status` refuses `Done`, it gives the unchecked Definition of Done items in one short phrase.
+`dx:scout` calls dx tools by the short names in its rules. Make the rules give names that the model can call.
 
 ## 2. Problem and Motivation
 
-`internal/docs/task/change.go:144` adds one full phrase for each unchecked item. In the v0.1.0 QA session, the refusal was: `Definition of Done item 1 is not checked; Definition of Done item 2 is not checked; ...` (6 times). ADR-005 asks for compact results.
+In the v0.1.0 QA session (Claude Code 2.1.308, binary from `7063947`), `dx:scout` (model `haiku`) called `glossary_list` two times, and Claude Code returned `No such tool available: glossary_list`. Then it called `mcp__plugin_dx_mcp__glossary_list`. 2 of 7 tool calls failed. `internal/plugin/assets/agents/scout.md:19` and `:21` give only short names. The frontmatter (`scout.md:6`) gives the full names.
 
 ## 3. Goals
 
-- G-1: The refusal for unchecked items is one phrase.
+- G-1: `dx:scout` makes no tool call with a name that does not exist.
 
 ## 4. Out of Scope
 
-- Other refusal messages.
+- The shared rules (`rules.md`) and the skills, because the main model did not fail in the session. A new task covers them if a failure occurs.
 
 ## 5. Context
 ### 5.1 Current State
@@ -54,15 +54,16 @@ When `task_set_status` refuses `Done`, it gives the unchecked Definition of Done
 ## 6. Requirements
 
 ### 6.1 Functional
-- FR-1: The refusal gives `Definition of Done items 2, 3, 4 are not checked`, or `Definition of Done item 2 is not checked` for one item.
+- FR-1: The rules of `scout.md` tell that the dx tools have the prefix `mcp__plugin_dx_mcp__`, or give the full names.
+- FR-2: The source of a fact from a dx tool stays the short name, because it is shorter in the report.
 
 ### 6.2 Non-Functional
-- NFR-1: Not applicable.
+- NFR-1: The agent prompt does not become longer by more than one line.
 
 ## 7. Design
 
 ### 7.1 Architecture
-Collect the item numbers at `internal/docs/task/change.go:144`, then make one phrase. Change the test at `internal/docs/task/task_test.go:133`.
+One text change in `internal/plugin/assets/agents/scout.md`.
 
 ### 7.2 Public API
 Not applicable.
@@ -85,7 +86,7 @@ Not applicable.
 
 ## 9. Acceptance Criteria
 
-- AC-1: Given a task with items 2 to 6 not checked, when `task_set_status(Done)` runs, then the refusal has one phrase with the numbers 2, 3, 4, 5, 6.
+- AC-1: Given the brief of the TASK-020 AC-2 session, when `dx:scout` runs, then no tool call fails with `No such tool available`.
 
 ## 10. Validation and Metrics
 | Metric | Baseline | Target | How to measure |
@@ -102,7 +103,7 @@ Not applicable.
 
 ## 12. Removal and Compatibility
 
-Revert the message change.
+Revert the text change.
 
 ## 13. Open Questions
 | ID | Question | Owner | Answer |

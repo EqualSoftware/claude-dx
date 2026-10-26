@@ -4,7 +4,7 @@ title: Git runner and read-only git tools
 status: Approved
 priority: P1
 area: [git]
-depends_on: [TASK-004]
+depends_on: []
 ---
 
 # TASK-009: Git runner and read-only git tools
@@ -17,7 +17,7 @@ depends_on: [TASK-004]
 | Platforms | macOS, Linux, Windows |
 | Size | `M` (1–3 days) |
 | Blocks | TASK-010, TASK-011, TASK-012 |
-| Related | ADR-005, ADR-008 |
+| Related | ADR-005, ADR-008, TASK-004 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

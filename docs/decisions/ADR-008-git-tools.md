@@ -1,4 +1,4 @@
-# ADR-008: Do git operations with MCP tools and block git in Bash
+# ADR-008: Git with MCP tools, no git in Bash
 
 - Status: Accepted
 - Date: 2026-10-25

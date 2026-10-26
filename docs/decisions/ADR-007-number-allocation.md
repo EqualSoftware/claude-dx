@@ -1,4 +1,4 @@
-# ADR-007: Allocate ADR and task numbers with a counter and a lock in the cache
+# ADR-007: Allocate numbers with a counter and lock
 
 - Status: Accepted
 - Date: 2026-10-25

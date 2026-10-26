@@ -1,13 +1,13 @@
 ---
 id: TASK-001
-title: Project skeleton, CI and release pipeline
+title: Project skeleton, CI and release
 status: Done
 priority: P0
 area: [build, ci]
 depends_on: []
 ---
 
-# TASK-001: Project skeleton, CI and release pipeline
+# TASK-001: Project skeleton, CI and release
 
 | Field | Value |
 | :--- | :--- |

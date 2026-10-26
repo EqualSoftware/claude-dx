@@ -1,13 +1,13 @@
 ---
-id: TASK-026
-title: Remove the /dx:eureka item from the task template until the skill exists  # no brackets; quote it if it has ": " or " #"
-status: Draft  # Draft / In Review / Approved / In Development / Blocked / Done / Cancelled
-priority: P2  # P0 / P1 / P2 / P3
-area: [docs-tools]  # the areas of the project, for example [api], [docs, ci]
-depends_on: [TASK-006]  # for example [TASK-004]
+id: TASK-029
+title: Task frontmatter with no template comments
+status: Draft
+priority: P1
+area: [docs-tools]
+depends_on: []
 ---
 
-# TASK-026: Remove the /dx:eureka item from the task template until the skill exists
+# TASK-029: Task frontmatter with no template comments
 
 | Field | Value |
 | :--- | :--- |
@@ -17,7 +17,7 @@ depends_on: [TASK-006]  # for example [TASK-004]
 | Platforms | macOS, Linux, Windows |
 | Size | S |
 | Blocks | None |
-| Related | TASK-006, TASK-013 |
+| Related | ADR-013, TASK-006 |
 
 ## Document History
 | Date | Author | Description / Change Notes |
@@ -26,19 +26,20 @@ depends_on: [TASK-006]  # for example [TASK-004]
 
 ## 1. Summary
 
-The task template has the Definition of Done item `/dx:eureka is done` (`internal/docs/task/template.md:118`). The skill comes in v0.2 (TASK-013). Remove the item from the template in v0.1.
+`task_create` copies the comments of the template frontmatter into each new task. Remove the comments from the template (ADR-013, step 1).
 
 ## 2. Problem and Motivation
 
-Each v0.1 task must check an item for a skill that does not exist. Example: TASK-019 and TASK-020 checked it with "The tool does not exist yet". Users of v0.1 see an item that they cannot do.
+`internal/docs/task/template.md:3` to `:7` has a `# ...` comment on each frontmatter field, and `markdown.SetField` keeps the comment of the line (`internal/markdown/frontmatter.go:50`). In the v0.1.0 QA session, TASK-021 to TASK-028 got these comments, example `title: ...  # no brackets; quote it if it has ": " or " #"`. The comments make the rows long, and a person or a script that reads the title gets the wrong text.
 
 ## 3. Goals
 
-- G-1: A new task in v0.1 has only Definition of Done items that a user can do.
+- G-1: A new task file has a frontmatter with no comments.
 
 ## 4. Out of Scope
 
-- A change of the tasks that exist.
+- A change of `SetField`. Learning files also use it.
+- The cleanup of existing files: the QA cleanup commit did it.
 
 ## 5. Context
 ### 5.1 Current State
@@ -54,8 +55,8 @@ Each v0.1 task must check an item for a skill that does not exist. Example: TASK
 ## 6. Requirements
 
 ### 6.1 Functional
-- FR-1: Remove the `/dx:eureka` item from `internal/docs/task/template.md`.
-- FR-2: TASK-013 adds the item again when the skill exists. Add this step to TASK-013.
+- FR-1: The template frontmatter has no comments, because the tools, not persons, write the frontmatter (ADR-006).
+- FR-2: The rules of the removed comments that the tools do not check go to the tool field descriptions.
 
 ### 6.2 Non-Functional
 - NFR-1: Not applicable.
@@ -63,31 +64,29 @@ Each v0.1 task must check an item for a skill that does not exist. Example: TASK
 ## 7. Design
 
 ### 7.1 Architecture
-One line in `internal/docs/task/template.md`, and the tests that count the template items.
+A change of `internal/docs/task/template.md` only.
 
 ### 7.2 Public API
 Not applicable.
 
 ### 7.3 Data and File Formats
-The Definition of Done of new tasks has 5 items.
+The frontmatter of new tasks has no comments.
 
 ### 7.4 User-facing Behavior
 Not applicable.
 
 ### 7.5 Alternatives
-Not applicable.
+- Remove the comments in `SetField`: rejected, because it changes all frontmatter writes for one template problem.
 
 ## 8. Implementation Plan
-[Few, large work batches in order.]
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | [paths] | [exact steps, commands, symbols] | [command] |
+| 1 | `internal/docs/task/template.md`, `internal/docs/task/tools.go`, `internal/docs/task/task_test.go` | FR-1, FR-2. A test that reads the frontmatter of a new task. | `go test ./internal/docs/task/` |
 
 ## 9. Acceptance Criteria
 
-- AC-1: When `task_create` runs, then the Definition of Done of the new task has no `/dx:eureka` item.
-- AC-2: TASK-013 has a step that adds the item again.
+- AC-1: When `task_create` runs, then no line of the new frontmatter has ` # `.
 
 ## 10. Validation and Metrics
 | Metric | Baseline | Target | How to measure |
@@ -104,7 +103,7 @@ Not applicable.
 
 ## 12. Removal and Compatibility
 
-Add the line again. Existing tasks keep their 6 items.
+Add the comments again. Existing files do not change.
 
 ## 13. Open Questions
 | ID | Question | Owner | Answer |

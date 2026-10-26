@@ -1,10 +1,10 @@
 ---
 id: TASK-013
 title: The /dx:commit and /dx:eureka skills
-status: Approved
+status: In Review
 priority: P1
 area: [plugin]
-depends_on: [TASK-005, TASK-007, TASK-010, TASK-011]
+depends_on: [TASK-010, TASK-011, TASK-026]
 ---
 
 # TASK-013: The /dx:commit and /dx:eureka skills
@@ -17,13 +17,15 @@ depends_on: [TASK-005, TASK-007, TASK-010, TASK-011]
 | Platforms | Not applicable |
 | Size | `S` (< 1 day) |
 | Blocks | None |
-| Related | ADR-008, ADR-009 |
+| Related | ADR-008, ADR-009, ADR-013, TASK-005, TASK-007 |
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Claude | Initial draft specification from the design interview |
 | 2026-10-25 | Equal | Open questions answered. Approved. |
+| 2026-10-25 | Equal | Scope change from TASK-026: work batch 2 and AC-3 add the /dx:eureka Definition of Done item again (ADR-013, step 3). The maintainer must approve again. |
 
 ## 1. Summary
 Add `/dx:commit`, which splits changes into Conventional Commits with the git tools, and `/dx:eureka`, which finds verified lessons and records them as an ADR, a learning or a glossary term.
@@ -73,13 +75,17 @@ Not applicable.
 - Not applicable.
 
 ## 8. Implementation Plan
+
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
 | 1 | the two files of 7.1 | FR-1, FR-2. | Session: commit mixed changes; run eureka after a task |
+| 2 | `internal/docs/task/template.md`, `internal/docs/task/task_test.go` | Add the Definition of Done item `/dx:eureka is done` again (TASK-026 removed it until this skill exists). | `go test ./internal/docs/task/` |
 
 ## 9. Acceptance Criteria
+
 - AC-1: Given changes in two unrelated areas, when `/dx:commit` runs, then it makes two commits with valid headers.
 - AC-2: Given work with no new lesson, when `/dx:eureka` runs, then it reports `No new lessons` and changes no file.
+- AC-3: When `task_create` runs, then the Definition of Done of the new task has the `/dx:eureka` item.
 
 ## 10. Validation and Metrics
 | Metric | Baseline | Target | How to measure |

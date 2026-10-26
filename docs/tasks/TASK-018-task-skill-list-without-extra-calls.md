@@ -1,13 +1,13 @@
 ---
 id: TASK-018
-title: The /dx:task skill lists tasks with no extra calls
+title: Task list with no extra calls
 status: Done
 priority: P1
 area: [plugin]
 depends_on: [TASK-006]
 ---
 
-# TASK-018: The /dx:task skill lists tasks with no extra calls
+# TASK-018: Task list with no extra calls
 
 | Field | Value |
 | :--- | :--- |

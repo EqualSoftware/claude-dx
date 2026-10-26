@@ -1,13 +1,13 @@
 ---
 id: TASK-016
-title: LSP servers for HTML, CSS, JSON, Bash, CMake, Lua, Make and Ninja (v0.5)
+title: LSP servers for other languages
 status: Draft
 priority: P3
 area: [lsp]
 depends_on: [TASK-015]
 ---
 
-# TASK-016: LSP servers for HTML, CSS, JSON, Bash, CMake, Lua, Make and Ninja (v0.5)
+# TASK-016: LSP servers for other languages
 
 | Field | Value |
 | :--- | :--- |

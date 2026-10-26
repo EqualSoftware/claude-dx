@@ -1,4 +1,4 @@
-# ADR-011: Download LSP servers on demand and control them from the dx MCP server
+# ADR-011: Download LSP servers on demand
 
 - Status: Accepted
 - Date: 2026-10-25
