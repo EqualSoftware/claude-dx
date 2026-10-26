@@ -1,7 +1,7 @@
 ---
 id: TASK-061
 title: Use a read-write cache lock
-status: In Review
+status: Approved
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -21,6 +21,7 @@ related: [ADR-015, ADR-014, TASK-041, TASK-050, TASK-051]
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
+| 2026-10-26 | Equal | Status: Approved. |
 
 ## 1. Summary
 

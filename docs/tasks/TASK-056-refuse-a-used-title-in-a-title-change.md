@@ -1,7 +1,7 @@
 ---
 id: TASK-056
 title: Refuse a used title in a title change
-status: In Review
+status: Approved
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -21,6 +21,7 @@ related: [TASK-042]
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
+| 2026-10-26 | Equal | Status: Approved. |
 
 ## 1. Summary
 

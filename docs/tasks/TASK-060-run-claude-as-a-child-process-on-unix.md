@@ -1,7 +1,7 @@
 ---
 id: TASK-060
 title: Run claude as a child process on Unix
-status: In Review
+status: Approved
 priority: P1
 milestone: v0.1.0
 type: refactor
@@ -21,6 +21,7 @@ related: [ADR-015, ADR-014, ADR-003]
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
+| 2026-10-26 | Equal | Status: Approved. |
 
 ## 1. Summary
 

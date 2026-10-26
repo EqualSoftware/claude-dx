@@ -24,17 +24,17 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-052](TASK-052-keep-questions-that-start-with-a-bracket.md) | Keep questions that start with a bracket | `In Review` | `P1` | `docs-tools` | None |
-| [TASK-053](TASK-053-check-section-bodies-of-task-tools.md) | Check section bodies of task tools | `In Review` | `P1` | `docs-tools` | TASK-052 |
-| [TASK-054](TASK-054-keep-one-task-id-when-renumber-fails.md) | Keep one task ID when renumber fails | `In Review` | `P1` | `docs-tools` | TASK-053 |
-| [TASK-055](TASK-055-extract-the-plugin-per-binary-path.md) | Extract the plugin per binary path | `In Review` | `P1` | `plugin`, `cli` | None |
-| [TASK-060](TASK-060-run-claude-as-a-child-process-on-unix.md) | Run claude as a child process on Unix | `In Review` | `P1` | `cli` | None |
-| [TASK-061](TASK-061-use-a-read-write-cache-lock.md) | Use a read-write cache lock | `In Review` | `P1` | `cli`, `plugin` | TASK-060 |
-| [TASK-056](TASK-056-refuse-a-used-title-in-a-title-change.md) | Refuse a used title in a title change | `In Review` | `P2` | `docs-tools` | TASK-054 |
-| [TASK-057](TASK-057-escape-pipes-in-readme-index-rows.md) | Escape pipes in README index rows | `In Review` | `P2` | `docs-tools` | TASK-056 |
-| [TASK-059](TASK-059-remove-the-numbering-lock.md) | Remove the numbering lock | `In Review` | `P2` | `docs-tools` | TASK-057, TASK-061, TASK-055 |
-| [TASK-062](TASK-062-lock-the-docs-for-read-tools.md) | Lock the docs for read tools | `In Review` | `P2` | `docs-tools` | TASK-061, TASK-059 |
-| [TASK-058](TASK-058-keep-the-file-mode-in-docfile-write.md) | Keep the file mode in docfile.Write | `In Review` | `P3` | `docs-tools` | TASK-062 |
+| [TASK-052](TASK-052-keep-questions-that-start-with-a-bracket.md) | Keep questions that start with a bracket | `Approved` | `P1` | `docs-tools` | None |
+| [TASK-053](TASK-053-check-section-bodies-of-task-tools.md) | Check section bodies of task tools | `Approved` | `P1` | `docs-tools` | TASK-052 |
+| [TASK-054](TASK-054-keep-one-task-id-when-renumber-fails.md) | Keep one task ID when renumber fails | `Approved` | `P1` | `docs-tools` | TASK-053 |
+| [TASK-055](TASK-055-extract-the-plugin-per-binary-path.md) | Extract the plugin per binary path | `Approved` | `P1` | `plugin`, `cli` | None |
+| [TASK-060](TASK-060-run-claude-as-a-child-process-on-unix.md) | Run claude as a child process on Unix | `Approved` | `P1` | `cli` | None |
+| [TASK-061](TASK-061-use-a-read-write-cache-lock.md) | Use a read-write cache lock | `Approved` | `P1` | `cli`, `plugin` | TASK-060 |
+| [TASK-056](TASK-056-refuse-a-used-title-in-a-title-change.md) | Refuse a used title in a title change | `Approved` | `P2` | `docs-tools` | TASK-054 |
+| [TASK-057](TASK-057-escape-pipes-in-readme-index-rows.md) | Escape pipes in README index rows | `Approved` | `P2` | `docs-tools` | TASK-056 |
+| [TASK-059](TASK-059-remove-the-numbering-lock.md) | Remove the numbering lock | `Approved` | `P2` | `docs-tools` | TASK-057, TASK-061, TASK-055 |
+| [TASK-062](TASK-062-lock-the-docs-for-read-tools.md) | Lock the docs for read tools | `Approved` | `P2` | `docs-tools` | TASK-061, TASK-059 |
+| [TASK-058](TASK-058-keep-the-file-mode-in-docfile-write.md) | Keep the file mode in docfile.Write | `Approved` | `P3` | `docs-tools` | TASK-062 |
 
 ## v0.2.0
 

@@ -1,7 +1,7 @@
 ---
 id: TASK-058
 title: Keep the file mode in docfile.Write
-status: In Review
+status: Approved
 priority: P3
 milestone: v0.1.0
 type: fix
@@ -21,6 +21,7 @@ related: [ADR-007, TASK-049]
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
+| 2026-10-26 | Equal | Status: Approved. |
 
 ## 1. Summary
 
