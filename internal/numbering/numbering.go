@@ -9,13 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
-	"sync"
-
-	"github.com/EqualSoftware/claude-dx/internal/filelock"
 )
-
-// mu orders the calls of one process. The file lock orders the calls of different processes.
-var mu sync.Mutex
 
 // Allocator keeps the counters of one project in Dir (<cache>/projects/<key>).
 type Allocator struct {
@@ -24,19 +18,12 @@ type Allocator struct {
 
 // Next allocates max(counter, highest number in docDir) + 1 for kind and calls create with it.
 // pattern must capture the number in its first group. create must make the file with
-// exclusive create while Next holds the lock. The counter changes only if create succeeds.
+// exclusive create. The counter changes only if create succeeds. The caller must hold the docs
+// lock of the project (docfile.Locked), because the docs lock also protects the counter (ADR-015).
 func (a Allocator) Next(kind, docDir string, pattern *regexp.Regexp, create func(n int) error) (int, error) {
-	mu.Lock()
-	defer mu.Unlock()
 	if err := os.MkdirAll(a.Dir, 0o755); err != nil {
 		return 0, err
 	}
-	unlock, err := filelock.Lock(filepath.Join(a.Dir, "lock"))
-	if err != nil {
-		return 0, err
-	}
-	defer func() { _ = unlock() }()
-
 	counters, err := a.read()
 	if err != nil {
 		return 0, err

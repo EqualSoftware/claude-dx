@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"sort"
 	"testing"
+
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 )
 
 var taskPattern = regexp.MustCompile(`^TASK-(\d{3})-`)
@@ -43,6 +45,18 @@ func TestNextUsesHighestFileAndCounter(t *testing.T) {
 	}
 }
 
+// TestNextTakesNoLock is AC-1 of TASK-059.
+func TestNextTakesNoLock(t *testing.T) {
+	a := Allocator{Dir: t.TempDir()}
+	docs := t.TempDir()
+	if _, err := a.Next("task", docs, taskPattern, createTask(docs)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(a.Dir, "lock")); err == nil {
+		t.Fatal("Next made the numbering lock file")
+	}
+}
+
 func TestNextKeepsCounterWhenCreateFails(t *testing.T) {
 	a := Allocator{Dir: t.TempDir()}
 	docs := t.TempDir()
@@ -69,7 +83,13 @@ func TestHelperAllocate(t *testing.T) {
 	if cache == "" {
 		t.Skip("helper process only")
 	}
-	n, err := Allocator{Dir: cache}.Next("task", docs, taskPattern, createTask(docs))
+	// The docs tools call Next with the docs lock (FR-2 of TASK-059).
+	var n int
+	err := docfile.Locked(filepath.Join(cache, "docs.lock"), func() error {
+		var err error
+		n, err = Allocator{Dir: cache}.Next("task", docs, taskPattern, createTask(docs))
+		return err
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

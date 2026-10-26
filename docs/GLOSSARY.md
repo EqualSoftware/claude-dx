@@ -15,7 +15,7 @@ Sort the terms in alphabetical order.
 | Cache | The directory `os.UserCacheDir()/claude-dx`. It holds the extracted plugin, LSP servers, `update.json`, `unmapped.log`, the cache lock `cache.lock`, and the counters and locks of each project in `projects/<key>/`. | cli | data dir, home dir | ADR-001 |
 | Cache lock | The read-write OS lock on `<cache>/cache.lock`. Each claude-dx process that uses the cache holds a shared lock, and `cache clean` needs the exclusive lock. No process removes the file. | cli | sessions lock, session lock | ADR-015 |
 | Definition of Done | The checklist in the last section of a task. All items must be checked, with evidence, before the task is `Done`. | process | DoD, done criteria | `docs/tasks/` |
-| Docs lock | The exclusive OS lock on `<cache>/projects/<key>/docs.lock`, with a mutex of the dx server. Each tool that changes a task, ADR, learning, the glossary or a README index holds it for the full read, change and write. A create takes the docs lock first, then the numbering lock, to prevent a deadlock. | docs-tools | edit lock | ADR-007 |
+| Docs lock | The exclusive OS lock on `<cache>/projects/<key>/docs.lock`, with a mutex of the dx server. Each tool that changes a task, ADR, learning, the glossary or a README index holds it for the full read, change and write. It also protects the number counter. | docs-tools | edit lock | ADR-007 |
 | dx plugin | The Claude Code plugin named `dx` that the binary embeds and the launcher loads with `--plugin-dir`. It holds the skills, the scout agent, the hooks and the MCP server declaration. | plugin | extension, add-on | ADR-001 |
 | dx server | The MCP server that `claude-dx mcp` starts on stdio. Claude Code starts one for each session. | mcp | daemon, backend | ADR-002 |
 | Elicitation | An MCP request from the dx server to the user, through Claude Code, for a direct yes or no answer. The model does not answer it. | mcp | confirmation prompt | ADR-008 |
@@ -24,7 +24,6 @@ Sort the terms in alphabetical order.
 | Lesson | A verified, reusable and not obvious technical fact from finished work. `/dx:eureka` records it. | process | insight | ADR-009 |
 | Main branch | The branch that `origin/HEAD` names, else `main`, else `master`. | git | trunk, default branch | TASK-011 |
 | Milestone | The release version of a task, example `v0.1.0`. A frontmatter field of each task. | process | target version, release field | ADR-013 |
-| Numbering lock | The exclusive OS lock on `<cache>/projects/<key>/lock`. A create holds it while it reads the counter, makes the file and writes the counter. | docs-tools | — | ADR-007 |
 | Owner | The git `user.name` of the person who creates a task. A frontmatter field of each task. | process | assignee, reviewer | ADR-013 |
 | Project key | The first 16 hex characters of the SHA-256 of the git common directory (or of the project root outside git). All worktrees of one repository have the same key. | mcp | project id | ADR-007 |
 | Project root | The git top level of the current directory, or the current directory outside git. Tools refuse paths outside it. | mcp | workspace, base dir | ADR-005 |

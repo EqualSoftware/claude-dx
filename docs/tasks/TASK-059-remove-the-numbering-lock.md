@@ -1,7 +1,7 @@
 ---
 id: TASK-059
 title: Remove the numbering lock
-status: Approved
+status: Done
 priority: P2
 milestone: v0.1.0
 type: refactor
@@ -24,6 +24,8 @@ related: [ADR-007, ADR-015, TASK-047]
 | 2026-10-26 | Equal | Status: Approved. |
 | 2026-10-26 | Equal | Status: In Review. The scope changed in section 6.1. |
 | 2026-10-26 | Equal | Status: Approved. |
+| 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -131,8 +133,14 @@ Revert the change, ADR-007 and the glossary rows.
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: AC-1 TestNextTakesNoLock; AC-2 TestNextParallelProcesses (20 processes, 2 worktrees, Next in docfile.Locked) passes; AC-3 glossary_lookup: Numbering lock deleted, Docs lock names the counter; ADR-007 not changed.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet (also GOOS=windows), go test ./... pass; golangci-lint v2.15.0: 0 issues.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: Comments of numbering.Next and docfile.Locked changed; glossary changed. README.md and CLAUDE.md do not name the numbering lock.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: No diagram: the task removes a lock and adds no flow.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: ADR-015 records that the docs lock protects the counter. TASK-068 R-5 supersedes ADR-007.

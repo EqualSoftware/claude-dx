@@ -16,8 +16,8 @@ import (
 var mu sync.Mutex
 
 // Locked runs fn with the docs lock of the project (TASK-047), so two sessions do not lose an edit.
-// lock is the path of the lock file; an empty lock takes only the lock of this process. A create takes
-// this lock before the numbering lock (ADR-007), so the order is always the same.
+// lock is the path of the lock file; an empty lock takes only the lock of this process. The docs lock
+// also protects the number counter (ADR-015).
 func Locked(lock string, fn func() error) error {
 	mu.Lock()
 	defer mu.Unlock()
