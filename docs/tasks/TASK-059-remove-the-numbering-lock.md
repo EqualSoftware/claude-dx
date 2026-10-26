@@ -1,7 +1,7 @@
 ---
 id: TASK-059
 title: Remove the numbering lock
-status: Approved
+status: In Review
 priority: P2
 milestone: v0.1.0
 type: refactor
@@ -22,6 +22,7 @@ related: [ADR-007, ADR-015, TASK-047]
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
 | 2026-10-26 | Equal | Status: Approved. |
+| 2026-10-26 | Equal | Status: In Review. The scope changed in section 6.1. |
 
 ## 1. Summary
 
@@ -61,7 +62,7 @@ Not applicable.
 
 - FR-1: `Next` does not take a mutex or a file lock. Its comment says that the caller must hold the docs lock, because the docs lock is the lock of the project.
 - FR-2: The tests of `numbering` that run `Next` at the same time hold a lock in the test.
-- FR-3: ADR-007 says that the docs lock protects the counter, and removes the lock order rule. The glossary removes `Numbering lock` and the lock order of `Docs lock`.
+- FR-3: The glossary removes `Numbering lock` and the lock order of `Docs lock`. ADR-007 does not change, because it is pushed (ADR-017) and ADR-015 already says that the docs lock protects the counter. TASK-068 supersedes ADR-007 with one new ADR for all number changes of v0.1.0.
 
 ### 6.2 Non-Functional
 
@@ -93,13 +94,13 @@ Not applicable.
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
 | 1 | `internal/numbering/numbering.go`, `internal/numbering/numbering_test.go`, `internal/docs/docfile/write.go` (comment of `Locked`) | FR-1, FR-2, with tests. | `go test ./internal/numbering/ ./internal/docs/...` |
-| 2 | ADR-007 (with `adr_update`), `docs/GLOSSARY.md` (with `glossary_delete` and `glossary_upsert`) | FR-3. | `adr_get ADR-007`, `glossary_lookup Docs lock` |
+| 2 | `docs/GLOSSARY.md` (with `glossary_delete` and `glossary_upsert`) | FR-3. | `glossary_lookup Docs lock` |
 
 ## 9. Acceptance Criteria
 
 - AC-1: Given `numbering.Next`, then it does not open `<cache>/projects/<key>/lock`.
 - AC-2: Given two processes that create a task at the same time in one project, then the tasks get different numbers (the existing concurrency test, now with the docs lock).
-- AC-3: Given ADR-007 and the glossary, then they name only the docs lock for numbers.
+- AC-3: Given the glossary, then it names only the docs lock for numbers. ADR-007 does not change.
 
 ## 10. Validation and Metrics
 

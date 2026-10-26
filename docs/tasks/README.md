@@ -31,7 +31,7 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | [TASK-067](TASK-067-migrate-tasks-to-specs.md) | Migrate tasks to specs | `Draft` | `P1` | `docs`, `plugin` | TASK-064, TASK-065, TASK-066 |
 | [TASK-068](TASK-068-project-file-in-the-cache.md) | Project file in the cache | `Draft` | `P1` | `mcp`, `cli` | TASK-064 |
 | [TASK-069](TASK-069-interactive-clean-command.md) | Interactive clean command | `Draft` | `P1` | `cli`, `cache` | TASK-061, TASK-068 |
-| [TASK-059](TASK-059-remove-the-numbering-lock.md) | Remove the numbering lock | `Approved` | `P2` | `docs-tools` | TASK-057, TASK-061, TASK-055 |
+| [TASK-059](TASK-059-remove-the-numbering-lock.md) | Remove the numbering lock | `In Review` | `P2` | `docs-tools` | TASK-057, TASK-061, TASK-055 |
 | [TASK-062](TASK-062-lock-the-docs-for-read-tools.md) | Lock the docs for read tools | `Approved` | `P2` | `docs-tools` | TASK-061, TASK-059 |
 | [TASK-058](TASK-058-keep-the-file-mode-in-docfile-write.md) | Keep the file mode in docfile.Write | `Approved` | `P3` | `docs-tools` | TASK-062 |
 

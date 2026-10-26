@@ -53,6 +53,7 @@ The cache folder of a project has a hash as its name, so `claude-dx clean` canno
 - R-2: The MCP server writes `path` and `last_used` at start.
 - R-3: All writes hold the docs lock and are atomic (`docfile.Write`), because the MCP server start and the number allocation both write the file.
 - R-4: Remove `counters.json` with no migration, because the allocation uses `max(counter, highest number in the checkout) + 1` (ADR-007), so a lost counter gives no duplicate number in the checkout.
+- R-5: A new ADR supersedes ADR-007 with all number changes of v0.1.0: the docs lock protects the counter (TASK-059), only ADRs have numbers (ADR-016), and the counter is in `project.json`. ADR-007 is pushed, so it does not change (ADR-017).
 
 ## 7. Design
 ### 7.1 Architecture
