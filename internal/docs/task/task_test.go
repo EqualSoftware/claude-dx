@@ -298,6 +298,23 @@ func TestListReady(t *testing.T) {
 	}
 }
 
+// TestListDepsStatus is AC-1 to AC-3 of TASK-048.
+func TestListDepsStatus(t *testing.T) {
+	s := newStore(t)
+	for _, title := range []string{"Done dep", "Open dep", "Gone dep", "Main"} {
+		create(t, s, title)
+	}
+	update(t, s, "TASK-004", Update{DependsOn: []string{"TASK-001", "TASK-002", "TASK-003"}})
+	force(t, s, "TASK-001", "Done")
+	gone, _ := filepath.Glob(filepath.Join(s.Dir, "TASK-003-*.md"))
+	must(t, os.Remove(gone[0]))
+	got, err := s.listText(listInput{ID: "TASK-004"})
+	must(t, err)
+	if want := "deps:TASK-001, TASK-002 (Draft), TASK-003 (missing)"; !strings.Contains(got, want) {
+		t.Fatalf("task_list = %q, want %q", got, want)
+	}
+}
+
 // force sets the status with no status rules.
 func force(t *testing.T, s Store, id, status string) {
 	t.Helper()

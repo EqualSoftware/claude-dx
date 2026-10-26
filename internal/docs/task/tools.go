@@ -119,7 +119,7 @@ type renumberInput struct {
 
 // Register adds the task tools to the server.
 func Register(server *mcp.Server, s Store) {
-	add(server, "task_list", "List tasks: ID, status, priority, milestone, title, areas and dependencies. Filter by any frontmatter field. Default: open tasks. Do not read docs/tasks/README.md; use this tool.",
+	add(server, "task_list", "List tasks: ID, status, priority, milestone, title, areas and dependencies. Filter by any frontmatter field; a task must match all filters. Default: open tasks. A dependency that is not Done shows its status. Do not read docs/tasks/README.md; use this tool.",
 		func(in listInput) (string, error) { return s.listText(in) })
 	add(server, "task_get", "Read one task, or one section of it.",
 		func(in getInput) (string, error) { return s.Get(in.ID, in.Section) })
@@ -198,7 +198,7 @@ func (s Store) listText(in listInput) (string, error) {
 	rows := make([][]string, 0, len(tasks))
 	for _, t := range tasks {
 		f := t.Front
-		rows = append(rows, []string{f.ID, f.Status, f.Priority, f.Milestone, f.Title, "[" + strings.Join(f.Area, ", ") + "]", "deps:" + list(f.DependsOn, "")})
+		rows = append(rows, []string{f.ID, f.Status, f.Priority, f.Milestone, f.Title, "[" + strings.Join(f.Area, ", ") + "]", "deps:" + t.Deps})
 	}
 	return result.Table(rows) + warnings, nil
 }

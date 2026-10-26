@@ -45,14 +45,14 @@ func sortByMilestone(tasks []Task) {
 	})
 }
 
-// ready returns the Approved tasks that have all dependencies in done, in milestone order.
-func ready(tasks []Task, done map[string]bool) []Task {
+// ready returns the Approved tasks that have all dependencies Done in status, in milestone order.
+func ready(tasks []Task, status map[string]string) []Task {
 	var out []Task
 	for _, t := range tasks {
 		if t.Front.Status != "Approved" {
 			continue
 		}
-		if slices.ContainsFunc(t.Front.DependsOn, func(id string) bool { return !done[id] }) {
+		if slices.ContainsFunc(t.Front.DependsOn, func(id string) bool { return status[id] != "Done" }) {
 			continue
 		}
 		out = append(out, t)

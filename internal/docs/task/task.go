@@ -90,6 +90,7 @@ type Task struct {
 	File   string
 	Front  Front
 	Closed string // date of the last Document History row
+	Deps   string // dependency IDs, with the status of each dependency that is not Done
 }
 
 // Filter selects tasks in List: a frontmatter key and the value to find. Empty values select all.
@@ -127,7 +128,7 @@ func (s Store) List(f Filter) ([]Task, string, error) {
 		return nil, "", err
 	}
 	var tasks []Task
-	done := map[string]bool{}
+	status := map[string]string{}
 	warnings := docfile.Duplicates(kind, files)
 	for _, name := range sortedNames(files) {
 		t, err := s.read(name)
@@ -135,15 +136,38 @@ func (s Store) List(f Filter) ([]Task, string, error) {
 			warnings += fmt.Sprintf("Warning: %s: %v.\n", name, err)
 			continue
 		}
-		done[t.Front.ID] = t.Front.Status == "Done"
+		status[t.Front.ID] = t.Front.Status
 		if f.match(t) {
 			tasks = append(tasks, t)
 		}
 	}
 	if f["status"] == "ready" {
-		tasks = ready(tasks, done)
+		tasks = ready(tasks, status)
+	}
+	for i := range tasks {
+		tasks[i].Deps = deps(tasks[i].Front.DependsOn, status)
 	}
 	return tasks, warnings, nil
+}
+
+// deps returns the dependency IDs. A dependency that is not Done gets its status, or "missing" if it has no
+// task file, because the agent must see the blocked tasks in one list.
+func deps(ids []string, status map[string]string) string {
+	if len(ids) == 0 {
+		return "None"
+	}
+	out := make([]string, len(ids))
+	for i, id := range ids {
+		out[i] = id
+		switch s := status[id]; s {
+		case "Done":
+		case "":
+			out[i] += " (missing)"
+		default:
+			out[i] += " (" + s + ")"
+		}
+	}
+	return strings.Join(out, ", ")
 }
 
 func (s Store) read(name string) (Task, error) {
