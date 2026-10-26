@@ -1,7 +1,7 @@
 ---
 id: TASK-033
 title: Task fields in the frontmatter
-status: In Development
+status: Done
 priority: P1
 type: refactor
 size: M
@@ -22,6 +22,7 @@ related: [ADR-013, ADR-006, TASK-006, TASK-029]
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding, also for the field order, the Agent default, the filter match rules and the one-time migration script. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
 | 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | All acceptance criteria pass. Work batches 1 to 4 are in commits 9cddb8e, c4ee448 and 291af8b. |
 
 ## 1. Summary
 
@@ -171,9 +172,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`/dx:task` skill, ADR-006).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1: `TestCreate` (`internal/docs/task/task_test.go:49`) checks the full frontmatter with `owner` from git user.name, no ` # ` and no Field/Value table. AC-2: `TestCreateRefusesBadInput` (`:82`) refuses `type: feature` and `size: L`. AC-3: `TestSetStatusRules` (`:153`) gives "give a size" and "give the platforms". AC-4, AC-5: `TestListFilterAnyField` (`:130`) for `depends_on` and `platforms: windows`. AC-6: after commit `c4ee448`, `git grep -l '| Field | Value |' docs/tasks` gives 0 files, no frontmatter comment, 35 of 35 tasks have `owner: Equal` from `git log --follow --diff-filter=A`, and `task_list(status: all)` gives the same rows before and after.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `9cddb8e`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (`/dx:task` skill, ADR-006). Commit `291af8b`: `internal/plugin/assets/skills/task/SKILL.md` gives the frontmatter fields, the filters and the In Review checks; ADR-006 Decision gives the fields and the task tools.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no call flow or state change. Section 7.3 gives the file format.
+- [x] ADRs are recorded for architectural decisions (ADR-013 has the decision). ADR-013 records the decision. ADR-006 refers to ADR-013.
+- [x] `/dx:eureka` is done. The tool does not exist yet. Lessons recorded by hand: `docs/learnings/go-yaml-flow-lists.md`, `docs/learnings/claude-code-plugin-reload.md`.
