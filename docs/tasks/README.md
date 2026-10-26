@@ -24,7 +24,7 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-051](TASK-051-rename-and-check-the-cache-lock.md) | Rename and check the cache lock | `Draft` | `P1` | `cli` | None |
+| [TASK-051](TASK-051-rename-the-cache-lock-and-keep-its-file.md) | Rename the cache lock and keep its file | `Draft` | `P1` | `cli` | None |
 | [TASK-052](TASK-052-keep-questions-that-start-with-a-bracket.md) | Keep questions that start with a bracket | `Draft` | `P1` | `docs-tools` | None |
 | [TASK-053](TASK-053-check-section-bodies-of-task-tools.md) | Check section bodies of task tools | `Draft` | `P1` | `docs-tools` | None |
 | [TASK-054](TASK-054-keep-one-task-id-when-renumber-fails.md) | Keep one task ID when renumber fails | `Draft` | `P1` | `docs-tools` | None |
