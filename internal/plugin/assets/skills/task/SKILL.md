@@ -48,6 +48,8 @@ A task is ready for review when:
 
 Then run `task_set_status` with `In Review`. The tool also checks that no question is `Open`, that no section has the template text and that the size (`S` or `M`) and the platforms are set. Split a larger task into smaller tasks with `depends_on`.
 
+For `In Review` and `Approved`, the tool warns when another open task gives the same file, or a directory that contains it, in its Implementation Plan, and no `depends_on` path connects the two tasks. Then set the order with `depends_on` or merge the tasks, and tell the user.
+
 ## Change the status
 
 Run `task_set_status`. The tool adds the Document History row and refuses a change that breaks a rule. Read its reasons and fix them. Do not work around a refusal.

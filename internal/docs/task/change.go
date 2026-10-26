@@ -136,11 +136,13 @@ func (s Store) UpdateFields(id string, u Update) (string, error) {
 }
 
 // SetStatus changes the status, adds a Document History row and enforces the status rules.
-func (s Store) SetStatus(id, status, note string) error {
+// For In Review and Approved, it returns a warning for each open task with an overlap of plan files.
+func (s Store) SetStatus(id, status, note string) (string, error) {
 	if !slices.Contains(Statuses, status) {
-		return fmt.Errorf("status %q is not valid. Use one of: %s", status, strings.Join(Statuses, ", "))
+		return "", fmt.Errorf("status %q is not valid. Use one of: %s", status, strings.Join(Statuses, ", "))
 	}
-	return s.edit(id, func(d *doc) error {
+	var warnings string
+	err := s.edit(id, func(d *doc) error {
 		var f Front
 		if err := markdown.Decode(d.front, &f); err != nil {
 			return fmt.Errorf("bad frontmatter: %w", err)
@@ -148,12 +150,19 @@ func (s Store) SetStatus(id, status, note string) error {
 		if problems := rules[status](f, d.body, note); len(problems) > 0 {
 			return fmt.Errorf("cannot set %s: %s", status, strings.Join(problems, "; "))
 		}
+		if status == "In Review" || status == "Approved" {
+			var err error
+			if warnings, err = s.overlapWarnings(f, d.body); err != nil {
+				return err
+			}
+		}
 		d.front = markdown.SetField(d.front, "status", status)
 		if note == "" {
 			note = "Status: " + status + "."
 		}
 		return s.addHistory(d, note)
 	})
+	return warnings, err
 }
 
 // rules returns the problems that stop a change to each status.

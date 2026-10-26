@@ -37,6 +37,12 @@ func create(t *testing.T, s Store, title string) {
 	}
 }
 
+// setStatus calls SetStatus and drops the warnings.
+func setStatus(s Store, id, status, note string) error {
+	_, err := s.SetStatus(id, status, note)
+	return err
+}
+
 func update(t *testing.T, s Store, id string, u Update) {
 	t.Helper()
 	if _, err := s.UpdateFields(id, u); err != nil {
@@ -117,7 +123,7 @@ func TestMissingDir(t *testing.T) {
 	if _, _, err := s.List(Filter{}); !errors.Is(err, ErrNoDir) {
 		t.Fatalf("List = %v, want ErrNoDir", err)
 	}
-	if err := s.SetStatus("TASK-001", "Done", ""); !errors.Is(err, ErrNoDir) {
+	if err := setStatus(s, "TASK-001", "Done", ""); !errors.Is(err, ErrNoDir) {
 		t.Fatalf("SetStatus = %v, want ErrNoDir", err)
 	}
 	if _, err := os.Stat(s.Dir); err == nil {
@@ -129,7 +135,7 @@ func TestListFilter(t *testing.T) {
 	s := newStore(t)
 	create(t, s, "One")
 	create(t, s, "Two")
-	if err := s.SetStatus("TASK-002", "Cancelled", "Not necessary."); err != nil {
+	if err := setStatus(s, "TASK-002", "Cancelled", "Not necessary."); err != nil {
 		t.Fatal(err)
 	}
 	open, _, _ := s.List(Filter{"status": "open"})
@@ -177,12 +183,12 @@ func TestSetStatusRules(t *testing.T) {
 		{"Finished", "", "is not valid"},
 	}
 	for _, tt := range tests {
-		err := s.SetStatus("TASK-001", tt.status, tt.note)
+		err := setStatus(s, "TASK-001", tt.status, tt.note)
 		if err == nil || !strings.Contains(err.Error(), tt.want) {
 			t.Errorf("SetStatus(%s) = %v, want %q", tt.status, err, tt.want)
 		}
 	}
-	if err := s.SetStatus("TASK-001", "In Development", ""); err != nil {
+	if err := setStatus(s, "TASK-001", "In Development", ""); err != nil {
 		t.Fatal(err)
 	}
 	doc := read(t, s, "TASK-001")
@@ -200,7 +206,7 @@ func TestInReviewWhenComplete(t *testing.T) {
 	if _, _, err := s.Create(New{Title: "Full", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Area: []string{"cli"}, Size: "M", Platforms: []string{"Linux"}, Sections: sections}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.SetStatus("TASK-001", "In Review", ""); err != nil {
+	if err := setStatus(s, "TASK-001", "In Review", ""); err != nil {
 		t.Fatalf("SetStatus(In Review) = %v", err)
 	}
 }
@@ -214,12 +220,12 @@ func TestQuestions(t *testing.T) {
 			t.Fatalf("AddQuestion = %q, %v; want %s", qid, err, want)
 		}
 	}
-	if err := s.SetStatus("TASK-001", "Approved", ""); err == nil || !strings.Contains(err.Error(), "Q-1 is Open; Q-2 is Open") {
+	if err := setStatus(s, "TASK-001", "Approved", ""); err == nil || !strings.Contains(err.Error(), "Q-1 is Open; Q-2 is Open") {
 		t.Fatalf("Approved with open questions = %v", err)
 	}
 	must(t, s.AnswerQuestion("TASK-001", "Q-1", "SQLite."))
 	must(t, s.AnswerQuestion("TASK-001", "q-2", "SQLite."))
-	must(t, s.SetStatus("TASK-001", "Approved", ""))
+	must(t, setStatus(s, "TASK-001", "Approved", ""))
 	table, _ := s.Get("TASK-001", "13")
 	if strings.Contains(table, "[Question]") || !strings.Contains(table, `| Q-1 | Which \| cache? | Maintainer | SQLite. |`) {
 		t.Fatalf("questions table =\n%s", table)
@@ -243,7 +249,7 @@ func TestCheckDoD(t *testing.T) {
 	if err := s.CheckDoD("TASK-001", 6, "x"); err == nil {
 		t.Error("checking a missing item did not fail")
 	}
-	if err := s.SetStatus("TASK-001", "Done", ""); err != nil {
+	if err := setStatus(s, "TASK-001", "Done", ""); err != nil {
 		t.Fatalf("Done with all items checked = %v", err)
 	}
 }
@@ -393,7 +399,7 @@ func TestIndexMilestones(t *testing.T) {
 		create(t, s, title)
 	}
 	update(t, s, "TASK-001", Update{Milestone: "v0.2.0"})
-	must(t, s.SetStatus("TASK-003", "Cancelled", "Not necessary."))
+	must(t, setStatus(s, "TASK-003", "Cancelled", "Not necessary."))
 	data, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
 	text := string(data)
 	v1, v2, closed := strings.Index(text, "## v0.1.0\n"), strings.Index(text, "## v0.2.0\n"), strings.Index(text, "## Closed\n")
@@ -449,7 +455,7 @@ func TestUncheckedDoDMessage(t *testing.T) {
 	s := newStore(t)
 	create(t, s, "One")
 	must(t, s.CheckDoD("TASK-001", 1, "Evidence."))
-	err := s.SetStatus("TASK-001", "Done", "")
+	err := setStatus(s, "TASK-001", "Done", "")
 	if err == nil || !strings.HasSuffix(err.Error(), ": Definition of Done items 2, 3, 4, 5 are not checked") {
 		t.Fatalf("SetStatus(Done) = %v", err)
 	}
@@ -470,5 +476,31 @@ func TestTitleRules(t *testing.T) {
 	_, _, err = s.Create(New{Title: strings.Repeat("Y", 40), Priority: "P1", Milestone: "v0.1.0", Type: "feat"})
 	if err == nil || !strings.Contains(err.Error(), "TASK-001") {
 		t.Fatalf("duplicate title = %v", err)
+	}
+}
+
+// TestOverlapWarning is AC-1 to AC-3 of TASK-031.
+func TestOverlapWarning(t *testing.T) {
+	s := newStore(t)
+	plan := func(path string) map[string]string {
+		return map[string]string{"8": "| Work batch | Files | Steps | Check |\n| :--- | :--- | :--- | :--- |\n| 1 | `" + path + "` | X. | Y. |"}
+	}
+	for i, p := range []string{"internal/x.go", "internal/x.go", "internal/"} {
+		_, _, err := s.Create(New{Title: fmt.Sprint("Task ", i), Priority: "P1", Milestone: "v0.1.0", Type: "feat", Sections: plan(p)})
+		must(t, err)
+	}
+	force(t, s, "TASK-001", "In Review")
+	warnings, err := s.SetStatus("TASK-001", "Approved", "")
+	if err != nil || !strings.Contains(warnings, "Warning: TASK-002 also changes internal/x.go.") {
+		t.Fatalf("AC-1: warnings = %q, %v", warnings, err)
+	}
+	update(t, s, "TASK-002", Update{DependsOn: []string{"TASK-001"}})
+	force(t, s, "TASK-002", "In Review")
+	warnings, err = s.SetStatus("TASK-002", "Approved", "")
+	if err != nil || strings.Contains(warnings, "TASK-001") {
+		t.Fatalf("AC-2: warnings = %q, %v", warnings, err)
+	}
+	if !strings.Contains(warnings, "Warning: TASK-003 also changes internal/x.go.") {
+		t.Fatalf("AC-3: a directory does not overlap its file: %q", warnings)
 	}
 }

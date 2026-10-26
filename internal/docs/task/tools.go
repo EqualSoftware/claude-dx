@@ -127,7 +127,8 @@ func Register(server *mcp.Server, s Store) {
 		})
 	add(server, "task_set_status", "Change the status of a task and add a Document History row. The tool refuses a change that breaks a status rule and gives the reasons.",
 		func(in statusInput) (string, error) {
-			return in.ID + " is " + in.Status + ".", s.SetStatus(in.ID, in.Status, in.Note)
+			warnings, err := s.SetStatus(in.ID, in.Status, in.Note)
+			return strings.TrimSpace(in.ID + " is " + in.Status + ".\n" + warnings), err
 		})
 	add(server, "task_question_add", "Add an Open question to the Open Questions table of a task.",
 		func(in questionInput) (string, error) {

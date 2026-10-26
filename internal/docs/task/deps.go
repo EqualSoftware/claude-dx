@@ -34,7 +34,7 @@ func (s Store) checkDeps(f Front) (string, error) {
 		return warnings, nil
 	}
 	byID[f.ID] = f
-	if path := cycle(f.ID, f.ID, byID, nil); path != nil {
+	if path := depPath(f.ID, f.ID, byID, nil); path != nil {
 		return "", fmt.Errorf("depends_on makes a cycle: %s", strings.Join(path, " -> "))
 	}
 	return warnings, nil
@@ -61,8 +61,8 @@ func checkDep(f Front, id string, byID map[string]Front) (string, error) {
 	return "", nil
 }
 
-// cycle returns the path from start to target through the dependencies, or nil.
-func cycle(start, target string, byID map[string]Front, seen map[string]bool) []string {
+// depPath returns the depends_on path from start to target, or nil.
+func depPath(start, target string, byID map[string]Front, seen map[string]bool) []string {
 	if seen == nil {
 		seen = map[string]bool{}
 	}
@@ -74,7 +74,7 @@ func cycle(start, target string, byID map[string]Front, seen map[string]bool) []
 			continue
 		}
 		seen[dep] = true
-		if path := cycle(dep, target, byID, seen); path != nil {
+		if path := depPath(dep, target, byID, seen); path != nil {
 			return append([]string{start}, path...)
 		}
 	}
