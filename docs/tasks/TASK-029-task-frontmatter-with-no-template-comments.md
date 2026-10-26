@@ -1,7 +1,7 @@
 ---
 id: TASK-029
 title: Task frontmatter with no template comments
-status: Draft
+status: Cancelled
 priority: P1
 area: [docs-tools]
 depends_on: []
@@ -20,9 +20,11 @@ depends_on: []
 | Related | ADR-013, TASK-006 |
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Merged into TASK-033 (FR-10, FR-11, AC-5), because both change the template and the task frontmatter (ADR-013 merge rule). FR-2 was removed: the tools and the field descriptions already cover the rules of the comments. |
 
 ## 1. Summary
 
@@ -106,9 +108,11 @@ Not applicable.
 Add the comments again. Existing files do not change.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+| Q-1 | Merge TASK-029 into TASK-033? Both change internal/docs/task/template.md and the task frontmatter, in v0.1.0, with a similar goal (ADR-013 merge rule). TASK-033 stays M. Recommended: yes; cancel TASK-029 with a note. | Equal | Yes. Merge into TASK-033 and cancel TASK-029. |
+| Q-2 | Remove the comment keep logic of markdown.SetField (internal/markdown/frontmatter.go:50, func comment)? After the template change, no file has a frontmatter comment, so the code keeps nothing. Recommended: yes, because the tools own the frontmatter (ADR-006) and the code is easy to delete. | Equal | Yes. Remove the comment keep logic of SetField. |
 
 The status cannot be `Approved` while a question is `Open`.
 

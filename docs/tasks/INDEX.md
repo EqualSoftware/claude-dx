@@ -34,9 +34,8 @@ Sort by priority, then by ID.
 | [TASK-023](TASK-023-check-task-dependencies.md) | Check task dependencies | `Draft` | `P1` | `docs-tools` | TASK-030 |
 | [TASK-024](TASK-024-full-tool-names-in-the-dx-scout-rules.md) | Full tool names in the dx:scout rules | `Draft` | `P1` | `plugin` | None |
 | [TASK-026](TASK-026-remove-the-eureka-item-from-the-template.md) | Remove the eureka item from the template | `Draft` | `P1` | `docs-tools` | TASK-030 |
-| [TASK-029](TASK-029-task-frontmatter-with-no-template-comments.md) | Task frontmatter with no template comments | `Draft` | `P1` | `docs-tools` | None |
 | [TASK-030](TASK-030-task-milestones-and-the-ready-list.md) | Task milestones and the ready list | `Draft` | `P1` | `docs-tools`, `plugin` | TASK-033 |
-| [TASK-033](TASK-033-task-fields-in-the-frontmatter.md) | Task fields in the frontmatter | `Draft` | `P1` | `docs-tools`, `plugin` | TASK-029 |
+| [TASK-033](TASK-033-task-fields-in-the-frontmatter.md) | Task fields in the frontmatter | `Draft` | `P1` | `docs-tools`, `plugin` | None |
 | [TASK-014](TASK-014-filesystem-tools.md) | Filesystem tools (v0.3) | `Draft` | `P2` | `fs` | TASK-012 |
 | [TASK-015](TASK-015-lsp-core-languages.md) | LSP manager and core language servers | `Draft` | `P2` | `lsp` | None |
 | [TASK-017](TASK-017-prepare-public-release.md) | Prepare the repository for release | `In Development` | `P2` | `repo` | None |
@@ -66,3 +65,4 @@ Sort by priority, then by ID.
 | [TASK-019](TASK-019-rename-the-mcp-server-to-mcp.md) | Rename the dx MCP server to mcp | `Done` | 2026-10-25 |
 | [TASK-020](TASK-020-glossary-list-tool.md) | The glossary_list tool | `Done` | 2026-10-25 |
 | [TASK-025](TASK-025-compact-definition-of-done-message.md) | Compact Definition of Done message | `Cancelled` | 2026-10-25 |
+| [TASK-029](TASK-029-task-frontmatter-with-no-template-comments.md) | Task frontmatter with no template comments | `Cancelled` | 2026-10-25 |
