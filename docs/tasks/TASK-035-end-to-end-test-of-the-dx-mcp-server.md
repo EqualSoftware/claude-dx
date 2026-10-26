@@ -3,21 +3,16 @@ id: TASK-035
 title: End-to-end test of the dx MCP server
 status: Draft
 priority: P2
+type: test
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [mcp]
 depends_on: []
+related: [ADR-002, ADR-005, TASK-004]
 ---
 
 # TASK-035: End-to-end test of the dx MCP server
-
-| Field | Value |
-| :--- | :--- |
-| Type | test |
-| Owner | Equal |
-| Reviewers | Equal |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-002, ADR-005, TASK-004 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

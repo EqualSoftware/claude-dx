@@ -3,21 +3,16 @@ id: TASK-002
 title: Launcher and plugin loading
 status: Done
 priority: P0
+type: feat
+size: M
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [cli, plugin]
 depends_on: [TASK-001]
+related: [ADR-001, ADR-003, ADR-005, ADR-009]
 ---
 
 # TASK-002: Launcher and plugin loading
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | `M` (1–3 days) |
-| Blocks | TASK-003, TASK-005, TASK-006, TASK-007, TASK-008, TASK-012 |
-| Related | ADR-001, ADR-003, ADR-005, ADR-009 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

@@ -3,21 +3,16 @@ id: TASK-031
 title: Warn about open tasks on the same files
 status: Draft
 priority: P2
+type: feat
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools]
 depends_on: [TASK-028]
+related: [ADR-013]
 ---
 
 # TASK-031: Warn about open tasks on the same files
-
-| Field | Value |
-| :--- | :--- |
-| Type | feat |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-013 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

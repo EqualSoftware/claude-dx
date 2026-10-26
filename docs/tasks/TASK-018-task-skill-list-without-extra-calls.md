@@ -3,21 +3,16 @@ id: TASK-018
 title: Task list with no extra calls
 status: Done
 priority: P1
+type: fix
+size: S
+owner: Equal
+platforms: [Not applicable]
 area: [plugin]
 depends_on: [TASK-006]
+related: [TASK-006, ADR-005, ADR-009]
 ---
 
 # TASK-018: Task list with no extra calls
-
-| Field | Value |
-| :--- | :--- |
-| Type | `fix` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | Not applicable |
-| Size | `S` (< 1 day) |
-| Blocks | None |
-| Related | TASK-006, ADR-005, ADR-009 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

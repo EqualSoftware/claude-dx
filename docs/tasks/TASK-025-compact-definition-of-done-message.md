@@ -3,21 +3,16 @@ id: TASK-025
 title: Compact Definition of Done message
 status: Cancelled
 priority: P3
+type: fix
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools]
 depends_on: [TASK-006]
+related: [ADR-005, TASK-006]
 ---
 
 # TASK-025: Compact Definition of Done message
-
-| Field | Value |
-| :--- | :--- |
-| Type | fix |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-005, TASK-006 |
 
 ## Document History
 

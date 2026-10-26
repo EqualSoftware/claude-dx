@@ -3,21 +3,16 @@ id: TASK-015
 title: LSP manager and core language servers
 status: Draft
 priority: P2
+type: feat
+size: ""
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [lsp]
 depends_on: []
+related: [ADR-011, TASK-004]
 ---
 
 # TASK-015: LSP manager and core language servers
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | Open |
-| Blocks | None |
-| Related | ADR-011, TASK-004 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

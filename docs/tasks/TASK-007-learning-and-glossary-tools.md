@@ -3,21 +3,16 @@ id: TASK-007
 title: Learning and glossary tools and skills
 status: Done
 priority: P1
+type: feat
+size: M
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools, plugin]
 depends_on: [TASK-002, TASK-004]
+related: [ADR-005, ADR-006, ADR-009]
 ---
 
 # TASK-007: Learning and glossary tools and skills
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | `M` (1–3 days) |
-| Blocks | TASK-013 |
-| Related | ADR-005, ADR-006, ADR-009 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

@@ -3,21 +3,16 @@ id: TASK-009
 title: Git runner and read-only git tools
 status: Approved
 priority: P1
+type: feat
+size: M
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [git]
 depends_on: []
+related: [ADR-005, ADR-008, TASK-004]
 ---
 
 # TASK-009: Git runner and read-only git tools
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | `M` (1–3 days) |
-| Blocks | TASK-010, TASK-011, TASK-012 |
-| Related | ADR-005, ADR-008, TASK-004 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

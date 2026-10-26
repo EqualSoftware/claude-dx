@@ -3,21 +3,16 @@ id: TASK-010
 title: Git tools for local changes and history
 status: Approved
 priority: P1
+type: feat
+size: M
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [git]
 depends_on: [TASK-009]
+related: [ADR-008]
 ---
 
 # TASK-010: Git tools for local changes and history
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | `M` (1–3 days) |
-| Blocks | TASK-011, TASK-013 |
-| Related | ADR-008 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

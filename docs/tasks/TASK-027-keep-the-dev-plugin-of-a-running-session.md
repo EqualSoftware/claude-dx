@@ -3,21 +3,16 @@ id: TASK-027
 title: Keep the dev plugin of a running session
 status: Draft
 priority: P3
+type: fix
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [cli, plugin]
 depends_on: []
+related: [ADR-001, TASK-002]
 ---
 
 # TASK-027: Keep the dev plugin of a running session
-
-| Field | Value |
-| :--- | :--- |
-| Type | fix |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-001, TASK-002 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

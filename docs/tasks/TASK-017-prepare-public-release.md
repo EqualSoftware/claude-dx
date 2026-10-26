@@ -3,21 +3,16 @@ id: TASK-017
 title: Prepare the repository for release
 status: In Development
 priority: P2
+type: chore
+size: S
+owner: Equal
+platforms: [Not applicable]
 area: [repo]
 depends_on: []
+related: [ADR-008, ADR-012]
 ---
 
 # TASK-017: Prepare the repository for release
-
-| Field | Value |
-| :--- | :--- |
-| Type | `chore` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | Not applicable |
-| Size | `S` (< 1 day) |
-| Blocks | None |
-| Related | ADR-008, ADR-012 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

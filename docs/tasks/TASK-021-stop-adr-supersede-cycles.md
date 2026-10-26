@@ -3,21 +3,16 @@ id: TASK-021
 title: Stop ADR supersede cycles
 status: Draft
 priority: P1
+type: fix
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools]
 depends_on: []
+related: [ADR-006, TASK-005]
 ---
 
 # TASK-021: Stop ADR supersede cycles
-
-| Field | Value |
-| :--- | :--- |
-| Type | fix |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-006, TASK-005 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

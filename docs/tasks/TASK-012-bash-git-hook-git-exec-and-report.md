@@ -3,21 +3,16 @@ id: TASK-012
 title: Bash git hook, git_exec and report
 status: Approved
 priority: P1
+type: feat
+size: M
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [git, plugin, cli]
 depends_on: [TASK-009]
+related: [ADR-008, ADR-009, TASK-002]
 ---
 
 # TASK-012: Bash git hook, git_exec and report
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | `M` (1–3 days) |
-| Blocks | None |
-| Related | ADR-008, ADR-009, TASK-002 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

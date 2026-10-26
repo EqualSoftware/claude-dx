@@ -3,21 +3,16 @@ id: TASK-006
 title: Task tools and the /dx:task skill
 status: Done
 priority: P1
+type: feat
+size: M
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools, plugin]
 depends_on: [TASK-002, TASK-004]
+related: [ADR-005, ADR-006, ADR-007, ADR-009]
 ---
 
 # TASK-006: Task tools and the /dx:task skill
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | `M` (1–3 days) |
-| Blocks | TASK-008 |
-| Related | ADR-005, ADR-006, ADR-007, ADR-009 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

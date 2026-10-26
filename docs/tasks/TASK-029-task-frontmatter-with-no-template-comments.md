@@ -3,21 +3,16 @@ id: TASK-029
 title: Task frontmatter with no template comments
 status: Cancelled
 priority: P1
+type: fix
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools]
 depends_on: []
+related: [ADR-013, TASK-006]
 ---
 
 # TASK-029: Task frontmatter with no template comments
-
-| Field | Value |
-| :--- | :--- |
-| Type | fix |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-013, TASK-006 |
 
 ## Document History
 

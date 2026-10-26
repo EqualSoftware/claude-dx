@@ -3,21 +3,16 @@ id: TASK-016
 title: LSP servers for other languages
 status: Draft
 priority: P3
+type: feat
+size: ""
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [lsp]
 depends_on: [TASK-015]
+related: [ADR-011]
 ---
 
 # TASK-016: LSP servers for other languages
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | Open |
-| Blocks | None |
-| Related | ADR-011 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

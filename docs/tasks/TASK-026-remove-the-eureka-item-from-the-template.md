@@ -3,21 +3,16 @@ id: TASK-026
 title: Remove the eureka item from the template
 status: Draft
 priority: P1
+type: fix
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools]
 depends_on: [TASK-030]
+related: [TASK-006, TASK-013]
 ---
 
 # TASK-026: Remove the eureka item from the template
-
-| Field | Value |
-| :--- | :--- |
-| Type | fix |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | TASK-006, TASK-013 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

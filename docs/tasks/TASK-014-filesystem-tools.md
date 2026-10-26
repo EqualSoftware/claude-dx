@@ -3,21 +3,16 @@ id: TASK-014
 title: Filesystem tools (v0.3)
 status: Draft
 priority: P2
+type: feat
+size: ""
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [fs]
 depends_on: [TASK-012]
+related: [ADR-010, TASK-004]
 ---
 
 # TASK-014: Filesystem tools (v0.3)
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | Open |
-| Blocks | None |
-| Related | ADR-010, TASK-004 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

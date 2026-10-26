@@ -1,23 +1,18 @@
 ---
 id: TASK-033
 title: Task fields in the frontmatter
-status: Approved
+status: In Development
 priority: P1
+type: refactor
+size: M
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools, plugin]
 depends_on: []
+related: [ADR-013, ADR-006, TASK-006, TASK-029]
 ---
 
 # TASK-033: Task fields in the frontmatter
-
-| Field | Value |
-| :--- | :--- |
-| Type | refactor |
-| Owner | Equal |
-| Reviewers | Equal |
-| Platforms | macOS, Linux, Windows |
-| Size | M |
-| Blocks | None |
-| Related | ADR-013, ADR-006, TASK-006, TASK-029 |
 
 ## Document History
 
@@ -26,6 +21,7 @@ depends_on: []
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding, also for the field order, the Agent default, the filter match rules and the one-time migration script. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
 
 ## 1. Summary
 

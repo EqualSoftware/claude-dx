@@ -3,21 +3,16 @@ id: TASK-024
 title: Full tool names in the dx:scout rules
 status: Draft
 priority: P1
+type: fix
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [plugin]
 depends_on: []
+related: [ADR-009, TASK-008, TASK-020]
 ---
 
 # TASK-024: Full tool names in the dx:scout rules
-
-| Field | Value |
-| :--- | :--- |
-| Type | fix |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-009, TASK-008, TASK-020 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

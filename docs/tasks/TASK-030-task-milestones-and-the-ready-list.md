@@ -3,21 +3,16 @@ id: TASK-030
 title: Task milestones and the ready list
 status: Draft
 priority: P1
+type: feat
+size: M
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools, plugin]
 depends_on: [TASK-033]
+related: [ADR-013, ADR-006, TASK-006, TASK-018]
 ---
 
 # TASK-030: Task milestones and the ready list
-
-| Field | Value |
-| :--- | :--- |
-| Type | feat |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | M |
-| Blocks | None |
-| Related | ADR-013, ADR-006, TASK-006, TASK-018 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

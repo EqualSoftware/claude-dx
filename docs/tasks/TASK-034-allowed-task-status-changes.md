@@ -3,21 +3,16 @@ id: TASK-034
 title: Allowed task status changes
 status: Draft
 priority: P2
+type: feat
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools]
 depends_on: [TASK-032]
+related: [ADR-013, TASK-006]
 ---
 
 # TASK-034: Allowed task status changes
-
-| Field | Value |
-| :--- | :--- |
-| Type | feat |
-| Owner | Equal |
-| Reviewers | Equal |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-013, TASK-006 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

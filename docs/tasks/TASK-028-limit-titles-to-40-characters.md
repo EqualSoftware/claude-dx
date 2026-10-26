@@ -3,21 +3,16 @@ id: TASK-028
 title: Limit titles to 40 characters
 status: Draft
 priority: P2
+type: fix
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools]
 depends_on: [TASK-021, TASK-023]
+related: [ADR-006, ADR-013, TASK-005, TASK-006]
 ---
 
 # TASK-028: Limit titles to 40 characters
-
-| Field | Value |
-| :--- | :--- |
-| Type | fix |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-006, ADR-013, TASK-005, TASK-006 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

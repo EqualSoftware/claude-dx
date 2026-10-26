@@ -3,21 +3,16 @@ id: TASK-008
 title: Grill skill, scout agent and rules
 status: Done
 priority: P1
+type: feat
+size: S
+owner: Equal
+platforms: [Not applicable]
 area: [plugin]
 depends_on: [TASK-002, TASK-006]
+related: [ADR-001, ADR-009]
 ---
 
 # TASK-008: Grill skill, scout agent and rules
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | Not applicable |
-| Size | `S` (< 1 day) |
-| Blocks | None |
-| Related | ADR-001, ADR-009 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

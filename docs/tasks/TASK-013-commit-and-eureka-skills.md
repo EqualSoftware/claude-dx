@@ -3,21 +3,16 @@ id: TASK-013
 title: The /dx:commit and /dx:eureka skills
 status: Approved
 priority: P1
+type: feat
+size: S
+owner: Equal
+platforms: [Not applicable]
 area: [plugin]
 depends_on: [TASK-010, TASK-011, TASK-026]
+related: [ADR-008, ADR-009, ADR-013, TASK-005, TASK-007]
 ---
 
 # TASK-013: The /dx:commit and /dx:eureka skills
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | Not applicable |
-| Size | `S` (< 1 day) |
-| Blocks | None |
-| Related | ADR-008, ADR-009, ADR-013, TASK-005, TASK-007 |
 
 ## Document History
 

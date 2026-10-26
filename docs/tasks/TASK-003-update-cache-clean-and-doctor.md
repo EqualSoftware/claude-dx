@@ -3,21 +3,16 @@ id: TASK-003
 title: Update, cache clean and doctor commands
 status: Done
 priority: P1
+type: feat
+size: M
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [cli]
 depends_on: [TASK-002, TASK-004]
+related: [ADR-001, ADR-004]
 ---
 
 # TASK-003: Update, cache clean and doctor commands
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | `M` (1–3 days) |
-| Blocks | None |
-| Related | ADR-001, ADR-004 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

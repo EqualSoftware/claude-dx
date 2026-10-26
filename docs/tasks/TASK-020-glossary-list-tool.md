@@ -3,21 +3,16 @@ id: TASK-020
 title: The glossary_list tool
 status: Done
 priority: P1
+type: feat
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools, plugin]
 depends_on: [TASK-007, TASK-008]
+related: [ADR-005, ADR-006, TASK-007]
 ---
 
 # TASK-020: The glossary_list tool
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | `S` (< 1 day) |
-| Blocks | None |
-| Related | ADR-005, ADR-006, TASK-007 |
 
 ## Document History
 

@@ -3,21 +3,16 @@ id: TASK-004
 title: MCP server core and number allocation
 status: Done
 priority: P0
+type: feat
+size: M
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [mcp]
 depends_on: [TASK-001]
+related: [ADR-002, ADR-005, ADR-007]
 ---
 
 # TASK-004: MCP server core and number allocation
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | `M` (1–3 days) |
-| Blocks | TASK-003, TASK-005, TASK-006, TASK-007, TASK-009, TASK-014, TASK-015 |
-| Related | ADR-002, ADR-005, ADR-007 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

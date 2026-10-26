@@ -3,21 +3,16 @@ id: TASK-005
 title: ADR tools and the /dx:adr skill
 status: Done
 priority: P1
+type: feat
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools, plugin]
 depends_on: [TASK-002, TASK-004]
+related: [ADR-005, ADR-006, ADR-007, ADR-009]
 ---
 
 # TASK-005: ADR tools and the /dx:adr skill
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | `S` (< 1 day) |
-| Blocks | TASK-013 |
-| Related | ADR-005, ADR-006, ADR-007, ADR-009 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

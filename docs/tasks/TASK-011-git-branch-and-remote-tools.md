@@ -3,21 +3,16 @@ id: TASK-011
 title: Git tools for branches and remotes
 status: Approved
 priority: P1
+type: feat
+size: M
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [git]
 depends_on: [TASK-010]
+related: [ADR-008]
 ---
 
 # TASK-011: Git tools for branches and remotes
-
-| Field | Value |
-| :--- | :--- |
-| Type | `feat` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | `M` (1–3 days) |
-| Blocks | TASK-013 |
-| Related | ADR-008 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

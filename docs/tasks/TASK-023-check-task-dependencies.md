@@ -3,21 +3,16 @@ id: TASK-023
 title: Check task dependencies
 status: Draft
 priority: P1
+type: fix
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools]
 depends_on: [TASK-030]
+related: [ADR-005, ADR-006, ADR-013, TASK-006, TASK-025]
 ---
 
 # TASK-023: Check task dependencies
-
-| Field | Value |
-| :--- | :--- |
-| Type | fix |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-005, ADR-006, ADR-013, TASK-006, TASK-025 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

@@ -3,21 +3,16 @@ id: TASK-019
 title: Rename the dx MCP server to mcp
 status: Done
 priority: P1
+type: refactor
+size: S
+owner: Equal
+platforms: [Not applicable]
 area: [plugin, mcp]
 depends_on: [TASK-004]
+related: [ADR-002, ADR-005, TASK-002, TASK-008]
 ---
 
 # TASK-019: Rename the dx MCP server to mcp
-
-| Field | Value |
-| :--- | :--- |
-| Type | `refactor` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | Not applicable |
-| Size | `S` (< 1 day) |
-| Blocks | None |
-| Related | ADR-002, ADR-005, TASK-002, TASK-008 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

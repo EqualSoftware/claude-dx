@@ -3,21 +3,16 @@ id: TASK-032
 title: Review again after a scope change
 status: Draft
 priority: P2
+type: feat
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools, plugin]
 depends_on: [TASK-031]
+related: [ADR-013, TASK-026, TASK-013]
 ---
 
 # TASK-032: Review again after a scope change
-
-| Field | Value |
-| :--- | :--- |
-| Type | feat |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-013, TASK-026, TASK-013 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

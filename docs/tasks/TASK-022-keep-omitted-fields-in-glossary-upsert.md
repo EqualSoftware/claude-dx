@@ -3,21 +3,16 @@ id: TASK-022
 title: Keep omitted fields in glossary_upsert
 status: Draft
 priority: P1
+type: fix
+size: S
+owner: Equal
+platforms: [macOS, Linux, Windows]
 area: [docs-tools]
 depends_on: []
+related: [ADR-006, TASK-007]
 ---
 
 # TASK-022: Keep omitted fields in glossary_upsert
-
-| Field | Value |
-| :--- | :--- |
-| Type | fix |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows |
-| Size | S |
-| Blocks | None |
-| Related | ADR-006, TASK-007 |
 
 ## Document History
 | Date | Author | Description / Change Notes |

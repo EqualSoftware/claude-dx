@@ -3,21 +3,16 @@ id: TASK-001
 title: Project skeleton, CI and release
 status: Done
 priority: P0
+type: build
+size: M
+owner: Equal
+platforms: [macOS, Linux, 'Windows (amd64, arm64)']
 area: [build, ci]
 depends_on: []
+related: [ADR-003, ADR-004, ADR-012]
 ---
 
 # TASK-001: Project skeleton, CI and release
-
-| Field | Value |
-| :--- | :--- |
-| Type | `build` |
-| Owner | Maintainer |
-| Reviewers | Maintainer |
-| Platforms | macOS, Linux, Windows (amd64, arm64) |
-| Size | `M` (1–3 days) |
-| Blocks | TASK-002, TASK-004 |
-| Related | ADR-003, ADR-004, ADR-012 |
 
 ## Document History
 | Date | Author | Description / Change Notes |
