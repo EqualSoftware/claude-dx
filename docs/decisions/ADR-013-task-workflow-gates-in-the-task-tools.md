@@ -31,6 +31,18 @@ The task tools check the task process at each status step. A check refuses a cha
 5. Develop: a new finding during work is a new task, not a scope change.
 6. Merge rule (skill text): tasks with the same milestone, the same files and a similar goal are one task, if the size stays `S` or `M`.
 
+`task_set_status` allows only these changes (TASK-034), so a task cannot skip a step:
+
+| From | To |
+| :--- | :--- |
+| `Draft` | `In Review`, `Cancelled` |
+| `In Review` | `Approved`, `Draft`, `Cancelled` |
+| `Approved` | `In Development`, `In Review`, `Blocked`, `Cancelled` |
+| `In Development` | `Done`, `Blocked`, `Cancelled` |
+| `Blocked` | `Approved`, `In Development`, `Cancelled` |
+| `Cancelled` | `Draft` |
+| `Done` | None, because a new finding is a new task (step 5). |
+
 Before v0.1.0, all titles longer than 40 characters get shorter. Only files with a slug longer than 40 characters get a new name, because the older files have short names that a person selected. Links change in the same commit.
 
 ## Alternatives

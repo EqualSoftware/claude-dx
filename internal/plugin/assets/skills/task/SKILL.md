@@ -67,6 +67,18 @@ For `In Review` and `Approved`, the tool warns when another open task gives the 
 
 Run `task_set_status`. The tool adds the Document History row and refuses a change that breaks a rule. Read its reasons and fix them. Do not work around a refusal.
 
+The allowed changes are:
+
+| From | To |
+| :--- | :--- |
+| `Draft` | `In Review`, `Cancelled` |
+| `In Review` | `Approved`, `Draft`, `Cancelled` |
+| `Approved` | `In Development`, `In Review`, `Blocked`, `Cancelled` |
+| `In Development` | `Done`, `Blocked`, `Cancelled` |
+| `Blocked` | `Approved`, `In Development`, `Cancelled` |
+| `Cancelled` | `Draft` |
+| `Done` | None. A new finding is a new task. |
+
 - `Approved`: only when the user approves.
 - `In Development`: when work starts.
 - `Blocked`: give the blocker in `note`.

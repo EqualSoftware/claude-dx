@@ -174,6 +174,9 @@ func (s Store) SetStatus(id, status, note string) (string, error) {
 		if err := markdown.Decode(d.front, &f); err != nil {
 			return fmt.Errorf("bad frontmatter: %w", err)
 		}
+		if err := allowedChange(f.Status, status); err != nil {
+			return err
+		}
 		if problems := rules[status](f, d.body, note); len(problems) > 0 {
 			return fmt.Errorf("cannot set %s: %s", status, strings.Join(problems, "; "))
 		}
@@ -190,6 +193,30 @@ func (s Store) SetStatus(id, status, note string) (string, error) {
 		return s.addHistory(d, note)
 	})
 	return warnings, err
+}
+
+// transitions gives the allowed new statuses for each current status (ADR-013). Done is final,
+// because a new finding is a new task.
+var transitions = map[string][]string{
+	"Draft":          {"In Review", "Cancelled"},
+	"In Review":      {"Approved", "Draft", "Cancelled"},
+	"Approved":       {"In Development", "In Review", "Blocked", "Cancelled"},
+	"In Development": {"Done", "Blocked", "Cancelled"},
+	"Blocked":        {"Approved", "In Development", "Cancelled"},
+	"Cancelled":      {"Draft"},
+	"Done":           {},
+}
+
+// allowedChange refuses a status change that skips a step of the flow.
+func allowedChange(from, to string) error {
+	allowed, ok := transitions[from]
+	if !ok || slices.Contains(allowed, to) {
+		return nil // A task with an unknown status can get any valid status.
+	}
+	if len(allowed) == 0 {
+		return fmt.Errorf("cannot set %s from %s. %s is final: make a new task", to, from, from)
+	}
+	return fmt.Errorf("cannot set %s from %s. Allowed: %s", to, from, strings.Join(allowed, ", "))
 }
 
 // rules returns the problems that stop a change to each status.

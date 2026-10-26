@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/EqualSoftware/claude-dx/internal/markdown"
 	"github.com/EqualSoftware/claude-dx/internal/numbering"
 )
 
@@ -173,21 +175,23 @@ func TestSetStatusRules(t *testing.T) {
 	s := newStore(t)
 	create(t, s, "One")
 	tests := []struct {
-		status, note, want string
+		from, status, want string
 	}{
-		{"In Review", "", "section 1 has the template text"},
-		{"In Review", "", "give a size"},
-		{"In Review", "", "give the platforms"},
-		{"Blocked", "", "give a note"},
-		{"Done", "", "Definition of Done items 1, 2, 3, 4, 5 are not checked"},
-		{"Finished", "", "is not valid"},
+		{"Draft", "In Review", "section 1 has the template text"},
+		{"Draft", "In Review", "give a size"},
+		{"Draft", "In Review", "give the platforms"},
+		{"Approved", "Blocked", "give a note"},
+		{"In Development", "Done", "Definition of Done items 1, 2, 3, 4, 5 are not checked"},
+		{"Draft", "Finished", "is not valid"},
 	}
 	for _, tt := range tests {
-		err := setStatus(s, "TASK-001", tt.status, tt.note)
+		force(t, s, "TASK-001", tt.from)
+		err := setStatus(s, "TASK-001", tt.status, "")
 		if err == nil || !strings.Contains(err.Error(), tt.want) {
 			t.Errorf("SetStatus(%s) = %v, want %q", tt.status, err, tt.want)
 		}
 	}
+	force(t, s, "TASK-001", "Approved")
 	if err := setStatus(s, "TASK-001", "In Development", ""); err != nil {
 		t.Fatal(err)
 	}
@@ -220,6 +224,7 @@ func TestQuestions(t *testing.T) {
 			t.Fatalf("AddQuestion = %q, %v; want %s", qid, err, want)
 		}
 	}
+	force(t, s, "TASK-001", "In Review")
 	if err := setStatus(s, "TASK-001", "Approved", ""); err == nil || !strings.Contains(err.Error(), "Q-1 is Open; Q-2 is Open") {
 		t.Fatalf("Approved with open questions = %v", err)
 	}
@@ -249,6 +254,7 @@ func TestCheckDoD(t *testing.T) {
 	if err := s.CheckDoD("TASK-001", 6, "x"); err == nil {
 		t.Error("checking a missing item did not fail")
 	}
+	force(t, s, "TASK-001", "In Development")
 	if err := setStatus(s, "TASK-001", "Done", ""); err != nil {
 		t.Fatalf("Done with all items checked = %v", err)
 	}
@@ -291,11 +297,11 @@ func TestListReady(t *testing.T) {
 	}
 }
 
-// force sets the status of a Draft task with no status rules.
+// force sets the status with no status rules.
 func force(t *testing.T, s Store, id, status string) {
 	t.Helper()
 	must(t, s.edit(id, func(d *doc) error {
-		d.front = strings.Replace(d.front, "status: Draft", "status: "+status, 1)
+		d.front = markdown.SetField(d.front, "status", status)
 		return nil
 	}))
 }
@@ -455,6 +461,7 @@ func TestUncheckedDoDMessage(t *testing.T) {
 	s := newStore(t)
 	create(t, s, "One")
 	must(t, s.CheckDoD("TASK-001", 1, "Evidence."))
+	force(t, s, "TASK-001", "In Development")
 	err := setStatus(s, "TASK-001", "Done", "")
 	if err == nil || !strings.HasSuffix(err.Error(), ": Definition of Done items 2, 3, 4, 5 are not checked") {
 		t.Fatalf("SetStatus(Done) = %v", err)
@@ -522,5 +529,36 @@ func TestScopeChangeNeedsReview(t *testing.T) {
 	doc := read(t, s, "TASK-001")
 	if err != nil || !review || !strings.Contains(doc, "status: In Review\n") || !strings.Contains(doc, "Status: In Review. The scope changed in section 6.1.") {
 		t.Fatalf("AC-1: section 6.1 = %v, %v\n%s", review, err, doc)
+	}
+}
+
+// TestStatusChanges is the table of FR-1 of TASK-034, and AC-1 to AC-3.
+func TestStatusChanges(t *testing.T) {
+	allowed := map[string]string{
+		"Draft":          "In Review, Cancelled",
+		"In Review":      "Approved, Draft, Cancelled",
+		"Approved":       "In Development, In Review, Blocked, Cancelled",
+		"In Development": "Done, Blocked, Cancelled",
+		"Blocked":        "Approved, In Development, Cancelled",
+		"Cancelled":      "Draft",
+		"Done":           "",
+	}
+	for from, list := range allowed {
+		for _, to := range Statuses {
+			err := allowedChange(from, to)
+			if want := slices.Contains(strings.Split(list, ", "), to); (err == nil) != want {
+				t.Errorf("%s -> %s: %v, want allowed %v", from, to, err, want)
+			}
+		}
+	}
+	s := newStore(t)
+	create(t, s, "One")
+	err := setStatus(s, "TASK-001", "Approved", "")
+	if err == nil || !strings.Contains(err.Error(), "cannot set Approved from Draft. Allowed: In Review, Cancelled") {
+		t.Fatalf("AC-1: Draft -> Approved = %v", err)
+	}
+	force(t, s, "TASK-001", "Done")
+	if err := setStatus(s, "TASK-001", "In Development", ""); err == nil {
+		t.Fatal("AC-2: Done -> In Development passed")
 	}
 }
