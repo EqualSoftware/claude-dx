@@ -367,7 +367,8 @@ func (s Store) AddQuestion(id, question, owner string) (string, error) {
 	return qid, err
 }
 
-// withoutPlaceholders removes template rows (noQuestions, "[Question]", "None.") and returns the next question number.
+// withoutPlaceholders removes the template rows (noQuestions and the old "[Question]" row) and returns the next question number.
+// It keeps all other rows, because a real question can start with "[" or be "None.".
 func withoutPlaceholders(lines []string) ([]string, int) {
 	var out []string
 	next := 1
@@ -376,7 +377,7 @@ func withoutPlaceholders(lines []string) ([]string, int) {
 			continue
 		}
 		m := questionRow.FindStringSubmatch(line)
-		if m != nil && (strings.HasPrefix(m[3], "[") || m[3] == "None.") {
+		if m != nil && m[3] == "[Question]" {
 			continue
 		}
 		if m != nil {

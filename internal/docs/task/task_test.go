@@ -241,6 +241,32 @@ func TestQuestions(t *testing.T) {
 	}
 }
 
+func TestKeepRealQuestions(t *testing.T) {
+	for _, first := range []string{"[CLI] keep the -p flag?", "None."} {
+		s := newStore(t)
+		create(t, s, "One")
+		if _, err := s.AddQuestion("TASK-001", first, ""); err != nil {
+			t.Fatal(err)
+		}
+		qid, err := s.AddQuestion("TASK-001", "Second?", "")
+		if err != nil || qid != "Q-2" {
+			t.Fatalf("second AddQuestion = %q, %v; want Q-2", qid, err)
+		}
+		table, _ := s.Get("TASK-001", "13")
+		if !strings.Contains(table, "| Q-1 | "+first+" |") || !strings.Contains(table, "| Q-2 | Second? |") {
+			t.Errorf("questions table =\n%s", table)
+		}
+	}
+}
+
+func TestWithoutPlaceholders(t *testing.T) {
+	lines := []string{noQuestions, "| Q-1 | [Question] | Maintainer | Open |", "| Q-2 | [CLI] real? | Maintainer | Open |"}
+	got, next := withoutPlaceholders(lines)
+	if !slices.Equal(got, lines[2:]) || next != 3 {
+		t.Errorf("withoutPlaceholders = %q, %d", got, next)
+	}
+}
+
 func TestCheckDoD(t *testing.T) {
 	s := newStore(t)
 	create(t, s, "One")
