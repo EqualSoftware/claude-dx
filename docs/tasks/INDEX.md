@@ -43,7 +43,6 @@ Sort by priority, then by ID.
 | [TASK-031](TASK-031-warn-about-open-tasks-on-the-same-files.md) | Warn about open tasks on the same files | `Approved` | `P2` | `docs-tools` | TASK-028 |
 | [TASK-032](TASK-032-review-again-after-a-scope-change.md) | Review again after a scope change | `Approved` | `P2` | `docs-tools`, `plugin` | TASK-031 |
 | [TASK-034](TASK-034-allowed-task-status-changes.md) | Allowed task status changes | `Approved` | `P2` | `docs-tools` | TASK-032 |
-| [TASK-035](TASK-035-end-to-end-test-of-the-dx-mcp-server.md) | End-to-end test of the dx MCP server | `In Development` | `P2` | `mcp` | None |
 | [TASK-016](TASK-016-lsp-other-languages.md) | LSP servers for other languages | `Draft` | `P3` | `lsp` | TASK-015 |
 | [TASK-027](TASK-027-keep-the-dev-plugin-of-a-running-session.md) | Keep the dev plugin of a running session | `Approved` | `P3` | `cli`, `plugin` | None |
 
@@ -67,3 +66,4 @@ Sort by priority, then by ID.
 | [TASK-025](TASK-025-compact-definition-of-done-message.md) | Compact Definition of Done message | `Cancelled` | 2026-10-25 |
 | [TASK-029](TASK-029-task-frontmatter-with-no-template-comments.md) | Task frontmatter with no template comments | `Cancelled` | 2026-10-25 |
 | [TASK-033](TASK-033-task-fields-in-the-frontmatter.md) | Task fields in the frontmatter | `Done` | 2026-10-25 |
+| [TASK-035](TASK-035-end-to-end-test-of-the-dx-mcp-server.md) | End-to-end test of the dx MCP server | `Done` | 2026-10-25 |

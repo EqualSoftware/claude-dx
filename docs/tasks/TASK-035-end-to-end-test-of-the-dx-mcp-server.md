@@ -1,7 +1,7 @@
 ---
 id: TASK-035
 title: End-to-end test of the dx MCP server
-status: In Development
+status: Done
 priority: P2
 type: test
 size: S
@@ -22,6 +22,7 @@ related: [ADR-002, ADR-005, TASK-004]
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
 | 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -124,9 +125,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (Not applicable: a test only).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1: `go test -v ./internal/mcpserver/` passes in 0.3 s. `TestToolsFlow` (`internal/mcpserver/server_test.go:75`) calls the 8 tools of FR-4 through the MCP client. `TestToolNames` (`:60`) checks the fixed list of 24 tools. AC-2: with `learning.Register` removed from `server.go`, the test fails.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `5d06cc9`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (Not applicable: a test only). Not applicable: a test only.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: a test only, no change of the design.
+- [x] ADRs are recorded for architectural decisions. Not applicable: no architecture decision.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new reusable lesson.
