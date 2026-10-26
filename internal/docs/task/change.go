@@ -555,7 +555,16 @@ func oneLine(text string) string {
 
 // Renumber gives the task in file the next free number. It returns the new ID and the tasks
 // that refer to the old ID. It does not change them, because the old ID can name more than one file.
-func (s Store) Renumber(file string) (string, []string, error) {
+// It holds the docs lock.
+func (s Store) Renumber(file string) (newID string, refs []string, err error) {
+	err = docfile.Locked(s.Lock, func() error {
+		newID, refs, err = s.renumber(file)
+		return err
+	})
+	return newID, refs, err
+}
+
+func (s Store) renumber(file string) (string, []string, error) {
 	file = filepath.Base(file)
 	if !kind.Pattern.MatchString(file) {
 		return "", nil, fmt.Errorf("%s is not a task file name", file)

@@ -21,7 +21,8 @@ var topicPattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
 
 // Store reads and writes the learning files of one project.
 type Store struct {
-	Dir string // absolute path of docs/learnings
+	Dir  string // absolute path of docs/learnings
+	Lock string // path of the docs lock (TASK-047); empty takes only the lock of this process
 }
 
 // Learning is one learning file in a list.
@@ -84,6 +85,10 @@ func (s Store) Get(topic string) (string, error) {
 
 // Create writes a new learning file and makes README.md again. It fails if the topic exists.
 func (s Store) Create(topic, description, body string) error {
+	return docfile.Locked(s.Lock, func() error { return s.create(topic, description, body) })
+}
+
+func (s Store) create(topic, description, body string) error {
 	if err := validTopic(topic); err != nil {
 		return err
 	}
@@ -100,6 +105,10 @@ func (s Store) Create(topic, description, body string) error {
 
 // Update changes the description, or replaces the body, or both, and makes README.md again.
 func (s Store) Update(topic, description, body string) error {
+	return docfile.Locked(s.Lock, func() error { return s.update(topic, description, body) })
+}
+
+func (s Store) update(topic, description, body string) error {
 	if description == "" && body == "" {
 		return errors.New("give a description, or a body, or both")
 	}
@@ -118,7 +127,7 @@ func (s Store) Update(topic, description, body string) error {
 	if body != "" {
 		old = content(body)
 	}
-	if err := os.WriteFile(path, []byte(markdown.Join(front, old)), 0o644); err != nil {
+	if err := docfile.Write(path, []byte(markdown.Join(front, old))); err != nil {
 		return err
 	}
 	return s.WriteIndex()
@@ -126,6 +135,10 @@ func (s Store) Update(topic, description, body string) error {
 
 // Delete removes the learning file and makes README.md again.
 func (s Store) Delete(topic string) error {
+	return docfile.Locked(s.Lock, func() error { return s.delete(topic) })
+}
+
+func (s Store) delete(topic string) error {
 	path, err := s.find(topic)
 	if err != nil {
 		return err

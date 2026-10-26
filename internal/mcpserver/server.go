@@ -31,11 +31,12 @@ func New(version, dir string) (*mcp.Server, error) {
 		return nil, err
 	}
 	alloc := numbering.Allocator{Dir: filepath.Join(cacheDir, "projects", p.Key)}
+	lock := filepath.Join(alloc.Dir, "docs.lock")
 	server := mcp.NewServer(&mcp.Implementation{Name: "dx", Version: version}, nil)
-	adr.Register(server, adr.Store{Dir: filepath.Join(p.Root, "docs", "decisions"), Alloc: alloc})
-	task.Register(server, task.Store{Dir: filepath.Join(p.Root, "docs", "tasks"), Alloc: alloc, Author: gitUser(p.Root)})
-	learning.Register(server, learning.Store{Dir: filepath.Join(p.Root, "docs", "learnings")})
-	glossary.Register(server, glossary.Store{Path: filepath.Join(p.Root, "docs", "GLOSSARY.md")})
+	adr.Register(server, adr.Store{Dir: filepath.Join(p.Root, "docs", "decisions"), Alloc: alloc, Lock: lock})
+	task.Register(server, task.Store{Dir: filepath.Join(p.Root, "docs", "tasks"), Alloc: alloc, Author: gitUser(p.Root), Lock: lock})
+	learning.Register(server, learning.Store{Dir: filepath.Join(p.Root, "docs", "learnings"), Lock: lock})
+	glossary.Register(server, glossary.Store{Path: filepath.Join(p.Root, "docs", "GLOSSARY.md"), Lock: lock})
 	return server, nil
 }
 

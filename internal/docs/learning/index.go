@@ -2,9 +2,10 @@ package learning
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 )
 
 // indexFile is the generated index. It is not a learning.
@@ -31,5 +32,5 @@ func (s Store) WriteIndex() error {
 	for _, l := range list {
 		fmt.Fprintf(&b, "| [%s](%s.md) | %s |\n", l.Topic, l.Topic, l.Description)
 	}
-	return os.WriteFile(filepath.Join(s.Dir, indexFile), []byte(b.String()), 0o644)
+	return docfile.Write(filepath.Join(s.Dir, indexFile), []byte(b.String()))
 }

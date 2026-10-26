@@ -544,6 +544,29 @@ func TestRenameExists(t *testing.T) {
 	}
 }
 
+// TestParallelEdits is AC-1 of TASK-047: the docs lock keeps all edits of parallel writers.
+func TestParallelEdits(t *testing.T) {
+	s := newStore(t)
+	s.Lock = filepath.Join(t.TempDir(), "docs.lock")
+	create(t, s, "One")
+	errs := make(chan error, 20)
+	for i := range 20 {
+		go func() {
+			_, err := s.AddQuestion("TASK-001", fmt.Sprintf("Question %d?", i), "")
+			errs <- err
+		}()
+	}
+	for range 20 {
+		must(t, <-errs)
+	}
+	text := read(t, s, "TASK-001")
+	for i := range 20 {
+		if !strings.Contains(text, fmt.Sprintf("Question %d?", i)) {
+			t.Fatalf("question %d is lost:\n%s", i, text)
+		}
+	}
+}
+
 // TestUncheckedDoDMessage is AC-7 of TASK-023.
 func TestUncheckedDoDMessage(t *testing.T) {
 	s := newStore(t)

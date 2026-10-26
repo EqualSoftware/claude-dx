@@ -44,8 +44,17 @@ func (t New) check() error {
 	return oneOf("size", t.Size, Sizes)
 }
 
-// Create writes a new Draft task with the next number and returns its path and the warnings.
+// Create writes a new Draft task with the next number and returns its path and the warnings. It holds the
+// docs lock, so the title and dependency checks stay true until the write.
 func (s Store) Create(t New) (path, warnings string, err error) {
+	err = docfile.Locked(s.Lock, func() error {
+		path, warnings, err = s.create(t)
+		return err
+	})
+	return path, warnings, err
+}
+
+func (s Store) create(t New) (path, warnings string, err error) {
 	if err := t.check(); err != nil {
 		return "", "", err
 	}

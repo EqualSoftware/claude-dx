@@ -30,6 +30,7 @@ const (
 // Store reads and writes the glossary of one project.
 type Store struct {
 	Path string // absolute path of docs/GLOSSARY.md
+	Lock string // path of the docs lock (TASK-047); empty takes only the lock of this process
 }
 
 // Row is one term of the glossary.
@@ -87,6 +88,14 @@ func (s Store) List(area string) ([]Row, error) {
 // is nil. An empty list removes the words. It makes the file if it does not exist. added is true
 // for a new term.
 func (s Store) Upsert(row Row) (added bool, err error) {
+	err = docfile.Locked(s.Lock, func() error {
+		added, err = s.upsert(row)
+		return err
+	})
+	return added, err
+}
+
+func (s Store) upsert(row Row) (added bool, err error) {
 	if err := check(row); err != nil {
 		return false, err
 	}
@@ -123,6 +132,10 @@ func (s Store) Upsert(row Row) (added bool, err error) {
 
 // Delete removes the row of term.
 func (s Store) Delete(term string) error {
+	return docfile.Locked(s.Lock, func() error { return s.delete(term) })
+}
+
+func (s Store) delete(term string) error {
 	t, err := s.read()
 	if err != nil {
 		return err
@@ -201,7 +214,7 @@ func (s Store) write(t table) error {
 		b.WriteByte('\n')
 	}
 	b.WriteString(t.tail)
-	return os.WriteFile(s.Path, []byte(b.String()), 0o644)
+	return docfile.Write(s.Path, []byte(b.String()))
 }
 
 // parse splits the file into the text before the rows, the rows and the text after the rows.

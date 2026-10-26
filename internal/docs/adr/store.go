@@ -41,6 +41,7 @@ type Store struct {
 	Dir   string              // absolute path of docs/decisions
 	Alloc numbering.Allocator // number allocation (ADR-007)
 	Now   func() time.Time    // clock; nil means time.Now
+	Lock  string              // path of the docs lock (TASK-047); empty takes only the lock of this process
 }
 
 // Entry is one ADR in a list.
@@ -130,7 +131,15 @@ func (s Store) Get(id, section string) (string, error) {
 }
 
 // Create writes a new ADR with the next number, makes README.md again and returns its path.
-func (s Store) Create(adr New) (string, error) {
+func (s Store) Create(adr New) (path string, err error) {
+	err = docfile.Locked(s.Lock, func() error {
+		path, err = s.create(adr)
+		return err
+	})
+	return path, err
+}
+
+func (s Store) create(adr New) (string, error) {
 	adr = s.defaults(adr)
 	if err := validStatus(adr.Status); err != nil {
 		return "", err
@@ -184,6 +193,10 @@ func (s Store) defaults(adr New) New {
 
 // Update changes the status, or replaces one section, or both, and makes README.md again.
 func (s Store) Update(id, status, section, body string) error {
+	return docfile.Locked(s.Lock, func() error { return s.update(id, status, section, body) })
+}
+
+func (s Store) update(id, status, section, body string) error {
 	if status == "" && section == "" {
 		return errors.New("give a status, or a section and a body")
 	}
@@ -210,6 +223,10 @@ func (s Store) Update(id, status, section, body string) error {
 // Supersede marks the old ADR as replaced by the new ADR, adds the link to the new ADR and makes
 // README.md again.
 func (s Store) Supersede(oldID, newID string) error {
+	return docfile.Locked(s.Lock, func() error { return s.supersede(oldID, newID) })
+}
+
+func (s Store) supersede(oldID, newID string) error {
 	oldN, err := kind.Parse(oldID)
 	if err != nil {
 		return err
@@ -312,7 +329,7 @@ func (s Store) edit(id string, fn func(string) (string, error)) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, []byte(doc), 0o644)
+	return docfile.Write(path, []byte(doc))
 }
 
 // find returns the path of the ADR with the number in id.

@@ -50,6 +50,7 @@ type Store struct {
 	Alloc  numbering.Allocator // number allocation (ADR-007)
 	Now    func() time.Time    // clock; nil means time.Now
 	Author func() string       // author of Document History rows; nil means "Agent"
+	Lock   string              // path of the docs lock (TASK-047); empty takes only the lock of this process
 }
 
 // Front is the YAML frontmatter of a task. It is the only source of these fields.
@@ -217,9 +218,13 @@ type doc struct {
 	body  string
 }
 
-// edit reads the task, changes it with fn, writes it and makes README.md again. If fn changes d.path, edit
-// writes the new file, and removes the old file. It refuses a new path that exists.
+// edit reads the task, changes it with fn, writes it and makes README.md again, with the docs lock. If fn
+// changes d.path, edit writes the new file, and removes the old file. It refuses a new path that exists.
 func (s Store) edit(id string, fn func(*doc) error) error {
+	return docfile.Locked(s.Lock, func() error { return s.editLocked(id, fn) })
+}
+
+func (s Store) editLocked(id string, fn func(*doc) error) error {
 	path, err := s.find(id)
 	if err != nil {
 		return err
@@ -235,7 +240,7 @@ func (s Store) edit(id string, fn func(*doc) error) error {
 	}
 	data = []byte(markdown.Join(d.front, d.body))
 	if d.path == path {
-		err = os.WriteFile(path, data, 0o644)
+		err = docfile.Write(path, data)
 	} else {
 		err = rename(path, d.path, data)
 	}
