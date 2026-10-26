@@ -1,6 +1,6 @@
 ---
 id: TASK-064
-title: Local tasks in the git common directory
+title: Local tasks in the project data dir
 status: Draft
 priority: P1
 milestone: v0.1.0
@@ -13,7 +13,7 @@ depends_on: [TASK-063, TASK-068]
 related: [ADR-016, ADR-007, ADR-015]
 ---
 
-# TASK-064: Local tasks in the git common directory
+# TASK-064: Local tasks in the project data dir
 
 ## Document History
 | Date | Author | Description / Change Notes |
