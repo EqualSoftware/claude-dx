@@ -4,7 +4,7 @@ title: Task milestones and the ready list
 status: Draft
 priority: P1
 area: [docs-tools, plugin]
-depends_on: [TASK-029]
+depends_on: [TASK-033]
 ---
 
 # TASK-030: Task milestones and the ready list

@@ -20,8 +20,10 @@ The task tools check the task process at each status step. A check refuses a cha
 
 1. Create (`task_create`, `task_update_fields`):
    - Title: 40 characters or less, for tasks and ADRs. The slug is never longer than the title, so file names are `TASK-NNN-<slug>.md` and `ADR-NNN-<slug>.md` with a slug of 40 characters or less.
-   - New frontmatter field `milestone` (example `v0.1.0`). It is required.
-   - `depends_on`: refuse an ID that does not exist, the same task, a cycle, a task that is `Done` (use Related), and a task of a later milestone. Warn when a task depends on a task of lower priority.
+   - All task fields are in the frontmatter: `id`, `title`, `status`, `priority`, `milestone`, `type`, `size`, `owner`, `platforms`, `area`, `depends_on`, `related`. The Field/Value table under the title is removed, because two formats need two parsers and the tools can filter only frontmatter fields.
+   - `blocks` and `reviewers` are removed. `blocks` is the inverse of `depends_on` and becomes wrong. `owner` is the git `user.name` of the person who creates the task.
+   - `milestone` (example `v0.1.0`) is required.
+   - `depends_on`: refuse an ID that does not exist, the same task, a cycle, a task that is `Done` (use `related`), and a task of a later milestone. Warn when a task depends on a task of lower priority.
    - The frontmatter has no template comments.
 2. Refine (`task_set_status` to `In Review` or `Approved`): warn when another open task gives the same file in its Implementation Plan and no `depends_on` path connects the two tasks. Then set the order or merge the tasks.
 3. Approve: a change of Requirements, Design or Acceptance Criteria of an `Approved` task sets it to `In Review`. The user approves it again. This is the only way to change the scope of an approved task.
@@ -39,6 +41,9 @@ Before v0.1.0, all titles longer than 40 characters get shorter. Only files with
 - Mark the release with an area, example v0.1: Rejected. It mixes two meanings in one field.
 - Warning for a dependency on a Done task: Rejected. It is never necessary, so a refusal is correct.
 - Rename all files to the slug of the new title: Rejected. The older file names are already 40 characters or less, so a rename only breaks links.
+- Keep the Field/Value table: Rejected. Two formats need two parsers, and the tools cannot filter table values.
+- Calculate `blocks` from `depends_on`: Rejected by the maintainer. `depends_on` has the same data.
+- `owner` with a role, example Maintainer: Rejected by the maintainer. The file must record the person who creates the task.
 
 ## Consequences
 - Positive: The tools stop each problem of the QA session at the step where it occurs. task_list(status: ready) gives the next work with one call. The release content comes from the milestone field, not from number ranges.
@@ -52,3 +57,5 @@ Before v0.1.0, all titles longer than 40 characters get shorter. Only files with
 - `internal/markdown/frontmatter.go:50`: `SetField` keeps the comment of the line.
 - `internal/docs/task/template.md:3`: the template has a comment on each frontmatter field.
 - Before this ADR, 30 of 40 titles of tasks and ADRs had more than 40 characters (all 12 ADRs and 18 tasks).
+- `internal/docs/task/create.go:27` writes the Field/Value table, and `internal/docs/task/change.go:20` reads `Size` from it with a second parser.
+- After the QA cleanup commit `d9ce536`, `Blocks` was wrong in most tasks. Example: TASK-004 gives TASK-009, TASK-014 and TASK-015, and no one of them depends on TASK-004.
