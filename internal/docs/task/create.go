@@ -44,16 +44,19 @@ func (t New) check() error {
 	return oneOf("size", t.Size, Sizes)
 }
 
-// Create writes a new Draft task with the next number and returns its path.
-func (s Store) Create(t New) (string, error) {
+// Create writes a new Draft task with the next number and returns its path and the warnings.
+func (s Store) Create(t New) (path, warnings string, err error) {
 	if err := t.check(); err != nil {
-		return "", err
+		return "", "", err
+	}
+	warnings, err = s.checkDeps(Front{Milestone: t.Milestone, Priority: t.Priority, DependsOn: t.DependsOn})
+	if err != nil {
+		return "", "", err
 	}
 	front, body, err := s.fill(t)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	var path string
 	_, err = s.Alloc.Next("task", s.Dir, kind.Pattern, func(n int) error {
 		id := kind.ID(n)
 		path = filepath.Join(s.Dir, kind.FileName(n, t.Title))
@@ -61,9 +64,9 @@ func (s Store) Create(t New) (string, error) {
 		return docfile.Create(path, []byte(doc))
 	})
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return path, s.WriteIndex()
+	return path, warnings, s.WriteIndex()
 }
 
 // fill makes the frontmatter and the body of a new task from the template. The number comes later.

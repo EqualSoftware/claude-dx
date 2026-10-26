@@ -122,7 +122,8 @@ func Register(server *mcp.Server, s Store) {
 		func(in fieldsInput) (string, error) {
 			u := Update{Title: in.Title, Priority: in.Priority, Milestone: in.Milestone, Type: in.Type, Size: in.Size, Owner: in.Owner,
 				Platforms: in.Platforms, Area: in.Area, DependsOn: in.DependsOn, Related: in.Related}
-			return "Updated " + in.ID + ".", s.UpdateFields(in.ID, u)
+			warnings, err := s.UpdateFields(in.ID, u)
+			return strings.TrimSpace("Updated " + in.ID + ".\n" + warnings), err
 		})
 	add(server, "task_set_status", "Change the status of a task and add a Document History row. The tool refuses a change that breaks a status rule and gives the reasons.",
 		func(in statusInput) (string, error) {
@@ -174,11 +175,11 @@ func (s Store) listText(in listInput) (string, error) {
 }
 
 func (s Store) createText(in createInput) (string, error) {
-	path, err := s.Create(New(in))
+	path, warnings, err := s.Create(New(in))
 	if err != nil {
 		return "", err
 	}
-	return "Created docs/tasks/" + filepath.Base(path) + " (Draft).", nil
+	return strings.TrimSpace("Created docs/tasks/" + filepath.Base(path) + " (Draft).\n" + warnings), nil
 }
 
 func (s Store) renumberText(file string) (string, error) {

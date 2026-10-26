@@ -99,12 +99,14 @@ func (u Update) fields() []field {
 	}
 }
 
-// UpdateFields changes the frontmatter fields.
-func (s Store) UpdateFields(id string, u Update) error {
+// UpdateFields changes the frontmatter fields and returns the warnings. A new depends_on list is
+// checked against the milestone and the priority after the change.
+func (s Store) UpdateFields(id string, u Update) (string, error) {
 	if err := u.check(); err != nil {
-		return err
+		return "", err
 	}
-	return s.edit(id, func(d *doc) error {
+	var warnings string
+	err := s.edit(id, func(d *doc) error {
 		for _, f := range u.fields() {
 			if f.set {
 				d.front = markdown.SetField(d.front, f.key, f.value)
@@ -113,8 +115,19 @@ func (s Store) UpdateFields(id string, u Update) error {
 		if u.Title != "" {
 			d.body = setHeader(d.body, kind.ID(mustNumber(d.path)), u.Title)
 		}
-		return nil
+		if u.DependsOn == nil {
+			return nil
+		}
+		var f Front
+		if err := markdown.Decode(d.front, &f); err != nil {
+			return fmt.Errorf("bad frontmatter: %w", err)
+		}
+		f.ID = kind.ID(mustNumber(d.path))
+		var err error
+		warnings, err = s.checkDeps(f)
+		return err
 	})
+	return warnings, err
 }
 
 // SetStatus changes the status, adds a Document History row and enforces the status rules.
@@ -184,14 +197,21 @@ func openQuestions(body string) []string {
 	return problems
 }
 
+// uncheckedDoD returns one problem with the numbers of the unchecked Definition of Done items.
 func uncheckedDoD(body string) []string {
-	var problems []string
+	var numbers []string
 	for i, item := range dodItems(body) {
 		if item[1] == " " {
-			problems = append(problems, fmt.Sprintf("Definition of Done item %d is not checked", i+1))
+			numbers = append(numbers, strconv.Itoa(i+1))
 		}
 	}
-	return problems
+	switch len(numbers) {
+	case 0:
+		return nil
+	case 1:
+		return []string{"Definition of Done item " + numbers[0] + " is not checked"}
+	}
+	return []string{"Definition of Done items " + strings.Join(numbers, ", ") + " are not checked"}
 }
 
 // questions returns the rows of the Open Questions table.
