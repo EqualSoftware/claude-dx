@@ -1,7 +1,7 @@
 ---
 id: TASK-031
 title: Warn about open tasks on the same files
-status: Approved
+status: Done
 priority: P2
 milestone: v0.1.0
 type: feat
@@ -22,6 +22,8 @@ related: [ADR-013]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -125,9 +127,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`/dx:task` skill: the overlap warning).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. `TestOverlapWarning` (`internal/docs/task/task_test.go`): AC-1 TASK-001 to Approved warns about TASK-002 (`internal/x.go`); AC-2 with TASK-002 depends on TASK-001 there is no warning about TASK-001; AC-3 the Draft TASK-003 with `internal/` gives a warning.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `36adf96`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (`/dx:task` skill: the overlap warning). Commit `36adf96`: the `/dx:task` skill (ready for review) gives the overlap warning and what to do.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: a check in one status change, no new call flow.
+- [x] ADRs are recorded for architectural decisions (ADR-013 has the decision). ADR-013 step 2 records the decision.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new reusable lesson.
