@@ -116,7 +116,11 @@ func Register(server *mcp.Server, s Store) {
 		func(in createInput) (string, error) { return s.createText(in) })
 	add(server, "task_update_section", "Replace one section of a task.",
 		func(in sectionInput) (string, error) {
-			return "Updated section " + in.Section + " of " + in.ID + ".", s.UpdateSection(in.ID, in.Section, in.Body)
+			review, err := s.UpdateSection(in.ID, in.Section, in.Body)
+			if review {
+				return "Updated section " + in.Section + " of " + in.ID + ". The scope changed, so " + in.ID + " is In Review. The user must approve it again.", err
+			}
+			return "Updated section " + in.Section + " of " + in.ID + ".", err
 		})
 	add(server, "task_update_fields", "Change the frontmatter fields of a task: title, priority, milestone, type, size, owner, platforms, areas, dependencies or related.",
 		func(in fieldsInput) (string, error) {

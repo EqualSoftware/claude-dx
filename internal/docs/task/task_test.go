@@ -504,3 +504,23 @@ func TestOverlapWarning(t *testing.T) {
 		t.Fatalf("AC-3: a directory does not overlap its file: %q", warnings)
 	}
 }
+
+// TestScopeChangeNeedsReview is AC-1 to AC-3 of TASK-032.
+func TestScopeChangeNeedsReview(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "One")
+	force(t, s, "TASK-001", "Approved")
+	review, err := s.UpdateSection("TASK-001", "13", "No open questions.")
+	if err != nil || review || !strings.Contains(read(t, s, "TASK-001"), "status: Approved\n") {
+		t.Fatalf("AC-2: section 13 = %v, %v", review, err)
+	}
+	update(t, s, "TASK-001", Update{Priority: "P0"})
+	if !strings.Contains(read(t, s, "TASK-001"), "status: Approved\n") {
+		t.Fatal("AC-3: task_update_fields changed the status")
+	}
+	review, err = s.UpdateSection("TASK-001", "6.1", "- FR-1: New.")
+	doc := read(t, s, "TASK-001")
+	if err != nil || !review || !strings.Contains(doc, "status: In Review\n") || !strings.Contains(doc, "Status: In Review. The scope changed in section 6.1.") {
+		t.Fatalf("AC-1: section 6.1 = %v, %v\n%s", review, err, doc)
+	}
+}

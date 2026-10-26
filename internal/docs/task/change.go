@@ -32,12 +32,39 @@ var pristine = func() map[string]string {
 	return m
 }()
 
-// UpdateSection replaces one section.
-func (s Store) UpdateSection(id, section, content string) error {
-	return s.edit(id, func(d *doc) error {
+// scopeSections define the scope of a task: Goals, Out of Scope, Requirements, Design and
+// Acceptance Criteria (ADR-013, step 3).
+var scopeSections = []string{"3", "4", "6", "7", "9"}
+
+// UpdateSection replaces one section. A scope change of an Approved task sets it to In Review,
+// because the user must approve the new scope. review is true after that status change.
+func (s Store) UpdateSection(id, section, content string) (review bool, err error) {
+	err = s.edit(id, func(d *doc) error {
 		body, err := markdown.ReplaceSection(d.body, section, content)
+		if err != nil {
+			return err
+		}
+		var f Front
+		if err := markdown.Decode(d.front, &f); err != nil {
+			return fmt.Errorf("bad frontmatter: %w", err)
+		}
+		old := d.body
 		d.body = body
-		return err
+		if f.Status != "Approved" || !scopeChanged(old, body) {
+			return nil
+		}
+		review = true
+		d.front = markdown.SetField(d.front, "status", "In Review")
+		return s.addHistory(d, "Status: In Review. The scope changed in section "+section+".")
+	})
+	return review, err
+}
+
+func scopeChanged(old, body string) bool {
+	return slices.ContainsFunc(scopeSections, func(ref string) bool {
+		a, _ := markdown.Section(old, ref)
+		b, _ := markdown.Section(body, ref)
+		return a != b
 	})
 }
 

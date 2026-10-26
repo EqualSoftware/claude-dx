@@ -9,6 +9,19 @@ The dx task tools read and write the task files in `docs/tasks/`. They set the n
 
 Read only what you need: `task_get` with `section` returns one section.
 
+## Flow
+
+The task tools check each step of the flow of ADR-013:
+
+1. Create: `task_create` makes a `Draft` task.
+2. Refine: `/dx:grill`, then `In Review`. The tools warn about other open tasks on the same files.
+3. Approve: `Approved` only when the user approves. A change of section 3, 4, 6, 7 or 9 of an `Approved` task sets it to `In Review`, and the user approves it again.
+4. Select: `task_list` with `status: ready` gives the next work.
+5. Develop: `In Development`. A new finding during work is a new task, not a change of the scope.
+6. Close: check each Definition of Done item, then `Done`.
+
+Merge rule: tasks with the same milestone, the same files and a similar goal are one task, if the size stays `S` or `M`.
+
 ## List tasks
 
 Run `task_list` with the filters of the request. Each frontmatter field is a filter, example `status`, `priority`, `milestone`, `area`, `owner` or `depends_on` (the tasks that wait for one task). To select the next work, use `status: ready`: it gives the `Approved` tasks that have all dependencies `Done`, in milestone order, then priority order. Give its lines to the user and stop. Do not run other tools: `task_list` has all the data of a list. Run `task_get` only when the user asks for the content of a task.
