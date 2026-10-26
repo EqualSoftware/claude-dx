@@ -1,7 +1,7 @@
 ---
 id: TASK-036
 title: README index for each document folder
-status: Approved
+status: Done
 priority: P1
 type: feat
 size: M
@@ -21,6 +21,8 @@ related: [ADR-006, ADR-009, TASK-006, TASK-030]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -152,9 +154,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (README, CONTRIBUTING.md, CLAUDE.md, rules, skills, `dx:scout`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions (ADR-006).
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1: `TestCreate` (`internal/docs/task/task_test.go:77`) checks `README.md`; `docs/tasks/INDEX.md` is removed in `5f958cf`. AC-2: `TestIndex` (`internal/docs/adr/store_test.go`) checks the rows after create, update and supersede. AC-3: `TestIndex` (`internal/docs/learning/learning_test.go`) checks the rows and that `List` does not give `README`. AC-4: `TestCreateRefusesReadme` refuses `readme` and `README`. AC-5: `git grep -n 'INDEX.md' -- ':!docs/tasks/TASK-*.md'` gives no result.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `5f958cf`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (README, CONTRIBUTING.md, CLAUDE.md, rules, skills, `dx:scout`). Commit `5f958cf`: `README.md`, `CONTRIBUTING.md`, `CLAUDE.md`, `internal/plugin/assets/rules.md`, the adr, task and learning skills and `internal/plugin/assets/agents/scout.md` refer to the README indexes.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no call flow or state change. Section 7.3 gives the file format.
+- [x] ADRs are recorded for architectural decisions (ADR-006). ADR-006 Decision and Alternatives give the three README files (Q-1). ADR-009 and ADR-013 refer to the new file.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new reusable lesson.
