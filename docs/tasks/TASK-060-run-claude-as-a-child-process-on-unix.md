@@ -1,7 +1,7 @@
 ---
 id: TASK-060
 title: Run claude as a child process on Unix
-status: Approved
+status: In Development
 priority: P1
 milestone: v0.1.0
 type: refactor
@@ -22,6 +22,7 @@ related: [ADR-015, ADR-014, ADR-003]
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
 | 2026-10-26 | Equal | Status: Approved. |
+| 2026-10-26 | Equal | Status: In Development. |
 
 ## 1. Summary
 
@@ -61,7 +62,7 @@ On Unix the launcher replaces itself with claude (`syscall.Exec`, `internal/laun
 ### 6.1 Functional
 
 - FR-1: On Unix, `start` runs claude as a child with the same stdin, stdout, stderr and environment, and waits for it.
-- FR-2: The launcher ignores SIGINT and SIGQUIT, because the terminal also sends them to claude, and claude handles them.
+- FR-2: The launcher catches SIGINT and SIGQUIT and does nothing with them, because the terminal also sends them to claude, and claude handles them. The launcher does not ignore them (`signal.Ignore`), because an ignored signal stays ignored in claude after exec (Q-1).
 - FR-3: On Unix, the launcher sends SIGTERM and SIGHUP that it gets to claude, because a `kill` of the launcher PID must end the session.
 - FR-4: The launcher returns the exit code of claude. If a signal ended claude, it returns 128 plus the signal number, as a shell does.
 
@@ -72,7 +73,7 @@ On Unix the launcher replaces itself with claude (`syscall.Exec`, `internal/laun
 ## 7. Design
 ### 7.1 Architecture
 
-One `start` for all platforms with `exec.Command`, `signal.Ignore` and `signal.Notify`. A small platform file keeps only what differs, if Go needs it.
+One `start` for all platforms in `internal/launcher/start.go` with `exec.Command` and `signal.Notify`. One channel catches the ignored signals and nobody reads it, so the package drops them. Each forwarded signal has its own channel with space for one signal and one goroutine that sends it to claude. So the package drops a forwarded signal only when the same signal is not sent yet, as the OS does with a pending signal. `signals_unix.go` and `signals_windows.go` give the lists of ignored and forwarded signals. Windows forwards no signal.
 
 ### 7.2 Public API
 
@@ -94,7 +95,7 @@ No visible change. `ps` shows `claude-dx` as the parent of `claude`.
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | `internal/launcher/exec_unix.go`, `internal/launcher/exec_windows.go` (or one `internal/launcher/start.go`), `internal/launcher/launcher_test.go` | FR-1 to FR-4, with tests. | `go test ./internal/launcher/` |
+| 1 | `internal/launcher/start.go`, `internal/launcher/signals_unix.go`, `internal/launcher/signals_windows.go`, `internal/launcher/start_test.go`, `internal/launcher/start_unix_test.go`; remove `internal/launcher/exec_unix.go` and `internal/launcher/exec_windows.go`; ADR-003 | FR-1 to FR-4, with tests. | `go test -race ./internal/launcher/` |
 | 2 | Manual check on macOS | AC-4. | Start `claude-dx`, use Ctrl+C, Ctrl+Z and `fg`, close the terminal. |
 
 ## 9. Acceptance Criteria
@@ -125,9 +126,10 @@ No visible change. `ps` shows `claude-dx` as the parent of `claude`.
 Revert the change. The session lock of ADR-014 works with exec and with a child process.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| — | None. | — | — |
+| Q-1 | FR-2 and 7.1 say signal.Ignore for SIGINT and SIGQUIT. On Unix an ignored signal (SIG_IGN) stays ignored in claude after exec, so claude does not get Ctrl+C. A caught signal goes back to the default action in the child. Use signal.Notify and drop the signals (as cmd/go does for go run)? | Maintainer | Yes. Use signal.Notify and drop the signals. Each forwarded signal has its own channel with space for one signal, so a SIGINT does not make the package drop a SIGTERM. The maintainer approved the work with this recommendation on 2026-10-26. |
 
 The status cannot be `Approved` while a question is `Open`.
 

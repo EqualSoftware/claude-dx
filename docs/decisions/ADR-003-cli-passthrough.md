@@ -8,12 +8,13 @@
 `claude-dx` is a proxy for `claude`. Some dx commands have the same name as `claude` commands (`--help`, `--version`, `update`, `doctor`).
 
 ## Decision
+
 - dx owns these commands: `--help`, `--version`, `update`, `cache clean`, `doctor`, `report`, and the internal commands `mcp` and `hook`.
 - The launcher passes all other arguments to `claude` with no change.
 - `--` stops dx parsing. The launcher passes all arguments after `--` to `claude`. Example: `claude-dx -- --help` shows the help of `claude`.
 - The parser uses only the Go standard library.
-- macOS and Linux: the launcher replaces its process with `claude` (`syscall.Exec`). Signals, TTY and exit code are the same as a direct start.
-- Windows: the launcher starts `claude` as a child process with the same stdio, forwards Ctrl+C and returns the same exit code.
+- All platforms: the launcher starts `claude` as a child process with the same stdio and environment, waits for it and returns its exit code. If a signal ended `claude`, the launcher returns 128 plus the signal number. The launcher is the parent of `claude` because its locks must live as long as the session (ADR-015, TASK-060).
+- Signals: the terminal sends Ctrl+C (and SIGQUIT on Unix) to `claude` too, so the launcher catches these signals and does nothing. On Unix, the launcher sends SIGTERM and SIGHUP that it gets to `claude`. The launcher catches signals and does not ignore them, because an ignored signal stays ignored in `claude` after exec.
 - If `claude` is not in `PATH`, the launcher stops with an error and the install URL.
 
 ## Alternatives

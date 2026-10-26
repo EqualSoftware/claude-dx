@@ -19,8 +19,7 @@ const installURL = "https://docs.claude.com/claude-code"
 // ErrClaudeNotFound means that claude is not in PATH.
 var ErrClaudeNotFound = fmt.Errorf("claude is not in PATH. Install Claude Code: %s", installURL)
 
-// Run starts claude with the dx flags and args, and returns the exit code of claude.
-// On macOS and Linux, Run does not return when claude starts: claude replaces this process.
+// Run starts claude with the dx flags and args, waits for it and returns the exit code of claude.
 func Run(version string, args []string) (int, error) {
 	binary, err := Executable()
 	if err != nil {
@@ -47,8 +46,7 @@ func Run(version string, args []string) (int, error) {
 	if err != nil {
 		return 1, err
 	}
-	// On Unix, end runs only if exec fails. On Windows, it runs when claude ends.
-	defer end()
+	defer end() // It runs when claude ends.
 	claude, err := exec.LookPath("claude")
 	if err != nil {
 		return 1, ErrClaudeNotFound
