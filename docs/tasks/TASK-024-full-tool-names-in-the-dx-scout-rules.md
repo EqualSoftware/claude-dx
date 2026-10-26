@@ -1,7 +1,7 @@
 ---
 id: TASK-024
 title: Full tool names in the dx:scout rules
-status: Approved
+status: Done
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,8 @@ related: [ADR-009, TASK-008, TASK-020]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -118,9 +120,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (Not applicable: the agent file is the doc).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1: non-interactive session `claude-dx -p` (Claude Code 2.1.308, binary from `47e0d31`) with the brief "all terms" and "terms of area docs-tools". `dx:scout` called `mcp__plugin_dx_mcp__glossary_list` 2 times; 0 results with `No such tool available`; no read of `docs/GLOSSARY.md`.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `47e0d31`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (Not applicable: the agent file is the doc). Not applicable: the agent file is the doc.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: a text change only.
+- [x] ADRs are recorded for architectural decisions. Not applicable: no architecture decision.
+- [x] `/dx:eureka` is done. The tool does not exist yet. The lesson is already in `docs/learnings/subagent-tool-names.md`.
