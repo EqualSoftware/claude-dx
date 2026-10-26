@@ -40,7 +40,6 @@ A task has two field formats: the frontmatter (`id`, `title`, `status`, `priorit
 ## 4. Out of Scope
 
 - The `milestone` field: TASK-030.
-- New `task_list` filters: Q-1.
 - The Document History table and the other body tables.
 
 ## 5. Context
@@ -65,6 +64,7 @@ A task has two field formats: the frontmatter (`id`, `title`, `status`, `priorit
 - FR-6: The `Size` check of `task_set_status` reads the frontmatter.
 - FR-7: All existing tasks change to the new format in one commit. `owner` is the author of the commit that added the file (`git log --follow --diff-filter=A --format=%an`). A one-time script does the change. The script is not added to the repository, because it runs one time.
 - FR-8: The `/dx:task` skill and ADR-006 give the new fields.
+- FR-9: `task_list` has one optional filter for each frontmatter field (Q-1). A text field matches with no case difference. A list field (`area`, `depends_on`, `related`) matches when the list has the value. Example: `task_list(depends_on: TASK-029)` gives the tasks that wait for TASK-029, so `blocks` is not necessary. One match function reads the frontmatter map, so a new field needs no new filter code.
 
 ### 6.2 Non-Functional
 - NFR-1: One frontmatter parse for each task read. No table parse for fields.
@@ -117,6 +117,7 @@ GitHub shows the frontmatter as a table at the top of the file.
 - AC-1: When `task_create` runs with git `user.name` `Equal`, then the frontmatter has `owner: Equal` and the file has no Field/Value table.
 - AC-2: Given a task with `size: L`, when `task_set_status(In Review)` runs, then the tool refuses it.
 - AC-3: After work batch 2, no task file has a Field/Value table, and each task has an `owner` from git history.
+- AC-4: Given TASK-030 depends on TASK-033, when `task_list(depends_on: TASK-033)` runs, then the result has TASK-030.
 
 ## 10. Validation and Metrics
 | Metric | Baseline | Target | How to measure |
@@ -139,7 +140,7 @@ Revert the commits. The migration commit changes all task files, so revert it wi
 
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | Which new task_list filters does the frontmatter make useful? Options: type, size, owner. Recommended: owner and type, in TASK-033, because each is one equality check on a frontmatter field. Size is only S or M. | Equal | Open |
+| Q-1 | Which new task_list filters does the frontmatter make useful? Options: type, size, owner. Recommended: owner and type, in TASK-033, because each is one equality check on a frontmatter field. Size is only S or M. | Equal | All frontmatter fields are filters (decision of the maintainer). |
 
 The status cannot be `Approved` while a question is `Open`.
 

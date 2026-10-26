@@ -1,7 +1,7 @@
 ---
 id: TASK-013
 title: The /dx:commit and /dx:eureka skills
-status: In Review
+status: Approved
 priority: P1
 area: [plugin]
 depends_on: [TASK-010, TASK-011, TASK-026]
@@ -26,6 +26,7 @@ depends_on: [TASK-010, TASK-011, TASK-026]
 | 2026-10-25 | Claude | Initial draft specification from the design interview |
 | 2026-10-25 | Equal | Open questions answered. Approved. |
 | 2026-10-25 | Equal | Scope change from TASK-026: work batch 2 and AC-3 add the /dx:eureka Definition of Done item again (ADR-013, step 3). The maintainer must approve again. |
+| 2026-10-25 | Equal | The maintainer approved the scope change from TASK-026 (work batch 2, AC-3). |
 
 ## 1. Summary
 Add `/dx:commit`, which splits changes into Conventional Commits with the git tools, and `/dx:eureka`, which finds verified lessons and records them as an ADR, a learning or a glossary term.

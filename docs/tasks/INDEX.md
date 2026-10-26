@@ -28,7 +28,7 @@ Sort by priority, then by ID.
 | [TASK-010](TASK-010-git-local-history-tools.md) | Git tools for local changes and history | `Approved` | `P1` | `git` | TASK-009 |
 | [TASK-011](TASK-011-git-branch-and-remote-tools.md) | Git tools for branches and remotes | `Approved` | `P1` | `git` | TASK-010 |
 | [TASK-012](TASK-012-bash-git-hook-git-exec-and-report.md) | Bash git hook, git_exec and report | `Approved` | `P1` | `git`, `plugin`, `cli` | TASK-009 |
-| [TASK-013](TASK-013-commit-and-eureka-skills.md) | The /dx:commit and /dx:eureka skills | `In Review` | `P1` | `plugin` | TASK-010, TASK-011, TASK-026 |
+| [TASK-013](TASK-013-commit-and-eureka-skills.md) | The /dx:commit and /dx:eureka skills | `Approved` | `P1` | `plugin` | TASK-010, TASK-011, TASK-026 |
 | [TASK-021](TASK-021-stop-adr-supersede-cycles.md) | Stop ADR supersede cycles | `Draft` | `P1` | `docs-tools` | None |
 | [TASK-022](TASK-022-keep-omitted-fields-in-glossary-upsert.md) | Keep omitted fields in glossary_upsert | `Draft` | `P1` | `docs-tools` | None |
 | [TASK-023](TASK-023-check-task-dependencies.md) | Check task dependencies | `Draft` | `P1` | `docs-tools` | TASK-030 |
