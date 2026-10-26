@@ -76,6 +76,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md). To report a security problem, read [SEC
 ## Design
 
 - Decisions: [docs/decisions/](docs/decisions/)
+- Specs: [docs/specs/](docs/specs/)
 - Tasks: [docs/tasks/](docs/tasks/)
 - Learnings: [docs/learnings/](docs/learnings/)
 - Terms: [docs/GLOSSARY.md](docs/GLOSSARY.md)

@@ -14,6 +14,7 @@ Ask the questions in the language of the user. Write the answers in documents an
 Make a tree of the decisions. Each decision has child decisions that depend on its answer. The caller gives the levels to cover:
 
 - `/dx:task`: the levels in its "Refine a task" section.
+- `/dx:spec`: the levels in its "Refine a spec" section.
 - `/dx:adr`: problem and constraints, options, selected option, consequences, follow-up.
 - A plan: objective, scope, work batches and their order, files, checks, risks.
 - Other topics: goals, scope, constraints, design, acceptance, risks.
@@ -39,9 +40,11 @@ For a task:
 - Add each question with `task_question_add` before you ask it. Use the `Q-n` ID that the tool returns.
 - Write each answer with `task_question_answer`. Change the sections that the answer affects with `task_update_section` or `task_update_fields`.
 
+For a spec: the same with `spec_question_add`, `spec_question_answer`, `spec_update_section`, `spec_req_add` and `spec_req_set`.
+
 ## 4. Check for hidden decisions
 
-When the frontier is empty, read the document again, section by section (`task_get` or `adr_get` with `section`). A line is a hidden decision if it does not come from one of these sources:
+When the frontier is empty, read the document again, section by section (`task_get`, `spec_get` or `adr_get` with `section`). A line is a hidden decision if it does not come from one of these sources:
 - an answer of the user,
 - a fact with a `path:line`, a command output or a doc reference.
 

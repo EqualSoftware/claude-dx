@@ -31,8 +31,10 @@ Sort the terms in alphabetical order.
 | Project key | The first 16 hex characters of the SHA-256 of the git common directory (or of the project root outside git). All worktrees of one repository have the same key. | mcp | project id | ADR-019 |
 | Project root | The git top level of the current directory, or the current directory outside git. Tools refuse paths outside it. | mcp | workspace, base dir | ADR-005 |
 | Ready task | An open task that is not `Blocked` and has all dependencies `Done`. `task_list(status: ready)` gives these tasks. | process | next task, unblocked task | ADR-013 |
+| Requirement | One behavior that a spec requires. Its ID R-N does not change. Its status is Planned or Done. | process | — | ADR-016 |
 | Scout | The read-only agent `dx:scout` on Haiku. Skills give it fact searches of more than 3 files. | plugin | explorer, searcher | ADR-009 |
 | Shared rules | The short dx rules text (`rules.md` in the dx plugin) that the launcher gives to Claude Code with `--append-system-prompt-file`. | plugin | RULES.md | ADR-009 |
+| Spec | The current definition of one feature or scope, in docs/specs/<slug>/SPEC.md. Its ID is the slug. It has requirements and no task IDs. | process | — | ADR-016, `docs/specs/` |
 | Task | A spec file in `docs/tasks/` for one unit of work. | process | ticket, issue | `docs/tasks/` |
 | Unmapped operation | A git operation that no dx git tool covers. The model runs it with `git_exec`, and the dx server logs it to `unmapped.log`. | git | unknown command | ADR-008 |
 | Work batch | A group of steps of a task that one agent does in one run. | process | step, chunk | `docs/tasks/` |
