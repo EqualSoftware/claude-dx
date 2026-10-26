@@ -1,7 +1,7 @@
 ---
 id: TASK-039
 title: Check the glossary row fields
-status: In Development
+status: Done
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -23,6 +23,7 @@ related: [TASK-007, TASK-022]
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
 | 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -132,8 +133,13 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`/dx:glossary` skill).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: TestUpsertRequiredFields (AC-1, AC-3) and TestUpsertRefusesBadWords (AC-2) pass. JSON-RPC on a build of the code in a scratch repository: "Give the definition and the area." (isError), "The do_not_use word "a, b" is empty or has a comma..." (isError), "Added "Task"." Commit 47f7b49.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet, go test ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (`/dx:glossary` skill).
+  - Evidence: internal/plugin/assets/skills/glossary/SKILL.md step 4 says that term, definition, area and source are required, and that each Do not use word is one list item with no comma. The glossary_upsert description says that all fields but do_not_use are required.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: one check function in internal/docs/glossary/glossary.go, no design diagram.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: No architecture decision: input checks in one tool, no change of structure or file format.
