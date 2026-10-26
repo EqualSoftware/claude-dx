@@ -10,7 +10,7 @@ owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [docs-tools]
 depends_on: []
-related: [ADR-007, TASK-047]
+related: [ADR-007, ADR-015, TASK-047]
 ---
 
 # TASK-059: Remove the numbering lock

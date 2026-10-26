@@ -1,7 +1,7 @@
 ---
 id: TASK-051
 title: Rename the cache lock and keep its file
-status: Draft
+status: Cancelled
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -16,9 +16,11 @@ related: [ADR-014, TASK-041, TASK-050]
 # TASK-051: Rename the cache lock and keep its file
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
+| 2026-10-26 | Equal | Replaced by ADR-015: a read-write cache lock with no session files, in the new tasks for the launcher and the cache lock. |
 
 ## 1. Summary
 
