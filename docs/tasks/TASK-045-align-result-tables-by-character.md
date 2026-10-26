@@ -1,7 +1,7 @@
 ---
 id: TASK-045
 title: Align result tables by character
-status: Approved
+status: Done
 priority: P3
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,8 @@ related: [ADR-005]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
+| 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -122,8 +124,13 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (no docs change expected).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: TestTableRunes passes: rows {é, a} and {ab, b} give "é a" and "ab b", so the second column starts at character 4 in each row. With len (bytes) the first row is "é a". Commit after this check, see git log for TASK-045.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet, go test ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (no docs change expected).
+  - Evidence: Not applicable: the Table comment in internal/result/result.go describes the character count.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: a change in one function, no design diagram.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: No architecture decision: the compact table format of ADR-005 does not change.
