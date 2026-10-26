@@ -43,15 +43,15 @@ func Ensure(cacheDir, version, binary string) (string, error) {
 	return dir, install(tmp, dir)
 }
 
-// DirName returns the name of the plugin directory in <cache>/plugin. A release uses its version.
-// A "dev" build uses dev-<key>, with a key of the embedded files and the binary path, so a new dev
-// build does not change the files of a session that runs.
+// DirName returns the name of the plugin directory in <cache>/plugin: <version>-<key>, with a key of the
+// binary path, because the plugin files start that path (TASK-055). A "dev" build also puts the embedded
+// files in the key, so a new dev build does not change the files of a session that runs.
 func DirName(version, binary string) string {
-	if version != "dev" {
-		return version
-	}
 	h := sha256.New()
 	h.Write([]byte(binary))
+	if version != "dev" {
+		return version + "-" + hex.EncodeToString(h.Sum(nil)[:8])
+	}
 	_ = fs.WalkDir(assets, "assets", func(name string, entry fs.DirEntry, err error) error {
 		if err != nil || entry.IsDir() {
 			return err

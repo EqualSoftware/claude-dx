@@ -8,9 +8,10 @@
 claude-dx adds skills, an agent, an MCP server, hooks and rules to Claude Code. These additions must not change the configuration of the user or of the project. The skills must use the `/dx:` prefix. Claude Code gives the `<plugin>:` prefix only to plugin skills. Claude Code 2.1.308 has the flags `--plugin-dir`, `--mcp-config`, `--settings` and `--append-system-prompt`.
 
 ## Decision
+
 - The binary embeds the `dx` plugin (`go:embed`): skills, the `scout` agent, hooks and the MCP server declaration.
-- At start, the launcher extracts the plugin to `<cache>/plugin/<version>/`, if it is not there. It writes the absolute path of the binary into the MCP and hook declarations of the extracted plugin.
-- The launcher starts Claude Code with `--plugin-dir <cache>/plugin/<version>`, `--settings <json>` (permissions, see ADR-005) and `--append-system-prompt <dx rules>` (see ADR-009).
+- At start, the launcher extracts the plugin to `<cache>/plugin/<version>-<key>/`, if it is not there. `<key>` is the first 8 bytes of the SHA-256 of the absolute binary path, in hex. A `dev` build also puts the embedded files in the key. The launcher writes the absolute path of the binary into the MCP and hook declarations of the extracted plugin. So each binary path has its own plugin directory, and a moved or second binary of one version does not start an old path (TASK-055).
+- The launcher starts Claude Code with `--plugin-dir <cache>/plugin/<version>-<key>`, `--settings <json>` (permissions, see ADR-005) and `--append-system-prompt <dx rules>` (see ADR-009).
 - The launcher writes no file in the project and no file in the Claude Code configuration of the user.
 - `<cache>` is `os.UserCacheDir()/claude-dx`: `~/Library/Caches/claude-dx` (macOS), `~/.cache/claude-dx` (Linux), `%LocalAppData%\claude-dx` (Windows).
 - `claude-dx cache clean` removes `<cache>`. It does not touch the docs in the project.

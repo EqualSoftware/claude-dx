@@ -28,7 +28,7 @@ func TestEnsureExtracts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := filepath.Join(cache, "plugin", "v1.2.3"); dir != want {
+	if want := filepath.Join(cache, "plugin", DirName("v1.2.3", "/bin/claude-dx")); dir != want || !strings.HasPrefix(filepath.Base(dir), "v1.2.3-") {
 		t.Fatalf("dir = %q, want %q", dir, want)
 	}
 	m := readManifest(t, dir)
@@ -62,8 +62,9 @@ func TestEnsureReusesRelease(t *testing.T) {
 	if err := os.WriteFile(marker, nil, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Ensure(cache, "v1.0.0", "/bin/claude-dx"); err != nil {
-		t.Fatal(err)
+	// AC-2 of TASK-055: one version and one path give one directory.
+	if again, err := Ensure(cache, "v1.0.0", "/bin/claude-dx"); err != nil || again != dir {
+		t.Fatalf("Ensure again = %q, %v; want %q", again, err, dir)
 	}
 	if _, err := os.Stat(marker); err != nil {
 		t.Fatal("a release version was extracted again")
@@ -98,6 +99,26 @@ func TestEnsureDevKeepsRunningSession(t *testing.T) {
 	}
 }
 
+// TestEnsureReleasePerBinary is AC-1 of TASK-055: one release version and two binary paths give two
+// directories, and each .mcp.json starts its own path.
+func TestEnsureReleasePerBinary(t *testing.T) {
+	cache := t.TempDir()
+	first, err := Ensure(cache, "v1.0.0", "/a/claude-dx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := Ensure(cache, "v1.0.0", "/b/claude-dx")
+	if err != nil || second == first {
+		t.Fatalf("second directory = %q, %v; first %q", second, err, first)
+	}
+	for dir, binary := range map[string]string{first: "/a/claude-dx", second: "/b/claude-dx"} {
+		data, err := os.ReadFile(filepath.Join(dir, ".mcp.json"))
+		if err != nil || !strings.Contains(string(data), binary) {
+			t.Errorf("%s/.mcp.json = %s, %v; want %s", dir, data, err, binary)
+		}
+	}
+}
+
 func TestEnsureParallel(t *testing.T) {
 	cache := t.TempDir()
 	var wg sync.WaitGroup
@@ -117,7 +138,7 @@ func TestEnsureParallel(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	readManifest(t, filepath.Join(cache, "plugin", "v2.0.0"))
+	readManifest(t, filepath.Join(cache, "plugin", DirName("v2.0.0", "/bin/claude-dx")))
 	entries, _ := os.ReadDir(filepath.Join(cache, "plugin"))
 	if len(entries) != 1 {
 		t.Fatalf("plugin dir has %d entries, want 1 (no temp dirs left)", len(entries))

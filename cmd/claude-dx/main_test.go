@@ -191,7 +191,7 @@ func TestLaunchShowsUpdateNotice(t *testing.T) {
 func TestDoctor(t *testing.T) {
 	env := setup(t)
 	code, stdout, _ := env.launch(t, env.bin, "doctor")
-	if code != 1 || !strings.HasPrefix(stdout, "OK    claude 2.1.308 in PATH\n") || !strings.Contains(stdout, "FAIL  plugin v9.9.9 is not extracted.") {
+	if code != 1 || !strings.HasPrefix(stdout, "OK    claude 2.1.308 in PATH\n") || !strings.Contains(stdout, "FAIL  plugin v9.9.9-") {
 		t.Fatalf("exit code = %d, stdout:\n%s", code, stdout)
 	}
 	env.launch(t, env.bin, "--resume") // extracts the plugin

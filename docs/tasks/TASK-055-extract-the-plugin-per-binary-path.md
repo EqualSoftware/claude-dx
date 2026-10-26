@@ -1,7 +1,7 @@
 ---
 id: TASK-055
 title: Extract the plugin per binary path
-status: Approved
+status: In Development
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,7 @@ related: [ADR-001, ADR-014]
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
 | 2026-10-26 | Equal | Status: Approved. |
+| 2026-10-26 | Equal | Status: In Development. |
 
 ## 1. Summary
 
