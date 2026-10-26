@@ -117,7 +117,7 @@ module_verb(argument) -> result
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
 | Q-1 | Outside a git repository there is no git common directory. Do the task tools refuse with a message, or use a folder in the cache (<cache>/projects/<key>/tasks)? | Maintainer | Use a folder in the cache. When the project becomes a git repository, move the tasks to the git common directory. |
-| Q-2 | `cache clean` removes `<cache>/projects/`. Outside git, this deletes the local tasks. Does `cache clean` keep the `tasks/` folders, or delete them with a warning? | Maintainer | Open |
+| Q-2 | `cache clean` removes `<cache>/projects/`. Outside git, this deletes the local tasks. Does `cache clean` keep the `tasks/` folders, or delete them with a warning? | Maintainer | A new interactive command `claude-dx clean` (ADR-018) lets the user select what to delete in the cache and in .git/dx, with a confirmation. It replaces `cache clean`. |
 
 The status cannot be `Approved` while a question is `Open`.
 

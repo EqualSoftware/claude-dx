@@ -22,3 +22,4 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-015](ADR-015-read-write-locks-for-the-cache-and-docs.md) | Read-write locks for the cache and docs | Accepted | 2026-10-26 |
 | [ADR-016](ADR-016-specs-in-git-tasks-in-git-dx.md) | Specs in git, tasks in .git/dx | Proposed | 2026-10-26 |
 | [ADR-017](ADR-017-adrs-do-not-change-after-a-push.md) | ADRs do not change after a push | Proposed | 2026-10-26 |
+| [ADR-018](ADR-018-interactive-clean-command.md) | Interactive clean command | Proposed | 2026-10-26 |
