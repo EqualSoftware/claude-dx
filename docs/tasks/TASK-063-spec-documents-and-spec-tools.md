@@ -1,7 +1,7 @@
 ---
 id: TASK-063
 title: Spec documents and spec tools
-status: In Development
+status: Done
 priority: P1
 milestone: v0.1.0
 type: feat
@@ -23,6 +23,7 @@ related: [ADR-016, ADR-013, ADR-006]
 | 2026-10-26 | Equal | Refined with /dx:grill: Q-2 to Q-28. |
 | 2026-10-26 | Equal | The user approved the task in the chat. |
 | 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | All DoD items have evidence. CI run 40388269185 passes on macOS, Linux and Windows. |
 
 ## 1. Summary
 
@@ -257,7 +258,8 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: CI run 40388269185 at 70f13a3 passes: test on macos-latest, ubuntu-latest and windows-latest, install on the three platforms, vuln. The acceptance criteria tests are in internal/docs/spec.
 - [x] Project checks (build, tests, lint) pass.
   - Evidence: At d4a5437 on macOS: go build, go vet (also GOOS=windows and GOOS=linux), go test -race ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found.
 - [x] Docs are updated (area docs, `CLAUDE.md`).
