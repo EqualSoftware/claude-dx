@@ -9,7 +9,7 @@ size: M
 owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [mcp, docs]
-depends_on: [TASK-063]
+depends_on: [TASK-063, TASK-068]
 related: [ADR-016, ADR-007, ADR-015]
 ---
 

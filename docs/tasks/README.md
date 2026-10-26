@@ -25,13 +25,13 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | [TASK-063](TASK-063-spec-documents-and-spec-tools.md) | Spec documents and spec tools | `Draft` | `P1` | `mcp`, `docs` | TASK-058 |
-| [TASK-064](TASK-064-local-tasks-in-the-git-common-directory.md) | Local tasks in the git common directory | `Draft` | `P1` | `mcp`, `docs` | TASK-063 |
+| [TASK-064](TASK-064-local-tasks-in-the-git-common-directory.md) | Local tasks in the git common directory | `Draft` | `P1` | `mcp`, `docs` | TASK-063, TASK-068 |
 | [TASK-065](TASK-065-lock-pushed-adrs-in-adr-update.md) | Lock pushed ADRs in adr_update | `Draft` | `P1` | `mcp`, `docs` | TASK-058 |
 | [TASK-066](TASK-066-resume-command-and-sessionstart-hook.md) | Resume command and SessionStart hook | `Draft` | `P1` | `cli`, `plugin` | TASK-064 |
 | [TASK-067](TASK-067-migrate-tasks-to-specs.md) | Migrate tasks to specs | `Draft` | `P1` | `docs`, `plugin` | TASK-064, TASK-065, TASK-066, TASK-070 |
-| [TASK-068](TASK-068-project-file-in-the-cache.md) | Project file in the cache | `Draft` | `P1` | `mcp`, `cli` | TASK-064 |
+| [TASK-068](TASK-068-project-data-directory.md) | Project data directory | `Draft` | `P1` | `mcp`, `cli` | TASK-062 |
 | [TASK-069](TASK-069-interactive-clean-command.md) | Interactive clean command | `Draft` | `P1` | `cli`, `cache` | TASK-061, TASK-068 |
-| [TASK-062](TASK-062-lock-the-docs-for-read-tools.md) | Lock the docs for read tools | `In Review` | `P2` | `docs-tools` | TASK-061, TASK-059 |
+| [TASK-062](TASK-062-lock-the-docs-for-read-tools.md) | Lock the docs for read tools | `In Development` | `P2` | `docs-tools` | TASK-061, TASK-059 |
 | [TASK-058](TASK-058-keep-the-file-mode-in-docfile-write.md) | Keep the file mode in docfile.Write | `Approved` | `P3` | `docs-tools` | TASK-062 |
 
 ## v0.2.0

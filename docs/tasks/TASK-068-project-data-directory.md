@@ -1,19 +1,19 @@
 ---
 id: TASK-068
-title: Project file in the cache
+title: Project data directory
 status: Draft
 priority: P1
 milestone: v0.1.0
 type: feat
-size: S
+size: M
 owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [mcp, cli]
-depends_on: [TASK-064]
+depends_on: [TASK-062]
 related: [ADR-018, ADR-007, ADR-015]
 ---
 
-# TASK-068: Project file in the cache
+# TASK-068: Project data directory
 
 ## Document History
 | Date | Author | Description / Change Notes |
