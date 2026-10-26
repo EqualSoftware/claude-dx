@@ -12,6 +12,7 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/doctor"
 	"github.com/EqualSoftware/claude-dx/internal/launcher"
 	"github.com/EqualSoftware/claude-dx/internal/mcpserver"
+	"github.com/EqualSoftware/claude-dx/internal/plugin"
 	"github.com/EqualSoftware/claude-dx/internal/update"
 )
 
@@ -126,7 +127,11 @@ func runDoctor(stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail(stderr, err)
 	}
-	if !doctor.Run(stdout, version, dir) {
+	binary, err := launcher.Executable()
+	if err != nil {
+		return fail(stderr, err)
+	}
+	if !doctor.Run(stdout, plugin.DirName(version, binary), dir) {
 		return 1
 	}
 	return 0

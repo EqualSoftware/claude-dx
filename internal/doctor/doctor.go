@@ -16,11 +16,12 @@ import (
 const MinClaude = "2.1.308"
 
 // Run writes one line for each check and reports whether all checks pass.
-func Run(w io.Writer, version, cacheDir string) bool {
+// pluginName is the name of the plugin directory in <cacheDir>/plugin (plugin.DirName).
+func Run(w io.Writer, pluginName, cacheDir string) bool {
 	checks := []func() (bool, string){
 		claude,
 		func() (bool, string) { return writable(cacheDir) },
-		func() (bool, string) { return plugin(cacheDir, version) },
+		func() (bool, string) { return plugin(cacheDir, pluginName) },
 	}
 	all := true
 	for _, check := range checks {
@@ -74,9 +75,9 @@ func writable(dir string) (bool, string) {
 	return true, fmt.Sprintf("cache %s is writable", dir)
 }
 
-func plugin(cacheDir, version string) (bool, string) {
-	if _, err := os.Stat(filepath.Join(cacheDir, "plugin", version, ".claude-plugin", "plugin.json")); err != nil {
-		return false, fmt.Sprintf("plugin %s is not extracted. Fix: run claude-dx once.", version)
+func plugin(cacheDir, name string) (bool, string) {
+	if _, err := os.Stat(filepath.Join(cacheDir, "plugin", name, ".claude-plugin", "plugin.json")); err != nil {
+		return false, fmt.Sprintf("plugin %s is not extracted. Fix: run claude-dx once.", name)
 	}
-	return true, fmt.Sprintf("plugin %s is extracted", version)
+	return true, fmt.Sprintf("plugin %s is extracted", name)
 }

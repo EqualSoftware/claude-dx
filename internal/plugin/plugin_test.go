@@ -70,21 +70,31 @@ func TestEnsureReusesRelease(t *testing.T) {
 	}
 }
 
-func TestEnsureExtractsDevAgain(t *testing.T) {
+// TestEnsureDevKeepsRunningSession is AC-1 of TASK-027: a dev build with other files (here, another
+// binary path) extracts to a new directory, and the directory of the first session does not change.
+func TestEnsureDevKeepsRunningSession(t *testing.T) {
 	cache := t.TempDir()
-	dir, err := Ensure(cache, "dev", "/bin/claude-dx")
+	first, err := Ensure(cache, "dev", "/a/claude-dx")
 	if err != nil {
 		t.Fatal(err)
 	}
-	marker := filepath.Join(dir, "marker")
+	if !strings.HasPrefix(filepath.Base(first), "dev-") {
+		t.Fatalf("dev directory = %q", first)
+	}
+	marker := filepath.Join(first, "marker")
 	if err := os.WriteFile(marker, nil, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Ensure(cache, "dev", "/bin/claude-dx"); err != nil {
-		t.Fatal(err)
+	second, err := Ensure(cache, "dev", "/b/claude-dx")
+	if err != nil || second == first {
+		t.Fatalf("second dev directory = %q, %v", second, err)
 	}
-	if _, err := os.Stat(marker); err == nil {
-		t.Fatal("a dev version was not extracted again")
+	again, err := Ensure(cache, "dev", "/a/claude-dx")
+	if err != nil || again != first {
+		t.Fatalf("same dev build = %q, %v; want %q", again, err, first)
+	}
+	if _, err := os.Stat(marker); err != nil {
+		t.Fatal("a dev start changed the files of the first session")
 	}
 }
 

@@ -2,8 +2,11 @@
 package plugin
 
 import (
+	"crypto/sha256"
 	"embed"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
@@ -16,13 +19,13 @@ import (
 //go:embed all:assets
 var assets embed.FS
 
-// Ensure extracts the plugin to <cacheDir>/plugin/<version> and returns that directory.
-// A version that is already extracted is used again, except for "dev" builds.
+// Ensure extracts the plugin to <cacheDir>/plugin/<DirName> and returns that directory.
+// A directory that is already extracted is used again.
 // binary is the absolute path of claude-dx. It replaces {{BINARY}} in the plugin files.
 func Ensure(cacheDir, version, binary string) (string, error) {
 	root := filepath.Join(cacheDir, "plugin")
-	dir := filepath.Join(root, version)
-	if version != "dev" && exists(dir) {
+	dir := filepath.Join(root, DirName(version, binary))
+	if exists(dir) {
 		return dir, nil
 	}
 	if err := os.MkdirAll(root, 0o755); err != nil {
@@ -37,17 +40,33 @@ func Ensure(cacheDir, version, binary string) (string, error) {
 	if err := write(tmp, version, binary); err != nil {
 		return "", err
 	}
-	return dir, install(tmp, dir, version)
+	return dir, install(tmp, dir)
+}
+
+// DirName returns the name of the plugin directory in <cache>/plugin. A release uses its version.
+// A "dev" build uses dev-<key>, with a key of the embedded files and the binary path, so a new dev
+// build does not change the files of a session that runs.
+func DirName(version, binary string) string {
+	if version != "dev" {
+		return version
+	}
+	h := sha256.New()
+	h.Write([]byte(binary))
+	_ = fs.WalkDir(assets, "assets", func(name string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return err
+		}
+		data, err := assets.ReadFile(name)
+		fmt.Fprintf(h, "\x00%s\x00%d\x00", name, len(data))
+		h.Write(data)
+		return err
+	})
+	return "dev-" + hex.EncodeToString(h.Sum(nil)[:8])
 }
 
 // install moves the extracted tmp directory to dir.
-// Another process can extract the same version at the same time. Its result is equal, so it is used.
-func install(tmp, dir, version string) error {
-	if version == "dev" {
-		if err := os.RemoveAll(dir); err != nil {
-			return err
-		}
-	}
+// Another process can extract the same directory at the same time. Its result is equal, so it is used.
+func install(tmp, dir string) error {
 	err := os.Rename(tmp, dir)
 	if err != nil && exists(dir) {
 		return nil
