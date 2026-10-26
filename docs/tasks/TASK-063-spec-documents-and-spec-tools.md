@@ -256,8 +256,12 @@ To remove: delete `internal/docs/spec/`, `internal/plugin/assets/skills/spec/`, 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: At d4a5437 on macOS: go build, go vet (also GOOS=windows and GOOS=linux), go test -race ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: d4a5437: README.md Specs link, internal/plugin/assets/rules.md spec lines and Refs trailer rule, skills/spec/SKILL.md, skills/grill/SKILL.md, GLOSSARY terms Spec and Requirement. CLAUDE.md changes in TASK-067 (Q-20).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: ADR-016 (Accepted) is the decision for specs. No new architecture decision; the task part of ADR-006 goes to TASK-067 (Q-22).
