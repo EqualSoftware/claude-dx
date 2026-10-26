@@ -1,7 +1,7 @@
 ---
 id: TASK-064
 title: Local tasks in the project data dir
-status: In Review
+status: In Development
 priority: P1
 milestone: v0.1.0
 type: feat
@@ -21,6 +21,8 @@ related: [ADR-016, ADR-015, ADR-017, ADR-019]
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Grill done: Q-3 to Q-37 answered. The user confirms the same understanding and size M. |
+| 2026-10-26 | Equal | The user approves the task in the chat. |
+| 2026-10-26 | Equal | Status: In Development. |
 
 ## 1. Summary
 
