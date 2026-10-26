@@ -14,6 +14,7 @@ Sort the terms in alphabetical order.
 | ASD-STE100 | Simplified Technical English. The language rule for dx documents, tool arguments, tool results, skills and commit messages. | process | simple English, STE | ADR-009 |
 | Cache | The directory `os.UserCacheDir()/claude-dx`. It holds the extracted plugin, LSP servers, counters, `update.json` and `unmapped.log`. | cli | data dir, home dir | ADR-001 |
 | Definition of Done | The checklist in the last section of a task. All items must be checked, with evidence, before the task is `Done`. | process | DoD, done criteria | `docs/tasks/` |
+| Docs lock | The exclusive OS lock on `<cache>/projects/<key>/docs.lock`, with a mutex of the dx server. Each tool that changes a task, ADR, learning, the glossary or a README index holds it for the full read, change and write. | docs-tools | edit lock | ADR-007 |
 | dx plugin | The Claude Code plugin named `dx` that the binary embeds and the launcher loads with `--plugin-dir`. It holds the skills, the scout agent, the hooks and the MCP server declaration. | plugin | extension, add-on | ADR-001 |
 | dx server | The MCP server that `claude-dx mcp` starts on stdio. Claude Code starts one for each session. | mcp | daemon, backend | ADR-002 |
 | Elicitation | An MCP request from the dx server to the user, through Claude Code, for a direct yes or no answer. The model does not answer it. | mcp | confirmation prompt | ADR-008 |
@@ -27,6 +28,7 @@ Sort the terms in alphabetical order.
 | Project root | The git top level of the current directory, or the current directory outside git. Tools refuse paths outside it. | mcp | workspace, base dir | ADR-005 |
 | Ready task | An open task that is not `Blocked` and has all dependencies `Done`. `task_list(status: ready)` gives these tasks. | process | next task, unblocked task | ADR-013 |
 | Scout | The read-only agent `dx:scout` on Haiku. Skills give it fact searches of more than 3 files. | plugin | explorer, searcher | ADR-009 |
+| Session lock | The exclusive OS lock on `<cache>/sessions/<pid>.lock` that each running claude-dx session holds. A session file with a free lock, or on Unix with the PID of no process, is of a session that ended. | cli | pid file | ADR-014 |
 | Shared rules | The short dx rules text (`rules.md` in the dx plugin) that the launcher gives to Claude Code with `--append-system-prompt-file`. | plugin | RULES.md | ADR-009 |
 | Task | A spec file in `docs/tasks/` for one unit of work. | process | ticket, issue | `docs/tasks/` |
 | Unmapped operation | A git operation that no dx git tool covers. The model runs it with `git_exec`, and the dx server logs it to `unmapped.log`. | git | unknown command | ADR-008 |
