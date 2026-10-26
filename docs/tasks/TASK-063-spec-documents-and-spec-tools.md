@@ -1,7 +1,7 @@
 ---
 id: TASK-063
 title: Spec documents and spec tools
-status: In Review
+status: Approved
 priority: P1
 milestone: v0.1.0
 type: feat
@@ -21,6 +21,7 @@ related: [ADR-016, ADR-013, ADR-006]
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill: Q-2 to Q-28. |
+| 2026-10-26 | Equal | The user approved the task in the chat. |
 
 ## 1. Summary
 
