@@ -1,7 +1,7 @@
 ---
 id: TASK-035
 title: End-to-end test of the dx MCP server
-status: Approved
+status: In Development
 priority: P2
 type: test
 size: S
@@ -21,6 +21,7 @@ related: [ADR-002, ADR-005, TASK-004]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
 
 ## 1. Summary
 
