@@ -111,4 +111,3 @@ The status cannot be `Approved` while a question is `Open`.
 - [ ] Docs are updated (area docs, `CLAUDE.md`).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
 - [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.

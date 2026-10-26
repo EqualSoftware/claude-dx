@@ -78,6 +78,9 @@ func TestCreate(t *testing.T) {
 			t.Errorf("task does not contain %q", want)
 		}
 	}
+	if strings.Contains(doc, "eureka") {
+		t.Error("AC-1 of TASK-026: the Definition of Done has the /dx:eureka item")
+	}
 	if strings.Contains(doc, " # ") || strings.Contains(doc, "| Field | Value |") {
 		t.Error("task has a frontmatter comment or the Field/Value table")
 	}
@@ -170,7 +173,7 @@ func TestSetStatusRules(t *testing.T) {
 		{"In Review", "", "give a size"},
 		{"In Review", "", "give the platforms"},
 		{"Blocked", "", "give a note"},
-		{"Done", "", "Definition of Done items 1, 2, 3, 4, 5, 6 are not checked"},
+		{"Done", "", "Definition of Done items 1, 2, 3, 4, 5 are not checked"},
 		{"Finished", "", "is not valid"},
 	}
 	for _, tt := range tests {
@@ -229,7 +232,7 @@ func TestQuestions(t *testing.T) {
 func TestCheckDoD(t *testing.T) {
 	s := newStore(t)
 	create(t, s, "One")
-	for item := 1; item <= 6; item++ {
+	for item := 1; item <= 5; item++ {
 		if err := s.CheckDoD("TASK-001", item, "CI run 1."); err != nil {
 			t.Fatal(err)
 		}
@@ -237,7 +240,7 @@ func TestCheckDoD(t *testing.T) {
 	if err := s.CheckDoD("TASK-001", 1, "again"); err == nil {
 		t.Error("checking an item two times did not fail")
 	}
-	if err := s.CheckDoD("TASK-001", 7, "x"); err == nil {
+	if err := s.CheckDoD("TASK-001", 6, "x"); err == nil {
 		t.Error("checking a missing item did not fail")
 	}
 	if err := s.SetStatus("TASK-001", "Done", ""); err != nil {
@@ -447,7 +450,7 @@ func TestUncheckedDoDMessage(t *testing.T) {
 	create(t, s, "One")
 	must(t, s.CheckDoD("TASK-001", 1, "Evidence."))
 	err := s.SetStatus("TASK-001", "Done", "")
-	if err == nil || !strings.HasSuffix(err.Error(), ": Definition of Done items 2, 3, 4, 5, 6 are not checked") {
+	if err == nil || !strings.HasSuffix(err.Error(), ": Definition of Done items 2, 3, 4, 5 are not checked") {
 		t.Fatalf("SetStatus(Done) = %v", err)
 	}
 }
