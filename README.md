@@ -80,6 +80,10 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md). To report a security problem, read [SEC
 - Learnings: [docs/learnings/](docs/learnings/)
 - Terms: [docs/GLOSSARY.md](docs/GLOSSARY.md)
 
+## Credits
+
+The `dx:grill` skill is based on the [grilling skill](https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md) of [mattpocock/skills](https://github.com/mattpocock/skills). Copyright (c) 2026 Matt Pocock. MIT License.
+
 ## License
 
 [MIT](LICENSE)
