@@ -38,14 +38,17 @@ Add a test that starts the dx server from `mcpserver.New`, connects an MCP clien
 
 ## 5. Context
 ### 5.1 Current State
-[How the system works today. Use `path:line` references.]
+
+`mcpserver.New` (`internal/mcpserver/server.go:24`) opens the project, reads `cache.Dir` and registers all tools. `cache.Dir` uses `os.UserCacheDir`. `internal/mcpserver` has no test file.
 
 ### 5.2 Assumptions
-- A-1: [Fact that the task accepts as true. How to verify it.]
+
+- A-1: `t.Setenv` on `HOME` (macOS), `XDG_CACHE_HOME` (Linux) and `LocalAppData` (Windows) moves `os.UserCacheDir` to a temporary directory. Verify: the test checks that the cache directory is under `t.TempDir()`.
 
 ### 5.3 Constraints
-- [Technical, platform, performance, memory, dependency, compatibility or time limits.]
-- [Accepted ADRs that apply: ADR-NNN.]
+
+- ADR-002 (stdio server), ADR-005 (one tool for each operation).
+- Tests pass on macOS, Linux and Windows. go-sdk v1.8.0 has `mcp.NewInMemoryTransports`.
 
 ## 6. Requirements
 
@@ -87,33 +90,39 @@ Not applicable.
 - AC-2: Given a tool registration is removed, when the test runs, then it fails.
 
 ## 10. Validation and Metrics
+
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| [Response time (ms)] | [value] | [value] | [tool, setup, steps] |
+| Test files in `internal/mcpserver` | 0 | 1 | `go test ./internal/mcpserver/` |
+| Test time | Not applicable | Less than 2 s | `go test -v` output |
 
-- Tests: [unit tests, manual steps].
-- Platforms not verified: [list, or None].
+- Tests: `internal/mcpserver/server_test.go`.
+- Platforms not verified: none. CI runs on macOS, Linux and Windows.
 
 ## 11. Risks and Mitigations
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| [Risk] | Low / Medium / High | [Action] |
+| The update check of the server goes to the network | Medium | The test uses `mcpserver.New`, not `Run`, so the update check does not start. |
 
 ## 12. Removal and Compatibility
 
 Delete `internal/mcpserver/server_test.go`.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+
+No open questions.
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (Not applicable: a test only).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
 - [ ] ADRs are recorded for architectural decisions.
 - [ ] `/dx:eureka` is done.

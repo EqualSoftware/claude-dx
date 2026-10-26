@@ -38,21 +38,26 @@ In the v0.1.0 QA session, TASK-023, TASK-025 and TASK-028 changed `internal/docs
 
 ## 5. Context
 ### 5.1 Current State
-[How the system works today. Use `path:line` references.]
+
+`Store.SetStatus` (`internal/docs/task/change.go:114`) returns only an error, so it cannot give a warning with a status change that passes. `markdown.Section` reads section 8.
 
 ### 5.2 Assumptions
-- A-1: [Fact that the task accepts as true. How to verify it.]
+
+- A-1: Each plan gives its files in backticks in the second column of the section 8 table, as the template asks. Verify: `git grep` on `docs/tasks` for section 8 rows.
 
 ### 5.3 Constraints
-- [Technical, platform, performance, memory, dependency, compatibility or time limits.]
-- [Accepted ADRs that apply: ADR-NNN.]
+
+- ADR-013 (step 2), ADR-005.
+- Tests pass on macOS, Linux and Windows. Paths in plans use `/`.
 
 ## 6. Requirements
 
 ### 6.1 Functional
-- FR-1: The tool reads the paths in backticks in the Files column of section 8 of each open task.
-- FR-2: For each other open task that gives one of the same paths and has no `depends_on` path to or from this task, the result adds one line: `Warning: TASK-X also changes <path>. Set the order with depends_on, or merge the tasks.`
-- FR-3: The status change is done also with a warning, because the user decides.
+
+- FR-1: The tool reads the paths in backticks in the Files column of section 8 of each open task, also `Draft` tasks, because a Draft plan already tells which files it changes (Q-2).
+- FR-2: Two paths overlap when they are equal or when one is a directory (it ends with `/`) that contains the other, because both change the same code (Q-1).
+- FR-3: For each other open task with an overlap and with no `depends_on` path to or from this task, the result adds one line: `Warning: TASK-X also changes <path>. Set the order with depends_on, or merge the tasks.`
+- FR-4: The status change is done also with a warning, because the user decides.
 
 ### 6.2 Non-Functional
 - NFR-1: One read of each open task file for each status change to `In Review` or `Approved`.
@@ -75,45 +80,50 @@ Not applicable.
 Not applicable.
 
 ## 8. Implementation Plan
-[Few, large work batches in order.]
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | [paths] | [exact steps, commands, symbols] | [command] |
+| 1 | `internal/docs/task/overlap.go`, `internal/docs/task/change.go`, `internal/docs/task/tools.go`, `internal/docs/task/task_test.go` | FR-1 to FR-4. `SetStatus` returns the warning lines. One test for each AC. | `go test ./internal/docs/task/` |
 
 ## 9. Acceptance Criteria
 
 - AC-1: Given TASK-A and TASK-B with `internal/x.go` in section 8 and no dependency, when TASK-A goes to `Approved`, then the result has a warning about TASK-B.
 - AC-2: Given the same tasks and TASK-B depends on TASK-A, when TASK-A goes to `Approved`, then the result has no warning.
+- AC-3: Given TASK-A with `internal/` and a `Draft` TASK-B with `internal/x.go`, when TASK-A goes to `In Review`, then the result has a warning about TASK-B.
 
 ## 10. Validation and Metrics
+
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| [Response time (ms)] | [value] | [value] | [tool, setup, steps] |
+| Overlaps with no order that the tools tell | 0 | All | AC-1 and AC-3 tests |
 
-- Tests: [unit tests, manual steps].
-- Platforms not verified: [list, or None].
+- Tests: unit tests in `internal/docs/task/task_test.go`.
+- Platforms not verified: none. CI runs on macOS, Linux and Windows.
 
 ## 11. Risks and Mitigations
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| [Risk] | Low / Medium / High | [Action] |
+| A wide path, example `docs/tasks/*.md`, gives many warnings | Low | The warning is not a refusal. A glob is not a directory, so it matches only the equal text. |
 
 ## 12. Removal and Compatibility
 
 Delete the check function and its call.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+| Q-1 | Does a directory path in a plan overlap the files in it? Example: internal/docs/task/ and internal/docs/task/change.go. Recommended: yes, because both change the same code. | Equal | Yes. A directory path overlaps the files in it. |
+| Q-2 | Do Draft tasks count in the overlap check? Recommended: yes, all open tasks, because a Draft plan already tells which files it changes. | Equal | Yes. All open tasks count, also Draft. |
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (`/dx:task` skill: the overlap warning).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
 - [ ] `/dx:eureka` is done.

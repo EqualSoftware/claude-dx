@@ -39,14 +39,17 @@ In the v0.1.0 QA session (scratch repository, binary from `7063947`):
 
 ## 5. Context
 ### 5.1 Current State
-[How the system works today. Use `path:line` references.]
+
+`Store.Upsert` (`internal/docs/glossary/glossary.go:87`) replaces the full row with the input. The `do_not_use` input (`internal/docs/glossary/tools.go:25`) is a `[]string`: an omitted list decodes as nil, and `[]` decodes as an empty list.
 
 ### 5.2 Assumptions
-- A-1: [Fact that the task accepts as true. How to verify it.]
+
+- A-1: The MCP SDK decodes an omitted array as nil and `[]` as an empty slice. Verify: a tool test that calls `glossary_upsert` with no `do_not_use` and with `[]`.
 
 ### 5.3 Constraints
-- [Technical, platform, performance, memory, dependency, compatibility or time limits.]
-- [Accepted ADRs that apply: ADR-NNN.]
+
+- ADR-006 (glossary tools).
+- Tests pass on macOS, Linux and Windows.
 
 ## 6. Requirements
 
@@ -78,11 +81,10 @@ Not applicable.
 - Replace the full row and warn about removed data: rejected by the maintainer in the QA chat.
 
 ## 8. Implementation Plan
-[Few, large work batches in order.]
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | [paths] | [exact steps, commands, symbols] | [command] |
+| 1 | `internal/docs/glossary/glossary.go`, `internal/docs/glossary/tools.go`, `internal/docs/glossary/glossary_test.go` | FR-1 to FR-3. One test for each AC. | `go test ./internal/docs/glossary/` |
 
 ## 9. Acceptance Criteria
 
@@ -91,33 +93,38 @@ Not applicable.
 - AC-3: Given the term `Cache`, when `glossary_upsert(cache)` runs, then the row keeps the term `Cache`.
 
 ## 10. Validation and Metrics
+
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| [Response time (ms)] | [value] | [value] | [tool, setup, steps] |
+| Do not use words lost on a change | All, when `do_not_use` is omitted | 0 | AC-1 test |
 
-- Tests: [unit tests, manual steps].
-- Platforms not verified: [list, or None].
+- Tests: unit tests in `internal/docs/glossary/glossary_test.go`.
+- Platforms not verified: none. CI runs on macOS, Linux and Windows.
 
 ## 11. Risks and Mitigations
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| [Risk] | Low / Medium / High | [Action] |
+| A caller wants to remove all words and omits the field | Low | FR-3: the field description tells to give `[]`. |
 
 ## 12. Removal and Compatibility
 
 Revert the merge in `Store.Upsert`. The file format does not change.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+
+No open questions. The QA chat answered the behavior of an omitted field.
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (`/dx:glossary` skill: omitted and empty `do_not_use`).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
 - [ ] ADRs are recorded for architectural decisions.
 - [ ] `/dx:eureka` is done.

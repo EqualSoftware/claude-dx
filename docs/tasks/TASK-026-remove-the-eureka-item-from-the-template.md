@@ -37,20 +37,24 @@ Each v0.1 task must check an item for a skill that does not exist. Example: TASK
 
 ## 5. Context
 ### 5.1 Current State
-[How the system works today. Use `path:line` references.]
+
+`internal/docs/task/template.md:113` is the `/dx:eureka` item. `TestCheckDoD` (`internal/docs/task/task_test.go:222`) checks 6 items. ADR-006 Decision gives `/dx:eureka` in the Definition of Done of the template.
 
 ### 5.2 Assumptions
-- A-1: [Fact that the task accepts as true. How to verify it.]
+
+- None.
 
 ### 5.3 Constraints
-- [Technical, platform, performance, memory, dependency, compatibility or time limits.]
-- [Accepted ADRs that apply: ADR-NNN.]
+
+- ADR-006 (task template), TASK-013 (adds the item again).
 
 ## 6. Requirements
 
 ### 6.1 Functional
+
 - FR-1: Remove the `/dx:eureka` item from `internal/docs/task/template.md`.
 - FR-2: TASK-013 (work batch 2, AC-3) adds the item again when the skill exists.
+- FR-3: ADR-006 does not give `/dx:eureka` in the Definition of Done of the template, because the template has no such item until TASK-013.
 
 ### 6.2 Non-Functional
 - NFR-1: Not applicable.
@@ -73,44 +77,48 @@ Not applicable.
 Not applicable.
 
 ## 8. Implementation Plan
-[Few, large work batches in order.]
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | [paths] | [exact steps, commands, symbols] | [command] |
+| 1 | `internal/docs/task/template.md`, `internal/docs/task/task_test.go`, ADR-006 | FR-1, FR-3. `TestCheckDoD` checks 5 items. | `go test ./internal/docs/task/` |
 
 ## 9. Acceptance Criteria
 
 - AC-1: When `task_create` runs, then the Definition of Done of the new task has no `/dx:eureka` item.
 
 ## 10. Validation and Metrics
+
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| [Response time (ms)] | [value] | [value] | [tool, setup, steps] |
+| Definition of Done items that a v0.1 user cannot do | 1 | 0 | AC-1 test |
 
-- Tests: [unit tests, manual steps].
-- Platforms not verified: [list, or None].
+- Tests: unit tests in `internal/docs/task/task_test.go`.
+- Platforms not verified: none. CI runs on macOS, Linux and Windows.
 
 ## 11. Risks and Mitigations
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| [Risk] | Low / Medium / High | [Action] |
+| TASK-013 forgets to add the item again | Medium | TASK-013 work batch 2 and AC-3. |
 
 ## 12. Removal and Compatibility
 
 Add the line again. Existing tasks keep their 6 items.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+
+No open questions. The QA chat answered the change of TASK-013.
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (ADR-006).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
 - [ ] ADRs are recorded for architectural decisions.
 - [ ] `/dx:eureka` is done.

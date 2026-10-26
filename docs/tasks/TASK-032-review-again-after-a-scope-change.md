@@ -37,21 +37,27 @@ In the v0.1.0 QA session, TASK-026 needed a change of the scope of TASK-013, whi
 
 ## 5. Context
 ### 5.1 Current State
-[How the system works today. Use `path:line` references.]
+
+`Store.UpdateSection` (`internal/docs/task/change.go:36`) replaces the section and does not read the status.
 
 ### 5.2 Assumptions
-- A-1: [Fact that the task accepts as true. How to verify it.]
+
+- None.
 
 ### 5.3 Constraints
-- [Technical, platform, performance, memory, dependency, compatibility or time limits.]
-- [Accepted ADRs that apply: ADR-NNN.]
+
+- ADR-013 (step 3). TASK-034 allows `Approved` -> `In Review`.
+- Tests pass on macOS, Linux and Windows.
 
 ## 6. Requirements
 
 ### 6.1 Functional
-- FR-1: `task_update_section` on an `Approved` task, for a section under 6, 7 or 9, sets the status to `In Review` and adds a Document History row, because the user must approve the new scope.
+
+- FR-1: `task_update_section` on an `Approved` task, for section 3, 4, 6, 7 or 9 or one of their subsections, sets the status to `In Review` and adds a Document History row, because these sections define the scope and the user must approve the new scope (Q-1).
 - FR-2: The result tells the status change.
-- FR-3: The `/dx:task` skill gives the flow of ADR-013: create, refine, approve, select with `status: ready`, develop, close. It gives the merge rule and the rule that a new finding is a new task.
+- FR-3: `task_update_fields` does not change the status, because the fields change the order or the estimate, not the scope (Q-2).
+- FR-4: The `/dx:task` skill gives the flow of ADR-013: create, refine, approve, select with `status: ready`, develop, close. It gives the merge rule and the rule that a new finding is a new task.
+- FR-5: ADR-013 step 3 gives the sections of FR-1.
 
 ### 6.2 Non-Functional
 - NFR-1: Not applicable.
@@ -74,45 +80,51 @@ Not applicable.
 Not applicable.
 
 ## 8. Implementation Plan
-[Few, large work batches in order.]
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | [paths] | [exact steps, commands, symbols] | [command] |
+| 1 | `internal/docs/task/change.go`, `internal/docs/task/tools.go`, `internal/docs/task/task_test.go` | FR-1 to FR-3. One test for each AC. | `go test ./internal/docs/task/` |
+| 2 | `internal/plugin/assets/skills/task/SKILL.md`, ADR-013 | FR-4, FR-5. | Read the diff |
 
 ## 9. Acceptance Criteria
 
-- AC-1: Given an `Approved` task, when `task_update_section` changes section 6.1, then the task is `In Review`.
+- AC-1: Given an `Approved` task, when `task_update_section` changes section 6.1, then the task is `In Review` and the result tells it.
 - AC-2: Given an `Approved` task, when `task_update_section` changes section 13, then the status does not change.
+- AC-3: Given an `Approved` task, when `task_update_fields` changes the priority, then the status does not change.
 
 ## 10. Validation and Metrics
+
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| [Response time (ms)] | [value] | [value] | [tool, setup, steps] |
+| Scope changes that keep `Approved` | All | 0 | AC-1 test |
 
-- Tests: [unit tests, manual steps].
-- Platforms not verified: [list, or None].
+- Tests: unit tests in `internal/docs/task/task_test.go`.
+- Platforms not verified: none. CI runs on macOS, Linux and Windows.
 
 ## 11. Risks and Mitigations
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| [Risk] | Low / Medium / High | [Action] |
+| A typo fix in section 6 asks for a new approval | Low | The user approves again with one call. |
 
 ## 12. Removal and Compatibility
 
 Delete the status change in `task_update_section` and the skill text.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+| Q-1 | Which sections set an Approved task back to In Review? Recommended: 3 (Goals), 4 (Out of Scope), 6 (Requirements), 7 (Design) and 9 (Acceptance Criteria), because all of them define the scope. | Equal | Yes. Sections 3, 4, 6, 7 and 9. |
+| Q-2 | Does task_update_fields on an Approved task also set it to In Review? Recommended: no, because the fields (priority, depends_on, size) change the order or the estimate, not the scope. | Equal | No. task_update_fields does not change the status. |
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (`/dx:task` skill, ADR-013).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
 - [ ] `/dx:eureka` is done.

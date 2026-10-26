@@ -41,22 +41,26 @@ In the v0.1.0 QA session (scratch repository, binary from `7063947`):
 
 ## 5. Context
 ### 5.1 Current State
-[How the system works today. Use `path:line` references.]
+
+`Store.Supersede` (`internal/docs/adr/store.go:183`) refuses only the same ID (`:193`). `Store.Update` (`internal/docs/adr/store.go:162`) changes the status of any ADR, also a superseded one.
 
 ### 5.2 Assumptions
-- A-1: [Fact that the task accepts as true. How to verify it.]
+
+- None.
 
 ### 5.3 Constraints
-- [Technical, platform, performance, memory, dependency, compatibility or time limits.]
-- [Accepted ADRs that apply: ADR-NNN.]
+
+- ADR-006 (ADR tools), ADR-005 (compact results).
+- Tests pass on macOS, Linux and Windows.
 
 ## 6. Requirements
 
 ### 6.1 Functional
 - FR-1: `adr_supersede` refuses a new ADR that is superseded, because the replacement must be the current decision.
 - FR-2: `adr_supersede` refuses an old ADR that is already superseded, because one ADR has one replacement.
-- FR-3: `adr_update` refuses a status change of a superseded ADR, because only `adr_supersede` sets that status. A section change stays allowed.
-- FR-4: Each refusal gives the reason and the current status, in ASD-STE100.
+- FR-3: `adr_supersede` refuses a new ADR that is not `Accepted`, because a `Proposed` ADR is not a decision yet (Q-1).
+- FR-4: `adr_update` refuses a status change of a superseded ADR, because only `adr_supersede` sets that status. A section change stays allowed, because a person can fix a typo or add evidence.
+- FR-5: Each refusal gives the reason and the current status, in ASD-STE100.
 
 ### 6.2 Non-Functional
 - NFR-1: Not applicable.
@@ -79,46 +83,50 @@ Not applicable.
 Not applicable.
 
 ## 8. Implementation Plan
-[Few, large work batches in order.]
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | [paths] | [exact steps, commands, symbols] | [command] |
+| 1 | `internal/docs/adr/store.go`, `internal/docs/adr/store_test.go` | FR-1 to FR-5. One test for each AC. | `go test ./internal/docs/adr/` |
 
 ## 9. Acceptance Criteria
 
 - AC-1: Given ADR-001 superseded by ADR-003, when `adr_supersede(ADR-003, ADR-001)` runs, then the tool refuses it and no file changes.
 - AC-2: Given ADR-001 superseded, when `adr_supersede(ADR-001, ADR-002)` runs, then the tool refuses it.
 - AC-3: Given ADR-001 superseded, when `adr_update(ADR-001, status: Accepted)` runs, then the tool refuses it; a section change passes.
+- AC-4: Given ADR-002 `Proposed`, when `adr_supersede(ADR-001, ADR-002)` runs, then the tool refuses it.
 
 ## 10. Validation and Metrics
+
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| [Response time (ms)] | [value] | [value] | [tool, setup, steps] |
+| Supersede cycles that the tool accepts | 1 in the QA session | 0 | AC-1 test |
 
-- Tests: [unit tests, manual steps].
-- Platforms not verified: [list, or None].
+- Tests: unit tests in `internal/docs/adr/store_test.go`.
+- Platforms not verified: none. CI runs on macOS, Linux and Windows.
 
 ## 11. Risks and Mitigations
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| [Risk] | Low / Medium / High | [Action] |
+| An existing ADR chain is already wrong | Low | Out of Scope. The checks apply at the next change. |
 
 ## 12. Removal and Compatibility
 
 Delete the checks and their tests. Files are not changed.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+| Q-1 | Must the new ADR be Accepted to supersede an old ADR? Recommended: yes, because a Proposed ADR is not a decision yet, so it cannot replace one. | Equal | Yes. Only an Accepted ADR can supersede an ADR. |
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (`/dx:adr` skill, ADR-006: the supersede rules).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
 - [ ] ADRs are recorded for architectural decisions.
 - [ ] `/dx:eureka` is done.

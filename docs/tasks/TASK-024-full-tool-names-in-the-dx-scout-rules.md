@@ -37,20 +37,23 @@ In the v0.1.0 QA session (Claude Code 2.1.308, binary from `7063947`), `dx:scout
 
 ## 5. Context
 ### 5.1 Current State
-[How the system works today. Use `path:line` references.]
+
+`internal/plugin/assets/agents/scout.md:21` gives the dx tools with short names only. `:19` uses `glossary_list` as the example source. The frontmatter (`:6`) gives the full names in `tools`.
 
 ### 5.2 Assumptions
-- A-1: [Fact that the task accepts as true. How to verify it.]
+
+- None.
 
 ### 5.3 Constraints
-- [Technical, platform, performance, memory, dependency, compatibility or time limits.]
-- [Accepted ADRs that apply: ADR-NNN.]
+
+- ADR-009 (skills, scout agent and shared rules), ADR-005 (MCP tool names `mcp__plugin_dx_mcp__*`).
 
 ## 6. Requirements
 
 ### 6.1 Functional
-- FR-1: The rules of `scout.md` tell that the dx tools have the prefix `mcp__plugin_dx_mcp__`, or give the full names.
-- FR-2: The source of a fact from a dx tool stays the short name, because it is shorter in the report.
+
+- FR-1: The rule line that tells which dx tools to use gives the full names, example `mcp__plugin_dx_mcp__task_list`, because a subagent takes the tool name from the rules text (`docs/learnings/subagent-tool-names.md`, Q-1).
+- FR-2: The source of a fact from a dx tool stays the short name, example `glossary_list`, because it is shorter in the report.
 
 ### 6.2 Non-Functional
 - NFR-1: The agent prompt does not become longer by more than one line.
@@ -73,44 +76,47 @@ Not applicable.
 Not applicable.
 
 ## 8. Implementation Plan
-[Few, large work batches in order.]
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | [paths] | [exact steps, commands, symbols] | [command] |
+| 1 | `internal/plugin/assets/agents/scout.md` | FR-1, FR-2. | `go test ./internal/plugin/`; session of the maintainer with the brief of TASK-020 AC-2 |
 
 ## 9. Acceptance Criteria
 
 - AC-1: Given the brief of the TASK-020 AC-2 session, when `dx:scout` runs, then no tool call fails with `No such tool available`.
 
 ## 10. Validation and Metrics
+
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| [Response time (ms)] | [value] | [value] | [tool, setup, steps] |
+| Failed tool calls of `dx:scout` for the TASK-020 AC-2 brief | 2 of 7 | 0 | Session of the maintainer |
 
-- Tests: [unit tests, manual steps].
-- Platforms not verified: [list, or None].
+- Tests: one manual session.
+- Platforms not verified: Linux and Windows (agent text only).
 
 ## 11. Risks and Mitigations
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| [Risk] | Low / Medium / High | [Action] |
+| The long names make the agent prompt longer | Low | NFR-1: one line only. |
 
 ## 12. Removal and Compatibility
 
 Revert the text change.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+| Q-1 | Full tool names or a prefix rule in the scout rules? Recommended: full names (mcp__plugin_dx_mcp__task_list ...) in the line that tells which tools to use, because the learning subagent-tool-names shows that the model takes the name from the rules text. The source of a fact stays the short name. | Equal | Full tool names in the rule line. The source of a fact stays the short name. |
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (Not applicable: the agent file is the doc).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
 - [ ] ADRs are recorded for architectural decisions.
 - [ ] `/dx:eureka` is done.

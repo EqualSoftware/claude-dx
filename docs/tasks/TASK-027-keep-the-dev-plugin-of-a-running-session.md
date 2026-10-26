@@ -38,19 +38,24 @@ The maintainer uses `dev` builds of claude-dx on this project. When a second ses
 
 ## 5. Context
 ### 5.1 Current State
-[How the system works today. Use `path:line` references.]
+
+`plugin.Ensure` (`internal/plugin/plugin.go:25`) extracts again at each start of a `dev` build, and `install` (`:46`) removes the `dev` directory first. `doctor` checks `<cache>/plugin/<version>` (`internal/doctor/doctor.go:78`).
 
 ### 5.2 Assumptions
-- A-1: [Fact that the task accepts as true. How to verify it.]
+
+- None.
 
 ### 5.3 Constraints
-- [Technical, platform, performance, memory, dependency, compatibility or time limits.]
-- [Accepted ADRs that apply: ADR-NNN.]
+
+- ADR-001 (plugin in the cache). Release builds do not change.
+- Tests pass on macOS, Linux and Windows. On Windows, a file that is open cannot be removed.
 
 ## 6. Requirements
 
 ### 6.1 Functional
-- FR-1: A `dev` build extracts to a directory with a key of the embedded files, example `dev-<hash>`, and uses it again when it exists, because the same files give the same key.
+
+- FR-1: A `dev` build extracts to a directory with a key of the embedded files and the binary path, example `dev-<hash>`, and uses it again when it exists, because the same files give the same key.
+- FR-2: `claude-dx doctor` checks the directory of FR-1 for a `dev` build, because it checks `plugin/<version>` now (`internal/doctor/doctor.go:78`).
 
 ### 6.2 Non-Functional
 - NFR-1: The key comes from the embedded files and the binary path at start. No network call.
@@ -73,44 +78,47 @@ Not applicable.
 Not applicable.
 
 ## 8. Implementation Plan
-[Few, large work batches in order.]
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | [paths] | [exact steps, commands, symbols] | [command] |
+| 1 | `internal/plugin/plugin.go`, `internal/plugin/plugin_test.go`, `internal/doctor/doctor.go`, `internal/doctor/doctor_test.go` | FR-1, FR-2. A test that extracts two different builds and checks that the first directory does not change. | `go test ./internal/plugin/ ./internal/doctor/` |
 
 ## 9. Acceptance Criteria
 
 - AC-1: Given a `dev` session that runs, when a second `dev` session with other embedded files starts, then the files of the first session do not change.
 
 ## 10. Validation and Metrics
+
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| [Response time (ms)] | [value] | [value] | [tool, setup, steps] |
+| Plugin files of a running dev session that a new start removes | All | 0 | AC-1 test |
 
-- Tests: [unit tests, manual steps].
-- Platforms not verified: [list, or None].
+- Tests: unit tests in `internal/plugin/plugin_test.go`.
+- Platforms not verified: none. CI runs on macOS, Linux and Windows.
 
 ## 11. Risks and Mitigations
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| [Risk] | Low / Medium / High | [Action] |
+| Old `dev-<hash>` directories use disk space | Low | `claude-dx cache clean` removes them. |
 
 ## 12. Removal and Compatibility
 
 Revert to the `dev` directory. `cache clean` removes the old directories.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+| Q-1 | Which milestone for TASK-027? It changes only dev builds, not releases. Recommended: v0.2.0, because v0.1.0 is the first release for users. | Equal | v0.1.0, because the maintainer tests with dev builds before the first release. |
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (CONTRIBUTING.md, if it tells how to test a dev build).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
 - [ ] ADRs are recorded for architectural decisions.
 - [ ] `/dx:eureka` is done.

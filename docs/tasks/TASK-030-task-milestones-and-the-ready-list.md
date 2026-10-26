@@ -8,8 +8,8 @@ size: M
 owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [docs-tools, plugin]
-depends_on: [TASK-033]
-related: [ADR-013, ADR-006, TASK-006, TASK-018]
+depends_on: []
+related: [ADR-013, ADR-006, TASK-006, TASK-018, TASK-033]
 ---
 
 # TASK-030: Task milestones and the ready list
@@ -39,24 +39,28 @@ No field tells the release of a task. The README roadmap gives number ranges (v0
 
 ## 5. Context
 ### 5.1 Current State
-[How the system works today. Use `path:line` references.]
+
+`Front` (`internal/docs/task/task.go:55`) has no milestone. `WriteIndex` (`internal/docs/task/index.go:50`) makes one open and one closed table (`split`, `:70`). The README roadmap (`README.md:26` to `:30`) gives task number ranges for each version.
 
 ### 5.2 Assumptions
-- A-1: [Fact that the task accepts as true. How to verify it.]
+
+- None.
 
 ### 5.3 Constraints
-- [Technical, platform, performance, memory, dependency, compatibility or time limits.]
-- [Accepted ADRs that apply: ADR-NNN.]
+
+- ADR-013 (milestone, ready list), ADR-012 (SemVer), ADR-006.
+- Tests pass on macOS, Linux and Windows.
 
 ## 6. Requirements
 
 ### 6.1 Functional
-- FR-1: `milestone` is a frontmatter field with a SemVer version, example `v0.1.0`. `task_create` requires it. `task_update_fields` can change it.
-- FR-2: `task_list(milestone)` gives only the tasks of that milestone.
-- FR-3: `task_list(status: ready)` gives the open tasks that are not `Blocked` and that have all dependencies `Done`, in SemVer order of milestone, then priority, then ID, because this is the order of the work.
+
+- FR-1: `milestone` is a frontmatter field after `priority` (ADR-013). `task_create` requires it. `task_update_fields` can change it. The tools refuse a value that is not `vMAJOR.MINOR.PATCH`, example `v0.1.0`, because the ready order compares versions (Q-3).
+- FR-2: `task_list(milestone)` gives only the tasks of that milestone. The filter of each frontmatter field (TASK-033) does this with no new filter code.
+- FR-3: `task_list(status: ready)` gives the `Approved` tasks that have all dependencies `Done`, in SemVer order of milestone, then priority, then ID, because only an `Approved` task can start (TASK-034, Q-1).
 - FR-4: `task_list` rows show the milestone.
-- FR-5: `INDEX.md` has one table for each milestone, in SemVer order.
-- FR-6: All existing tasks get a milestone: TASK-001 to TASK-008 and TASK-017 to TASK-032 `v0.1.0`; TASK-009 to TASK-013 `v0.2.0`; TASK-014 `v0.3.0`; TASK-015 `v0.4.0`; TASK-016 `v0.5.0`.
+- FR-5: `INDEX.md` has one table of open tasks for each milestone, in SemVer order, and one table of closed tasks at the end, because closed tasks are history (Q-2).
+- FR-6: All existing tasks get a milestone (Q-4): `v0.1.0` for TASK-001 to TASK-008 and TASK-017 to TASK-035; `v0.2.0` for TASK-009 to TASK-013; `v0.3.0` for TASK-014; `v0.4.0` for TASK-015; `v0.5.0` for TASK-016. The title of TASK-014 loses "(v0.3)".
 - FR-7: The README roadmap gives the milestones, not task number ranges.
 - FR-8: The `/dx:task` skill tells to use `status: ready` to select the next work.
 
@@ -66,66 +70,76 @@ No field tells the release of a task. The README roadmap gives number ranges (v0
 ## 7. Design
 
 ### 7.1 Architecture
-Frontmatter and list in `internal/docs/task/`, `INDEX.md` in `internal/docs/task/index.go:50`.
+`Front` (`internal/docs/task/task.go:55`) gets `Milestone`. The template gets `milestone: ""`. `status: ready` is a case in `matchField` (`internal/docs/task/task.go:107`) that also needs the status of the dependencies, so `List` reads all tasks first. `WriteIndex` (`internal/docs/task/index.go:50`) groups the open tasks by milestone; `split` (`:70`) stays for the closed table.
 
 ### 7.2 Public API
 ```text
-task_create(..., milestone)
-task_update_fields(id, milestone?)
-task_list(status?: open|all|ready|<status>, priority?, area?, milestone?)
+task_create(title, priority, milestone, type, area, ...)
+task_update_fields(id, milestone?, ...)
+task_list(status?: open|all|ready|<status>, milestone?, <other frontmatter field>?)
 ```
 
 ### 7.3 Data and File Formats
-New frontmatter line `milestone: v0.1.0`.
+New frontmatter line `milestone: v0.1.0`, after `priority`. `INDEX.md` has a `## v0.1.0` heading and table for each milestone, then `## Closed`.
 
 ### 7.4 User-facing Behavior
 Not applicable.
 
 ### 7.5 Alternatives
 - An area such as `v0.1`: rejected (ADR-013).
+- One open and one closed table for each milestone: rejected (Q-2).
 
 ## 8. Implementation Plan
-[Few, large work batches in order.]
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | [paths] | [exact steps, commands, symbols] | [command] |
+| 1 | `internal/docs/task/template.md`, `internal/docs/task/task.go`, `internal/docs/task/create.go`, `internal/docs/task/change.go`, `internal/docs/task/tools.go`, `internal/docs/task/task_test.go` | FR-1 to FR-4. Tests for AC-1 to AC-4. | `go test ./internal/docs/task/` |
+| 2 | `internal/docs/task/index.go`, `internal/docs/task/task_test.go` | FR-5. | `go test ./internal/docs/task/` |
+| 3 | `docs/tasks/*.md`, `README.md`, `internal/plugin/assets/skills/task/SKILL.md` | FR-6 with `task_update_fields`, FR-7, FR-8. | `task_list(status: all)` shows a milestone in each row; `TestIndexMatchesRepository` passes |
 
 ## 9. Acceptance Criteria
 
-- AC-1: When `task_create` runs with no milestone, then the tool refuses it.
+- AC-1: When `task_create` runs with no milestone, or with `milestone: 0.1`, then the tool refuses it.
 - AC-2: Given tasks in v0.1.0 and v0.2.0, when `task_list(milestone: v0.1.0)` runs, then the result has only v0.1.0 tasks.
-- AC-3: Given TASK-A with a dependency that is not `Done`, and TASK-B with all dependencies `Done`, when `task_list(status: ready)` runs, then the result has TASK-B and not TASK-A.
-- AC-4: `INDEX.md` has one table for each milestone.
+- AC-3: Given an `Approved` TASK-A with a dependency that is not `Done`, an `Approved` TASK-B with all dependencies `Done`, and a `Draft` TASK-C with no dependencies, when `task_list(status: ready)` runs, then the result has only TASK-B.
+- AC-4: Given tasks in v0.2.0 and v0.1.0, when `task_list(status: ready)` runs, then the v0.1.0 tasks come first.
+- AC-5: `INDEX.md` has one open table for each milestone and one closed table.
 
 ## 10. Validation and Metrics
+
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| [Response time (ms)] | [value] | [value] | [tool, setup, steps] |
+| Tool calls to find the next work | `task_list` and reads of each dependency | 1 `task_list(status: ready)` | AC-3 test |
 
-- Tests: [unit tests, manual steps].
-- Platforms not verified: [list, or None].
+- Tests: unit tests in `internal/docs/task/task_test.go`; `task_list` after work batch 3.
+- Platforms not verified: none. CI runs on macOS, Linux and Windows.
 
 ## 11. Risks and Mitigations
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| [Risk] | Low / Medium / High | [Action] |
+| A task in work batch 3 gets the wrong milestone | Low | FR-6 gives the full list. Compare `task_list(milestone: ...)` with it. |
 
 ## 12. Removal and Compatibility
 
 Delete the field, the filters and the INDEX groups. Files with a `milestone` line stay valid.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+| Q-1 | Does status: ready give only Approved tasks with all dependencies Done? Recommended: yes, because only an Approved task can start (TASK-034). Drafts and In Review tasks are not ready. | Equal | Yes. status: ready gives only Approved tasks with all dependencies Done. |
+| Q-2 | INDEX.md layout with milestones. Recommended: one table of open tasks for each milestone, in SemVer order, and one Closed table at the end as now, because closed tasks are history. | Equal | Yes. One open table for each milestone in SemVer order, and one Closed table at the end. |
+| Q-3 | Do the tools refuse a milestone that is not vMAJOR.MINOR.PATCH (example v0.1.0)? Recommended: yes, because the ready order compares versions. | Equal | Yes. Refuse a milestone that is not vMAJOR.MINOR.PATCH. |
+| Q-4 | Milestones of existing tasks. Recommended: v0.1.0 for TASK-001 to TASK-008 and TASK-017 to TASK-035 (except TASK-027, see its Q-1); v0.2.0 for TASK-009 to TASK-013; v0.3.0 TASK-014; v0.4.0 TASK-015; v0.5.0 TASK-016. Also remove "(v0.3)" from the title of TASK-014. | Equal | Yes, and TASK-027 is also v0.1.0 (TASK-027 Q-1). Remove "(v0.3)" from the title of TASK-014. |
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (README roadmap, `/dx:task` skill, ADR-006).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
 - [ ] `/dx:eureka` is done.

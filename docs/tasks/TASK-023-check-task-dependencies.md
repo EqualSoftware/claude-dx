@@ -45,22 +45,26 @@ Also, `internal/docs/task/change.go:144` adds one full phrase for each unchecked
 
 ## 5. Context
 ### 5.1 Current State
-[How the system works today. Use `path:line` references.]
+
+`New.check` (`internal/docs/task/create.go:27`) and `Update.check` (`internal/docs/task/change.go:58`) check the field values, but not `depends_on`. `uncheckedDoD` (`internal/docs/task/change.go:180`) adds one phrase for each item (`:184`).
 
 ### 5.2 Assumptions
-- A-1: [Fact that the task accepts as true. How to verify it.]
+
+- A-1: Each task has a `milestone` field (TASK-030). Verify: `task_list(status: all)` after TASK-030.
 
 ### 5.3 Constraints
-- [Technical, platform, performance, memory, dependency, compatibility or time limits.]
-- [Accepted ADRs that apply: ADR-NNN.]
+
+- ADR-013 (dependency rules), ADR-005 (compact results), ADR-006.
+- Tests pass on macOS, Linux and Windows.
 
 ## 6. Requirements
 
 ### 6.1 Functional
+
 - FR-1: The tools refuse a dependency ID that has no task file (decision of the maintainer in the QA chat).
 - FR-2: The tools refuse the ID of the same task.
 - FR-3: The tools refuse a list that makes a cycle, and give the cycle path, example `TASK-001 -> TASK-002 -> TASK-001`.
-- FR-4: The tools refuse a dependency that is `Done`, and tell to put it in Related, because it sets no order (ADR-013).
+- FR-4: The tools refuse a dependency that is `Done` or `Cancelled`, and tell to put it in `related`, because it sets no order (ADR-013, Q-1).
 - FR-5: The tools refuse a dependency with a later milestone than the task, because the task cannot be done in its milestone (ADR-013).
 - FR-6: The result has a warning when a dependency has a lower priority than the task, because the task waits for it.
 - FR-7: On a refusal, no file changes.
@@ -72,7 +76,7 @@ Also, `internal/docs/task/change.go:144` adds one full phrase for each unchecked
 ## 7. Design
 
 ### 7.1 Architecture
-One check function in `internal/docs/task/`, called before the write in `create.go` (field `DependsOn`, `internal/docs/task/create.go:37`) and `change.go` (`internal/docs/task/change.go:72`). The message change is at `internal/docs/task/change.go:144`.
+One check function in a new file `internal/docs/task/deps.go`. `Store.Create` (`internal/docs/task/create.go:44`) and `Store.UpdateFields` (`internal/docs/task/change.go:96`) call it before the write, when `depends_on` is given. The message change is in `uncheckedDoD` (`internal/docs/task/change.go:180`).
 
 ### 7.2 Public API
 No change to the tool inputs. The result can have warning lines.
@@ -88,50 +92,55 @@ Not applicable.
 - A warning for a `Done` dependency: rejected (ADR-013).
 
 ## 8. Implementation Plan
-[Few, large work batches in order.]
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | [paths] | [exact steps, commands, symbols] | [command] |
+| 1 | `internal/docs/task/deps.go`, `internal/docs/task/create.go`, `internal/docs/task/change.go`, `internal/docs/task/tools.go`, `internal/docs/task/task_test.go` | FR-1 to FR-7. One test for each of AC-1 to AC-6. | `go test ./internal/docs/task/` |
+| 2 | `internal/docs/task/change.go`, `internal/docs/task/task_test.go` | FR-8 and AC-7. | `go test ./internal/docs/task/` |
 
 ## 9. Acceptance Criteria
 
 - AC-1: When `task_create(depends_on: [TASK-099])` runs and TASK-099 does not exist, then the tool refuses it and no file is created.
 - AC-2: Given TASK-001 depends on TASK-002, when `task_update_fields(TASK-002, depends_on: [TASK-001])` runs, then the tool refuses it with the cycle path.
 - AC-3: When `task_update_fields(TASK-002, depends_on: [TASK-002])` runs, then the tool refuses it.
-- AC-4: Given TASK-001 is `Done`, when `task_create(depends_on: [TASK-001])` runs, then the tool refuses it and tells to use Related.
+- AC-4: Given TASK-001 is `Done` and TASK-003 is `Cancelled`, when `task_create` runs with one of them in `depends_on`, then the tool refuses it and tells to use `related`.
 - AC-5: Given TASK-002 in `v0.2.0`, when a `v0.1.0` task gets `depends_on: [TASK-002]`, then the tool refuses it.
 - AC-6: Given TASK-002 with `P3`, when a `P1` task gets `depends_on: [TASK-002]`, then the change is done and the result has a warning.
 - AC-7: Given a task with items 2 to 6 not checked, when `task_set_status(Done)` runs, then the refusal has one phrase with the numbers 2, 3, 4, 5, 6.
 
 ## 10. Validation and Metrics
+
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| [Response time (ms)] | [value] | [value] | [tool, setup, steps] |
+| Invalid dependencies that the tools accept | 3 kinds in the QA session | 0 | AC-1 to AC-5 tests |
+| Length of the Done refusal for 5 items | 5 phrases | 1 phrase | AC-7 test |
 
-- Tests: [unit tests, manual steps].
-- Platforms not verified: [list, or None].
+- Tests: unit tests in `internal/docs/task/task_test.go`.
+- Platforms not verified: none. CI runs on macOS, Linux and Windows.
 
 ## 11. Risks and Mitigations
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| [Risk] | Low / Medium / High | [Action] |
+| The cycle check reads all task files at each change | Low | It reads only the frontmatter, one time each (NFR-1). |
 
 ## 12. Removal and Compatibility
 
 Delete the check function and its two calls, and revert the message change. Existing task files are not changed.
 
 ## 13. Open Questions
+
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+| Q-1 | Do the tools also refuse a dependency on a Cancelled task? Recommended: yes, with the same message as for Done (use related), because a Cancelled task sets no order either. | Equal | Yes. Refuse a dependency on a Cancelled task, with the same message as for Done. |
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (`/dx:task` skill: the dependency rules).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
 - [ ] `/dx:eureka` is done.

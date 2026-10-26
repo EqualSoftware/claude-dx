@@ -38,14 +38,17 @@ The rules of `task_set_status` check only the new status (`internal/docs/task/ch
 
 ## 5. Context
 ### 5.1 Current State
-[How the system works today. Use `path:line` references.]
+
+The `rules` map (`internal/docs/task/change.go:135`) checks only the new status. `Store.SetStatus` (`:114`) does not read the current status before the change.
 
 ### 5.2 Assumptions
-- A-1: [Fact that the task accepts as true. How to verify it.]
+
+- None.
 
 ### 5.3 Constraints
-- [Technical, platform, performance, memory, dependency, compatibility or time limits.]
-- [Accepted ADRs that apply: ADR-NNN.]
+
+- ADR-013 (the flow).
+- Tests pass on macOS, Linux and Windows.
 
 ## 6. Requirements
 
@@ -67,7 +70,7 @@ The rules of `task_set_status` check only the new status (`internal/docs/task/ch
 ## 7. Design
 
 ### 7.1 Architecture
-One map from the current status to the allowed statuses in `internal/docs/task/change.go`, checked before the `rules` map (`internal/docs/task/change.go:98`).
+One map from the current status to the allowed statuses in `internal/docs/task/change.go`, checked in `Store.SetStatus` (`internal/docs/task/change.go:114`) before the `rules` map (`:135`).
 
 ### 7.2 Public API
 No change to the inputs.
@@ -94,17 +97,19 @@ Not applicable.
 - AC-3: Given an `In Review` task with no problems, when `task_set_status(Approved)` runs, then the change is done.
 
 ## 10. Validation and Metrics
+
 | Metric | Baseline | Target | How to measure |
 | :--- | :--- | :--- | :--- |
-| [Response time (ms)] | [value] | [value] | [tool, setup, steps] |
+| Status changes that skip a step | All are accepted | 0 | AC-1 and AC-2 tests |
 
-- Tests: [unit tests, manual steps].
-- Platforms not verified: [list, or None].
+- Tests: one test for each row of FR-1.
+- Platforms not verified: none. CI runs on macOS, Linux and Windows.
 
 ## 11. Risks and Mitigations
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| [Risk] | Low / Medium / High | [Action] |
+| A task is in a status with no allowed change that the user needs | Low | The refusal gives the allowed statuses. `Cancelled` -> `Draft` opens a task again. |
 
 ## 12. Removal and Compatibility
 
@@ -114,14 +119,15 @@ Delete the map and its check.
 
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | Confirm the table of FR-1. Recommended: as written. Points to check: Done is final (no reopen); Cancelled goes back only to Draft; Blocked goes back to Approved or In Development. | Equal | Open |
+| Q-1 | Confirm the table of FR-1. Recommended: as written. Points to check: Done is final (no reopen); Cancelled goes back only to Draft; Blocked goes back to Approved or In Development. | Equal | Yes, as written. |
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (`/dx:task` skill, ADR-013: the table of FR-1).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
 - [ ] `/dx:eureka` is done.
