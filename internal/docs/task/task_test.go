@@ -548,6 +548,23 @@ func TestDependsOnRules(t *testing.T) {
 	}
 }
 
+// TestRetitleUsedTitle is AC-1 and AC-2 of TASK-056.
+func TestRetitleUsedTitle(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "One")
+	create(t, s, "Two")
+	before := read(t, s, "TASK-002")
+	if _, _, err := s.UpdateFields("TASK-002", Update{Title: "one"}); err == nil || !strings.Contains(err.Error(), "TASK-001 has the same title") {
+		t.Fatalf("AC-1: UpdateFields = %v", err)
+	}
+	if read(t, s, "TASK-002") != before {
+		t.Fatal("AC-1: a refused title change changed the file")
+	}
+	if _, _, err := s.UpdateFields("TASK-001", Update{Title: "ONE"}); err != nil {
+		t.Fatalf("AC-2: UpdateFields = %v", err)
+	}
+}
+
 // TestOldDoneDependency is AC-1 to AC-3 of TASK-040.
 func TestOldDoneDependency(t *testing.T) {
 	s := newStore(t)

@@ -173,6 +173,9 @@ func (s Store) UpdateFields(id string, u Update) (file, warnings string, err err
 			}
 		}
 		if u.Title != "" {
+			if err := s.checkNewTitle(u.Title, kind.ID(mustNumber(d.path))); err != nil {
+				return err
+			}
 			file = retitle(d, u.Title)
 		}
 		if u.DependsOn == nil {

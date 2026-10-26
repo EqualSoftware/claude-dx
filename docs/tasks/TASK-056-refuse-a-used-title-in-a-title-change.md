@@ -1,7 +1,7 @@
 ---
 id: TASK-056
 title: Refuse a used title in a title change
-status: Approved
+status: Done
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,8 @@ related: [TASK-042]
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
 | 2026-10-26 | Equal | Status: Approved. |
+| 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -120,8 +122,14 @@ Revert the change.
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: AC-1, AC-2: TestRetitleUsedTitle (internal/docs/task/task_test.go). go test ./internal/docs/task/ passes.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet, go test ./... pass; golangci-lint v2.15.0: 0 issues.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: No doc change necessary: the task_create title schema already says "not the title of another task".
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: no design diagram.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: Not applicable: no architecture decision.

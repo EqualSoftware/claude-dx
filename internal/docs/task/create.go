@@ -58,7 +58,7 @@ func (s Store) create(t New) (path, warnings string, err error) {
 	if err := t.check(); err != nil {
 		return "", "", err
 	}
-	if err := s.checkNewTitle(t.Title); err != nil {
+	if err := s.checkNewTitle(t.Title, ""); err != nil {
 		return "", "", err
 	}
 	warnings, err = s.checkDeps(Front{Milestone: t.Milestone, Priority: t.Priority, DependsOn: t.DependsOn}, nil)
@@ -130,15 +130,18 @@ func checkNesting(body string, sections map[string]string) error {
 	return nil
 }
 
-// checkNewTitle refuses a title that another task has, in all statuses.
-func (s Store) checkNewTitle(title string) error {
+// checkNewTitle refuses a title that another task has, in all statuses. It ignores the task self,
+// so a change of only the case passes.
+func (s Store) checkNewTitle(title, self string) error {
 	tasks, _, err := s.List(Filter{"status": "all"})
 	if err != nil && !errors.Is(err, ErrNoDir) {
 		return err
 	}
 	titles := make(map[string]string, len(tasks))
 	for _, t := range tasks {
-		titles[t.Front.ID] = t.Front.Title
+		if t.Front.ID != self {
+			titles[t.Front.ID] = t.Front.Title
+		}
 	}
 	return docfile.CheckNewTitle(title, titles)
 }
