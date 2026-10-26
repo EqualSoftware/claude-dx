@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -219,7 +218,7 @@ type doc struct {
 }
 
 // edit reads the task, changes it with fn, writes it and makes README.md again, with the docs lock. If fn
-// changes d.path, edit writes the new file, and removes the old file. It refuses a new path that exists.
+// changes d.path, edit moves the file to the new path. It refuses a new path that exists.
 func (s Store) edit(id string, fn func(*doc) error) error {
 	return docfile.Locked(s.Lock, func() error { return s.editLocked(id, fn) })
 }
@@ -250,15 +249,16 @@ func (s Store) editLocked(id string, fn func(*doc) error) error {
 	return s.WriteIndex()
 }
 
-// rename writes data to the new path and removes the old path.
+// rename writes data to the old path, then moves the file to the new path, so a failure never leaves
+// two files with one number (TASK-049). It refuses a new path that exists before it changes a file.
 func rename(old, path string, data []byte) error {
-	if err := docfile.Create(path, data); err != nil {
-		if errors.Is(err, fs.ErrExist) {
-			return fmt.Errorf("%s exists. Give a different title", filepath.Base(path))
-		}
+	if _, err := os.Lstat(path); err == nil {
+		return fmt.Errorf("%s exists. Give a different title", filepath.Base(path))
+	}
+	if err := docfile.Write(old, data); err != nil {
 		return err
 	}
-	return os.Remove(old)
+	return docfile.Move(old, path)
 }
 
 func (s Store) today() string {

@@ -1,11 +1,21 @@
 package docfile
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 )
+
+// must stops the test if err is not nil.
+func must(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestWrite(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "a.md")
@@ -55,6 +65,45 @@ func TestWriteOpenFile(t *testing.T) {
 	}
 	if data, _ := os.ReadFile(path); string(data) != "new" {
 		t.Fatalf("file = %q, want new", data)
+	}
+}
+
+// TestMoveExists is AC-1 of TASK-049: Move refuses a path that exists and changes no file.
+func TestMoveExists(t *testing.T) {
+	dir := t.TempDir()
+	old, path := filepath.Join(dir, "a.md"), filepath.Join(dir, "b.md")
+	must(t, os.WriteFile(old, []byte("a"), 0o644))
+	must(t, os.WriteFile(path, []byte("b"), 0o644))
+	if err := Move(old, path); !errors.Is(err, fs.ErrExist) {
+		t.Fatalf("Move = %v, want fs.ErrExist", err)
+	}
+	a, _ := os.ReadFile(old)
+	b, _ := os.ReadFile(path)
+	if string(a) != "a" || string(b) != "b" {
+		t.Fatalf("Move changed the files: %q, %q", a, b)
+	}
+}
+
+// TestMoveOpenFile is AC-2 of TASK-049: Move renames a file that a reader has open. On Windows the
+// rename waits until the reader closes the file.
+func TestMoveOpenFile(t *testing.T) {
+	dir := t.TempDir()
+	old, path := filepath.Join(dir, "a.md"), filepath.Join(dir, "b.md")
+	must(t, os.WriteFile(old, []byte("a"), 0o644))
+	f, err := os.Open(old)
+	must(t, err)
+	done := make(chan error)
+	go func() { done <- Move(old, path) }()
+	time.Sleep(100 * time.Millisecond)
+	_ = f.Close()
+	if err := <-done; err != nil {
+		t.Fatalf("Move = %v", err)
+	}
+	if _, err := os.Stat(old); !os.IsNotExist(err) {
+		t.Fatalf("the old file exists: %v", err)
+	}
+	if data, _ := os.ReadFile(path); string(data) != "a" {
+		t.Fatalf("new file = %q, want a", data)
 	}
 }
 

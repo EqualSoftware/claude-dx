@@ -578,15 +578,17 @@ func (s Store) renumber(file string) (string, []string, error) {
 	var f Front
 	_ = markdown.Decode(front, &f)
 	var newID string
+	// The file moves with one rename, so a failure never leaves a third file (TASK-049).
 	_, err = s.Alloc.Next("task", s.Dir, kind.Pattern, func(n int) error {
 		newID = kind.ID(n)
 		doc := markdown.Join(markdown.SetField(front, "id", newID), setHeader(body, newID, f.Title))
-		return docfile.Create(filepath.Join(s.Dir, newID+strings.TrimPrefix(file, oldID)), []byte(doc))
+		old := filepath.Join(s.Dir, file)
+		if err := docfile.Write(old, []byte(doc)); err != nil {
+			return err
+		}
+		return docfile.Move(old, filepath.Join(s.Dir, newID+strings.TrimPrefix(file, oldID)))
 	})
 	if err != nil {
-		return "", nil, err
-	}
-	if err := os.Remove(filepath.Join(s.Dir, file)); err != nil {
 		return "", nil, err
 	}
 	refs, err := s.references(oldID)

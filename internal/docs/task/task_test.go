@@ -368,6 +368,13 @@ func TestRenumber(t *testing.T) {
 	}
 	_, err = s.Get("TASK-001", "")
 	must(t, err)
+	// AC-4 of TASK-049: the file moved, so one file has each number.
+	if _, err := os.Stat(filepath.Join(s.Dir, "TASK-001-dup.md")); !os.IsNotExist(err) {
+		t.Fatalf("the old file exists: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(s.Dir, "TASK-003-dup.md")); err != nil {
+		t.Fatalf("the new file does not exist: %v", err)
+	}
 }
 
 // TestIndexMatchesRepository makes README.md for the tasks of this repository and compares it with

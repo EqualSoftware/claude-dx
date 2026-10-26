@@ -2,6 +2,7 @@ package docfile
 
 import (
 	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -51,6 +52,19 @@ func Write(path string, data []byte) error {
 		_ = os.Remove(tmp)
 	}
 	return err
+}
+
+// Move renames old to path with one rename, so a failure leaves one file (TASK-049). It refuses a path
+// that exists, because os.Rename replaces a file on Unix.
+func Move(old, path string) error {
+	_, err := os.Lstat(path)
+	if err == nil {
+		return &fs.PathError{Op: "move", Path: path, Err: fs.ErrExist}
+	}
+	if !NotExist(err) {
+		return err
+	}
+	return rename(old, path)
 }
 
 // rename renames tmp to path. Windows refuses to replace a file that a reader has open, because Go opens
