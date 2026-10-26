@@ -1,7 +1,7 @@
 ---
 id: TASK-017
 title: Prepare the repository for release
-status: In Development
+status: Done
 priority: P2
 milestone: v0.1.0
 type: chore
@@ -16,6 +16,7 @@ related: [ADR-008, ADR-012]
 # TASK-017: Prepare the repository for release
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Claude | Initial specification from the open source review. Decisions by the maintainer. |
@@ -23,6 +24,7 @@ related: [ADR-008, ADR-012]
 | 2026-10-25 | Equal | Repository made public. FR-2, FR-3, FR-5, FR-6 applied. FR-4 needs the web UI (no API). |
 | 2026-10-25 | Equal | Reported content (FR-4) exists only for organization repositories. Repository moved to the EqualSoftware organization; module path is now `github.com/EqualSoftware/claude-dx`. Secret scanning and CodeQL were off after the transfer and are on again. Code owner: `@EqualSoftware/developers`. |
 | 2026-10-25 | Equal | FR-4: reported content set to "all users" in the repository settings (confirmed in the web UI). The community profile API still shows `content_reports_enabled: false` and 87 %; check again before Done. |
+| 2026-10-25 | Equal | AC-1 passes (GH013 refuses force push). AC-2 accepted with a GitHub deviation: reported content is on for all users, but the Community Standards page and the API do not show it. |
 
 ## 1. Summary
 Make the repository public and turn on the GitHub features that need a public repository: the main branch ruleset, private vulnerability reporting, reported content, secret scanning and CodeQL.
@@ -111,9 +113,10 @@ Not applicable.
 | Q-1 | None. | — | — |
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated.
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+
+- [x] All acceptance criteria pass, with evidence. AC-1 pass: `git push --force origin HEAD~2:main` gave "GH013: Repository rule violations found for refs/heads/main. Cannot force-push to this branch"; origin/main stayed 8a20853. AC-2 accepted with a known deviation (maintainer decision): all items are complete except "Repository admins accept content reports". Reported content is set to "all users" in the settings, but the Community Standards page and the API (content_reports_enabled: false, 87 %) do not show it. The API also shows issue_template null, but issue forms exist in .github/ISSUE_TEMPLATE. Other features: public, ruleset "Protect main" active, private vulnerability reporting on, secret scanning and push protection on with 0 alerts, Dependabot on, CodeQL configured for go and actions.
+- [x] Project checks (build, tests, lint) pass. go build, go vet and go test ./... pass; golangci-lint v2.15.0: 0 issues. No code change in this task.
+- [x] Docs are updated. Not applicable: the task changes only repository settings. SECURITY.md and CODE_OF_CONDUCT.md already refer to the features.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no code and no design (section 7.1 is not applicable).
+- [x] ADRs are recorded for architectural decisions. No new architecture decision. The rules follow ADR-008 (rebase only, no force push).
+- [x] `/dx:eureka` is done. The /dx:eureka skill comes in TASK-013. Lessons recorded with /dx:learning in docs/learnings/github-repository-checks.md.
