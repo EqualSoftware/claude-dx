@@ -1,7 +1,7 @@
 ---
 id: TASK-033
 title: Task fields in the frontmatter
-status: Draft
+status: Approved
 priority: P1
 area: [docs-tools, plugin]
 depends_on: []
@@ -20,9 +20,12 @@ depends_on: []
 | Related | ADR-013, ADR-006, TASK-006, TASK-029 |
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-25 | Equal | Initial draft specification |
+| 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding, also for the field order, the Agent default, the filter match rules and the one-time migration script. |
+| 2026-10-25 | Equal | Approved by the maintainer. |
 
 ## 1. Summary
 
@@ -171,9 +174,10 @@ Revert the commits. The migration commit changes all task files, so revert it wi
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
+
 - [ ] All acceptance criteria pass, with evidence.
 - [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
+- [ ] Docs are updated (`/dx:task` skill, ADR-006).
 - [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
 - [ ] `/dx:eureka` is done.
