@@ -69,8 +69,21 @@ func TestSlug(t *testing.T) {
 	}
 }
 
+// TestCheckTitleSlug is AC-1 and AC-2 of TASK-044. "ção" has the ASCII letter "o", so AC-1 uses a title
+// with no ASCII letter or digit.
+func TestCheckTitleSlug(t *testing.T) {
+	for _, title := range []string{"日本語", "ç ã é", "—"} {
+		if err := CheckTitle(title); err == nil || !strings.Contains(err.Error(), "ASCII letters or digits") {
+			t.Errorf("CheckTitle(%q) = %v", title, err)
+		}
+	}
+	if err := CheckTitle("Ação 2"); err != nil {
+		t.Errorf("CheckTitle(Ação 2) = %v", err)
+	}
+}
+
 func TestCheckTitle(t *testing.T) {
-	if err := CheckTitle(strings.Repeat("é", 40)); err != nil {
+	if err := CheckTitle("x" + strings.Repeat("é", 39)); err != nil {
 		t.Errorf("40 characters: %v", err)
 	}
 	if err := CheckTitle(strings.Repeat("x", 41)); err == nil || !strings.Contains(err.Error(), "41 characters") {

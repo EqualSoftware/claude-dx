@@ -17,7 +17,8 @@ import (
 // MaxTitle is the maximum length of a task or ADR title, so a file name is short (ADR-013).
 const MaxTitle = 40
 
-// CheckTitle refuses an empty title and a title of more than MaxTitle characters.
+// CheckTitle refuses an empty title, a title of more than MaxTitle characters and a title with an empty
+// slug, because the file name must not be "TASK-NNN-.md".
 func CheckTitle(title string) error {
 	n := utf8.RuneCountInString(strings.TrimSpace(title))
 	if n == 0 {
@@ -25,6 +26,9 @@ func CheckTitle(title string) error {
 	}
 	if n > MaxTitle {
 		return fmt.Errorf("the title has %d characters. The limit is %d. Write a shorter title", n, MaxTitle)
+	}
+	if Slug(title) == "" {
+		return errors.New("give a title with ASCII letters or digits")
 	}
 	return nil
 }
