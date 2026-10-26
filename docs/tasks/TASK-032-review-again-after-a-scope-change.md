@@ -1,7 +1,7 @@
 ---
 id: TASK-032
 title: Review again after a scope change
-status: Approved
+status: Done
 priority: P2
 milestone: v0.1.0
 type: feat
@@ -22,6 +22,8 @@ related: [ADR-013, TASK-026, TASK-013]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -126,9 +128,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`/dx:task` skill, ADR-013).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. `TestScopeChangeNeedsReview` (`internal/docs/task/task_test.go`): AC-1 section 6.1 sets In Review and adds the history row, and the tool result tells it; AC-2 section 13 keeps Approved; AC-3 `task_update_fields` keeps Approved.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `05c3179`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (`/dx:task` skill, ADR-013). Commit `05c3179`: the `/dx:task` skill has the Flow section (ADR-013 steps, the merge rule, a new finding is a new task); ADR-013 step 3 gives sections 3, 4, 6, 7 and 9.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: one status change in one tool. The skill Flow section gives the process.
+- [x] ADRs are recorded for architectural decisions (ADR-013 has the decision). ADR-013 step 3 records the decision and the sections.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new reusable lesson.
