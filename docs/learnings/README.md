@@ -5,7 +5,9 @@ This folder has the verified technical lessons of the project. Use `/dx:learning
 
 | Topic | Description |
 | :--- | :--- |
-| [github-repository-checks](github-repository-checks.md) | How to check GitHub repository settings and branch rules. Use it when you verify the community profile or a ruleset of a repository. |
+| [github-repository-checks](github-repository-checks.md) | How to check GitHub repository settings, branch rules and releases. Use it when you verify the community profile or a ruleset of a repository, or delete a release. |
+| [go-file-locks](go-file-locks.md) | How OS file locks from Go behave between handles, processes and child processes. Use it when code takes flock or LockFileEx locks. |
+| [go-file-modes](go-file-modes.md) | How Go sets file and directory modes, and how to test a failed os.Stat. Use it when code writes, copies or replaces files and must keep their permission bits. |
 | [go-signals-child-process](go-signals-child-process.md) | How Go signal handling of a parent process changes the signals of a child process, and when os/signal drops a signal. Use it when a Go process runs a child and catches or forwards signals. |
 | [go-windows-file-sharing](go-windows-file-sharing.md) | How Go opens files on Windows and why a rename over an open file can fail. Use it when code replaces a file that another process can read. |
 | [go-yaml-flow-lists](go-yaml-flow-lists.md) | How to write a YAML flow list with go.yaml.in/yaml/v3 so that items with commas stay one item. Use it when code writes frontmatter lists. |
