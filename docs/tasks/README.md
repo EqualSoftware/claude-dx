@@ -24,7 +24,7 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-046](TASK-046-build-provenance-for-release-files.md) | Build provenance for release files | `Approved` | `P3` | `ci` | TASK-041 |
+| [TASK-046](TASK-046-build-provenance-for-release-files.md) | Build provenance for release files | `In Development` | `P3` | `ci` | TASK-041 |
 
 ## v0.2.0
 

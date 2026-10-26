@@ -1,7 +1,7 @@
 ---
 id: TASK-046
 title: Build provenance for release files
-status: Approved
+status: In Development
 priority: P3
 milestone: v0.1.0
 type: ci
@@ -22,6 +22,7 @@ related: [ADR-004, ADR-012, TASK-001]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
+| 2026-10-26 | Equal | Status: In Development. |
 
 ## 1. Summary
 
@@ -56,7 +57,7 @@ The `goreleaser` job (`.github/workflows/release.yml`) makes the files in `dist/
 ## 6. Requirements
 ### 6.1 Functional
 
-- FR-1: After GoReleaser, the `goreleaser` job runs `actions/attest-build-provenance` with the subjects `dist/*.tar.gz`, `dist/*.zip` and `dist/checksums.txt`.
+- FR-1: After GoReleaser, the `goreleaser` job runs `actions/attest` in the default provenance mode with the subjects `dist/*.tar.gz`, `dist/*.zip` and `dist/checksums.txt`. Since v4, `actions/attest-build-provenance` is only a wrapper of `actions/attest`, and its docs tell new workflows to use `actions/attest`.
 - FR-2: The job gets the permissions `id-token: write` and `attestations: write`.
 - FR-3: `README.md` and `SECURITY.md` give the command `gh attestation verify <file> --repo EqualSoftware/claude-dx`.
 

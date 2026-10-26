@@ -26,3 +26,11 @@ These parts are important for security:
 - The download of LSP servers and runtimes.
 - The `PreToolUse` hook that checks Bash commands.
 - The git tools and the path checks that keep file operations inside the project.
+
+## Verify a release
+
+The checksum in `checksums.txt` comes from the same release as the binaries. Each release file, and `checksums.txt`, also has a GitHub build provenance attestation from the release workflow. To verify a file, run:
+
+```sh
+gh attestation verify <file> --repo EqualSoftware/claude-dx
+```

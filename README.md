@@ -47,6 +47,12 @@ irm https://raw.githubusercontent.com/EqualSoftware/claude-dx/main/scripts/insta
 
 The scripts verify the SHA-256 checksum of the release. To change the install directory, set `CLAUDE_DX_INSTALL_DIR`.
 
+Each release file has a GitHub build provenance attestation. It proves that the release workflow of this repository made the file. To verify a file that you downloaded, use the [GitHub CLI](https://cli.github.com/):
+
+```sh
+gh attestation verify claude-dx_<version>_<os>_<arch>.tar.gz --repo EqualSoftware/claude-dx
+```
+
 ## Use
 
 ```sh
