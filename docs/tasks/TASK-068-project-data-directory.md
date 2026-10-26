@@ -1,7 +1,7 @@
 ---
 id: TASK-068
 title: Project data directory
-status: Draft
+status: Approved
 priority: P1
 milestone: v0.1.0
 type: feat
@@ -16,9 +16,12 @@ related: [ADR-018, ADR-007, ADR-015]
 # TASK-068: Project data directory
 
 ## Document History
+
 | Date | Author | Description / Change Notes |
 | :--- | :--- | :--- |
 | 2026-10-26 | Equal | Initial draft specification |
+| 2026-10-26 | Equal | Status: In Review. |
+| 2026-10-26 | Equal | The user approved the task in the conversation. |
 
 ## 1. Summary
 
@@ -196,6 +199,8 @@ Revert the change and the new ADR. Data in `<Common>/dx/` stays until a person r
 | Q-11 | Warning text of a failed move (Q-10): "claude-dx: cannot move the project data from <old> to <new>: <error>. The data stays in <old>." Recommended: yes. | Maintainer | Yes. "claude-dx: cannot move the project data from <old> to <new>: <error>. The data stays in <old>." |
 | Q-12 | The launcher runs `project.Open` (two `git rev-parse` processes, about 10 ms) only in the exclusive cache lock window, so only when no other claude-dx process runs. Accept this start cost? Recommended: yes. | Maintainer | Yes. Accept the cost of project.Open in the exclusive window. |
 | Q-13 | JSON formats: Project file (cache) `{"path": "/abs/root", "last_used": "2026-10-26T12:00:00Z"}` (RFC 3339, UTC); Project file (data) `{"counters": {"adr": 18}}`. Recommended: yes. | Maintainer | Yes. Cache: {"path", "last_used" in RFC 3339 UTC}. Data: {"counters": {"adr": N}}. |
+| Q-14 | Name of the move function: `func (p Project) MoveData(cacheDir string) error` in package project? Recommended: yes. | Maintainer | Yes. MoveData in package project. |
+| Q-15 | The move copies regular files and directories with their permission bits? Recommended: yes, as TASK-058 does. | Maintainer | Yes. Keep the permission bits. |
 
 The status cannot be `Approved` while a question is `Open`.
 
