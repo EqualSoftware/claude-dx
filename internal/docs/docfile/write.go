@@ -51,16 +51,33 @@ func withLock(lock string, take func(string) (func() error, error), fn func() er
 	return fn()
 }
 
+// modeOf returns the permission bits of the file at path, or 0644 if it does not exist (TASK-058).
+func modeOf(path string) (fs.FileMode, error) {
+	info, err := os.Stat(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return 0o644, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	return info.Mode().Perm(), nil
+}
+
 // Write writes data to a temporary file in the directory of path, then renames it to path, so a reader
-// sees the old or the new content, never a partial file. A failure removes the temporary file.
+// sees the old or the new content, never a partial file. The file keeps its mode. A failure removes the
+// temporary file.
 func Write(path string, data []byte) error {
+	mode, err := modeOf(path)
+	if err != nil {
+		return err
+	}
 	f, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
 	if err != nil {
 		return err
 	}
 	tmp := f.Name()
 	_, err = f.Write(data)
-	err = errors.Join(err, f.Chmod(0o644), f.Close())
+	err = errors.Join(err, f.Chmod(mode), f.Close())
 	if err == nil {
 		err = rename(tmp, path)
 	}
