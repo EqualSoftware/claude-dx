@@ -1,7 +1,7 @@
 ---
 id: TASK-041
 title: Session locks for the plugin cache
-status: In Development
+status: Done
 priority: P2
 milestone: v0.1.0
 type: feat
@@ -23,6 +23,7 @@ related: [ADR-001, ADR-003, TASK-003, TASK-027]
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
 | 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -169,8 +170,13 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`README.md`, cache section).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions (session locks).
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: TestStartRemovesUnused (AC-1, AC-4), TestCleanRefusesRunningSession and TestCacheCleanRefusesSession (AC-2), TestCleanRemovesCache and TestCacheClean (AC-3), TestLockStaysAfterExec (AC-5) pass. Manual check on macOS by the maintainer: with two sessions open, sessions/ had two lock files and claude-dx cache clean refused to remove the cache. After the maintainer closed the two sessions, cache clean removed the cache. Commit 37a22c4.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet, go test ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (`README.md`, cache section).
+  - Evidence: README.md:62 says that each session holds a lock file, that the start removes the plugin files that no session uses, and that cache clean removes nothing while a session runs.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: The sequence diagram in section 7.1 of this task describes internal/session/session.go Start. The project has no area doc folder; ADR-014 records the design.
+- [x] ADRs are recorded for architectural decisions (session locks).
+  - Evidence: ADR-014 Session lock files for the plugin cache (docs/decisions/ADR-014-session-lock-files-for-the-plugin-cache.md).
