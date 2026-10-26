@@ -1,7 +1,7 @@
 ---
 id: TASK-055
 title: Extract the plugin per binary path
-status: In Development
+status: Done
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -23,6 +23,7 @@ related: [ADR-001, ADR-014]
 | 2026-10-26 | Equal | Status: In Review. |
 | 2026-10-26 | Equal | Status: Approved. |
 | 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -125,8 +126,14 @@ Revert the change and ADR-001.
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: Commit aef1390. AC-1: TestEnsureReleasePerBinary passes (internal/plugin/plugin_test.go); it fails when DirName returns only the version. AC-2: TestEnsureReusesRelease passes.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: Commit aef1390: go build, go vet (darwin, linux, windows), go test ./... and go test -race pass; golangci-lint v2.15.0 gives 0 issues for darwin, linux and windows; govulncheck finds no vulnerabilities. TestDoctor now expects the plugin name v9.9.9-<key>.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: No area doc or CLAUDE.md gives the plugin directory name (grep "plugin/<version>" in docs: only old tasks). The DirName comment in internal/plugin/plugin.go gives the new name.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: the change is one directory name and has no design diagram.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: ADR-001 Decision gives <cache>/plugin/<version>-<key> (commit aef1390).
