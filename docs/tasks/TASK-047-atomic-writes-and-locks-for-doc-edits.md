@@ -9,8 +9,8 @@ size: M
 owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [docs-tools]
-depends_on: [TASK-037, TASK-039, TASK-040, TASK-042, TASK-043, TASK-044]
-related: [ADR-006, ADR-007]
+depends_on: [TASK-040, TASK-042, TASK-043, TASK-044, TASK-048]
+related: [ADR-006, ADR-007, TASK-037, TASK-039]
 ---
 
 # TASK-047: Atomic writes and locks for doc edits

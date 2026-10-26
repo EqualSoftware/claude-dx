@@ -9,7 +9,7 @@ size: S
 owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [docs-tools]
-depends_on: [TASK-040]
+depends_on: [TASK-040, TASK-048]
 related: [TASK-028, TASK-036]
 ---
 

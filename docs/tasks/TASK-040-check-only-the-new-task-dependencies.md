@@ -9,8 +9,8 @@ size: S
 owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [docs-tools]
-depends_on: [TASK-037]
-related: [ADR-013, TASK-023]
+depends_on: [TASK-048]
+related: [ADR-013, TASK-023, TASK-037]
 ---
 
 # TASK-040: Check only the new task dependencies
