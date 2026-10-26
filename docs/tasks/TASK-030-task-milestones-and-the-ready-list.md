@@ -8,7 +8,7 @@ size: M
 owner: Equal
 platforms: [macOS, Linux, Windows]
 area: [docs-tools, plugin]
-depends_on: []
+depends_on: [TASK-036]
 related: [ADR-013, ADR-006, TASK-006, TASK-018, TASK-033]
 ---
 
@@ -59,8 +59,8 @@ No field tells the release of a task. The README roadmap gives number ranges (v0
 - FR-2: `task_list(milestone)` gives only the tasks of that milestone. The filter of each frontmatter field (TASK-033) does this with no new filter code.
 - FR-3: `task_list(status: ready)` gives the `Approved` tasks that have all dependencies `Done`, in SemVer order of milestone, then priority, then ID, because only an `Approved` task can start (TASK-034, Q-1).
 - FR-4: `task_list` rows show the milestone.
-- FR-5: `INDEX.md` has one table of open tasks for each milestone, in SemVer order, and one table of closed tasks at the end, because closed tasks are history (Q-2).
-- FR-6: All existing tasks get a milestone (Q-4): `v0.1.0` for TASK-001 to TASK-008 and TASK-017 to TASK-035; `v0.2.0` for TASK-009 to TASK-013; `v0.3.0` for TASK-014; `v0.4.0` for TASK-015; `v0.5.0` for TASK-016. The title of TASK-014 loses "(v0.3)".
+- FR-5: The task index `docs/tasks/README.md` (TASK-036) has one table of open tasks for each milestone, in SemVer order, and one table of closed tasks at the end, because closed tasks are history (Q-2).
+- FR-6: All existing tasks get a milestone (Q-4): `v0.1.0` for TASK-001 to TASK-008 and TASK-017 to TASK-036; `v0.2.0` for TASK-009 to TASK-013; `v0.3.0` for TASK-014; `v0.4.0` for TASK-015; `v0.5.0` for TASK-016. The title of TASK-014 loses "(v0.3)".
 - FR-7: The README roadmap gives the milestones, not task number ranges.
 - FR-8: The `/dx:task` skill tells to use `status: ready` to select the next work.
 
@@ -80,7 +80,8 @@ task_list(status?: open|all|ready|<status>, milestone?, <other frontmatter field
 ```
 
 ### 7.3 Data and File Formats
-New frontmatter line `milestone: v0.1.0`, after `priority`. `INDEX.md` has a `## v0.1.0` heading and table for each milestone, then `## Closed`.
+
+New frontmatter line `milestone: v0.1.0`, after `priority`. `docs/tasks/README.md` has a `## v0.1.0` heading and table for each milestone, then `## Closed`.
 
 ### 7.4 User-facing Behavior
 Not applicable.
@@ -103,7 +104,7 @@ Not applicable.
 - AC-2: Given tasks in v0.1.0 and v0.2.0, when `task_list(milestone: v0.1.0)` runs, then the result has only v0.1.0 tasks.
 - AC-3: Given an `Approved` TASK-A with a dependency that is not `Done`, an `Approved` TASK-B with all dependencies `Done`, and a `Draft` TASK-C with no dependencies, when `task_list(status: ready)` runs, then the result has only TASK-B.
 - AC-4: Given tasks in v0.2.0 and v0.1.0, when `task_list(status: ready)` runs, then the v0.1.0 tasks come first.
-- AC-5: `INDEX.md` has one open table for each milestone and one closed table.
+- AC-5: `docs/tasks/README.md` has one open table for each milestone and one closed table.
 
 ## 10. Validation and Metrics
 
