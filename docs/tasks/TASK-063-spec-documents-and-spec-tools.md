@@ -262,6 +262,7 @@ The status cannot be `Approved` while a question is `Open`.
   - Evidence: At d4a5437 on macOS: go build, go vet (also GOOS=windows and GOOS=linux), go test -race ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found.
 - [x] Docs are updated (area docs, `CLAUDE.md`).
   - Evidence: d4a5437: README.md Specs link, internal/plugin/assets/rules.md spec lines and Refs trailer rule, skills/spec/SKILL.md, skills/grill/SKILL.md, GLOSSARY terms Spec and Requirement. CLAUDE.md changes in TASK-067 (Q-20).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable (user approval in the chat): the project has no area docs folder. The diagram is in section 7.1; TASK-067 moves it to the spec at migration.
 - [x] ADRs are recorded for architectural decisions.
   - Evidence: ADR-016 (Accepted) is the decision for specs. No new architecture decision; the task part of ADR-006 goes to TASK-067 (Q-22).
