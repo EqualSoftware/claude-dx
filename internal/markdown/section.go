@@ -28,12 +28,27 @@ func Section(body, ref string) (string, bool) {
 	return strings.Trim(strings.Join(lines[start:end], "\n"), "\n"), true
 }
 
+// SectionNumber returns the number of the section that ref names. A section with no number gives "".
+func SectionNumber(body, ref string) (string, bool) {
+	lines := strings.Split(body, "\n")
+	start, _, ok := bounds(lines, ref)
+	if !ok {
+		return "", false
+	}
+	return headingPattern.FindStringSubmatch(lines[start-1])[2], true
+}
+
 // ReplaceSection replaces the content of the section that ref names. The heading stays.
+// It refuses content with a heading of the same or a higher level, because that heading starts a new section.
 func ReplaceSection(body, ref, content string) (string, error) {
 	lines := strings.Split(body, "\n")
 	start, end, ok := bounds(lines, ref)
 	if !ok {
 		return "", fmt.Errorf("section %q does not exist", ref)
+	}
+	level := len(headingPattern.FindStringSubmatch(lines[start-1])[1])
+	if top := topLevel(content); top > 0 && top <= level {
+		return "", fmt.Errorf("the content of section %q has a heading of level %d; use only headings of level %d or more", ref, top, level+1)
 	}
 	middle := []string{"", strings.Trim(content, "\n")}
 	if end < len(lines) {
@@ -60,6 +75,17 @@ func bounds(lines []string, ref string) (start, end int, ok bool) {
 		return h.line + 1, end, true
 	}
 	return 0, 0, false
+}
+
+// topLevel returns the smallest level of the headings in content, or 0 if it has no heading.
+func topLevel(content string) int {
+	top := 0
+	for _, h := range headings(strings.Split(content, "\n")) {
+		if top == 0 || h.level < top {
+			top = h.level
+		}
+	}
+	return top
 }
 
 // headings returns the "##" and "###" headings that are not in a code block.

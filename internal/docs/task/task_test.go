@@ -109,6 +109,9 @@ func TestCreateRefusesBadInput(t *testing.T) {
 		// AC-1 of TASK-030: no milestone, or a milestone that is not vMAJOR.MINOR.PATCH.
 		{Title: "X", Priority: "P1", Type: "feat"},
 		{Title: "X", Priority: "P1", Milestone: "0.1", Type: "feat"},
+		// AC-4 of TASK-053: a section and its child section, or two refs of one section.
+		{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Sections: map[string]string{"7": "x", "7.1": "y"}},
+		{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Sections: map[string]string{"7": "x", "Design": "y"}},
 	}
 	for _, in := range bad {
 		if _, _, err := s.Create(in); err == nil {
@@ -721,6 +724,25 @@ func TestProtectedSections(t *testing.T) {
 		if err == nil {
 			t.Errorf("AC-2: Create with section %s passed", ref)
 		}
+	}
+}
+
+// TestSectionBodyHeadings is AC-1 to AC-3 of TASK-053.
+func TestSectionBodyHeadings(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "One")
+	before := read(t, s, "TASK-001")
+	if _, err := s.UpdateSection("TASK-001", "12", "Revert.\n\n## 14. Definition of Done\n- [x] Done."); err == nil {
+		t.Error("AC-1: UpdateSection with a section 14 heading passed")
+	}
+	if after := read(t, s, "TASK-001"); after != before {
+		t.Error("AC-1: the refused UpdateSection changed the file")
+	}
+	if _, err := s.UpdateSection("TASK-001", "7", "### 7.1 Architecture\n\nFlow."); err != nil {
+		t.Errorf("AC-2: UpdateSection(7) = %v", err)
+	}
+	if _, err := s.UpdateSection("TASK-001", "7.1", "### 6.1 Functional"); err == nil {
+		t.Error("AC-3: UpdateSection(7.1) with a level 3 heading passed")
 	}
 }
 

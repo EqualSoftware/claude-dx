@@ -97,6 +97,9 @@ func (s Store) fill(t New) (front, body string, err error) {
 	front = markdown.SetField(front, "related", nonNil(t.Related))
 	body = strings.Replace(body, "| YYYY-MM-DD | [Name] | Initial draft specification |",
 		fmt.Sprintf("| %s | %s | Initial draft specification |", s.today(), s.author()), 1)
+	if err := checkNesting(body, t.Sections); err != nil {
+		return "", "", err
+	}
 	for ref, content := range t.Sections {
 		if err := checkSection(ref); err != nil {
 			return "", "", err
@@ -106,6 +109,25 @@ func (s Store) fill(t New) (front, body string, err error) {
 		}
 	}
 	return front, body, nil
+}
+
+// checkNesting refuses two refs of one section, or of a section and one of its child sections,
+// because the order of a map is random and one body replaces the other.
+func checkNesting(body string, sections map[string]string) error {
+	numbers := map[string]string{}
+	for ref := range sections {
+		if n, ok := markdown.SectionNumber(body, ref); ok {
+			numbers[ref] = n
+		}
+	}
+	for a, na := range numbers {
+		for b, nb := range numbers {
+			if a != b && (na == nb || strings.HasPrefix(nb, na+".")) {
+				return fmt.Errorf("sections %q and %q overlap; give only one of them", a, b)
+			}
+		}
+	}
+	return nil
 }
 
 // checkNewTitle refuses a title that another task has, in all statuses.

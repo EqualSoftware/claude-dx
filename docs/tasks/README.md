@@ -24,7 +24,6 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-053](TASK-053-check-section-bodies-of-task-tools.md) | Check section bodies of task tools | `Approved` | `P1` | `docs-tools` | TASK-052 |
 | [TASK-054](TASK-054-keep-one-task-id-when-renumber-fails.md) | Keep one task ID when renumber fails | `Approved` | `P1` | `docs-tools` | TASK-053 |
 | [TASK-055](TASK-055-extract-the-plugin-per-binary-path.md) | Extract the plugin per binary path | `Approved` | `P1` | `plugin`, `cli` | None |
 | [TASK-060](TASK-060-run-claude-as-a-child-process-on-unix.md) | Run claude as a child process on Unix | `Approved` | `P1` | `cli` | None |
@@ -113,3 +112,4 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | [TASK-050](TASK-050-free-session-files-of-ended-sessions.md) | Free session files of ended sessions | `Done` | 2026-10-26 |
 | [TASK-051](TASK-051-rename-the-cache-lock-and-keep-its-file.md) | Rename the cache lock and keep its file | `Cancelled` | 2026-10-26 |
 | [TASK-052](TASK-052-keep-questions-that-start-with-a-bracket.md) | Keep questions that start with a bracket | `Done` | 2026-10-26 |
+| [TASK-053](TASK-053-check-section-bodies-of-task-tools.md) | Check section bodies of task tools | `Done` | 2026-10-26 |

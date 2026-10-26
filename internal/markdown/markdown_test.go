@@ -150,3 +150,32 @@ func TestReplaceSection(t *testing.T) {
 		t.Error("ReplaceSection(99) did not fail")
 	}
 }
+
+func TestReplaceSectionHeadings(t *testing.T) {
+	_, body := Split(task)
+	tests := []struct {
+		ref, content string
+		ok           bool
+	}{
+		{"1", "Text.\n\n## 14. Definition of Done\n- [x] Done.", false},
+		{"7", "### 7.1 Architecture\n\nText.", true},
+		{"7.1", "### 6.1 Functional", false},
+		{"7.1", "```\n## Not a heading\n```", true},
+	}
+	for _, tt := range tests {
+		_, err := ReplaceSection(body, tt.ref, tt.content)
+		if (err == nil) != tt.ok {
+			t.Errorf("ReplaceSection(%s, %q) = %v; want ok %v", tt.ref, tt.content, err, tt.ok)
+		}
+	}
+}
+
+func TestSectionNumber(t *testing.T) {
+	_, body := Split(task)
+	if n, ok := SectionNumber(body, "Design"); !ok || n != "7" {
+		t.Errorf("SectionNumber(Design) = %q, %v", n, ok)
+	}
+	if _, ok := SectionNumber(body, "99"); ok {
+		t.Error("SectionNumber(99) found a section")
+	}
+}
