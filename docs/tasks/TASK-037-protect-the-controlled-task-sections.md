@@ -1,7 +1,7 @@
 ---
 id: TASK-037
 title: Controlled task sections and DoD tools
-status: In Development
+status: Done
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -23,6 +23,7 @@ related: [ADR-013, TASK-006, TASK-034]
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
 | 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -164,8 +165,8 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`/dx:task` skill, ADR-013).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions (ADR-013 gets the DoD tools).
+- [x] All acceptance criteria pass, with evidence. Commit d121c6e. internal/docs/task/task_test.go: TestProtectedSections (AC-1, AC-2), TestDoDCheckUncheck (AC-3, AC-7), TestDoDAddRemove (AC-4, AC-5), TestDoDDoneTask (AC-6), TestInReviewWhenComplete (AC-8, template sections 13 and 14), TestQuestions (AC-9, no None. row). internal/mcpserver/server_test.go lists the three new tools. go test ./... passes.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at d121c6e: go build, go vet, go test ./... pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (`/dx:task` skill, ADR-013). Commit d121c6e: internal/plugin/assets/skills/task/SKILL.md (Flow step 6, Create step 3, Refine: the tools of each protected section, Change the status: Done). ADR-013 Decision has the protected sections.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. No diagram is necessary: the rules are a list in ADR-013 Decision and in the /dx:task skill.
+- [x] ADRs are recorded for architectural decisions (ADR-013 gets the DoD tools). ADR-013 Decision records the protected sections and the Definition of Done tools.
