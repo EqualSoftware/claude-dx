@@ -24,7 +24,6 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-040](TASK-040-check-only-the-new-task-dependencies.md) | Check only the new task dependencies | `Approved` | `P2` | `docs-tools` | TASK-048 |
 | [TASK-042](TASK-042-rename-the-task-file-with-the-title.md) | Rename the task file with the title | `Approved` | `P2` | `docs-tools` | TASK-040, TASK-048 |
 | [TASK-043](TASK-043-warn-about-adr-and-learning-read-errors.md) | Warn about ADR and learning read errors | `Approved` | `P2` | `docs-tools` | None |
 | [TASK-044](TASK-044-refuse-a-title-with-an-empty-file-slug.md) | Refuse a title with an empty file slug | `Approved` | `P2` | `docs-tools` | None |
@@ -97,5 +96,6 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | [TASK-037](TASK-037-protect-the-controlled-task-sections.md) | Controlled task sections and DoD tools | `Done` | 2026-10-26 |
 | [TASK-038](TASK-038-replace-block-lists-in-the-frontmatter.md) | Replace block lists in the frontmatter | `Done` | 2026-10-26 |
 | [TASK-039](TASK-039-check-the-glossary-row-fields.md) | Check the glossary row fields | `Done` | 2026-10-26 |
+| [TASK-040](TASK-040-check-only-the-new-task-dependencies.md) | Check only the new task dependencies | `Done` | 2026-10-26 |
 | [TASK-041](TASK-041-session-locks-for-the-plugin-cache.md) | Session locks for the plugin cache | `Done` | 2026-10-26 |
 | [TASK-048](TASK-048-show-open-dependencies-in-task-list.md) | Show open dependencies in task_list | `Done` | 2026-10-26 |
