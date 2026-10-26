@@ -267,6 +267,18 @@ func TestIndex(t *testing.T) {
 }
 
 // TestTitleRules is AC-2 and AC-4 of TASK-028.
+// TestIndexEscapesPipes is AC-1 of TASK-057 for ADRs.
+func TestIndexEscapesPipes(t *testing.T) {
+	s := newStore(t)
+	if _, err := s.Create(sample("Fix a|b parse")); err != nil {
+		t.Fatal(err)
+	}
+	data, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
+	if !strings.Contains(string(data), "| Fix a\\|b parse | Proposed |") {
+		t.Fatalf("README.md =\n%s", data)
+	}
+}
+
 func TestTitleRules(t *testing.T) {
 	s := newStore(t)
 	_, err := s.Create(sample(strings.Repeat("x", 41)))

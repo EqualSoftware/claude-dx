@@ -565,6 +565,20 @@ func TestRetitleUsedTitle(t *testing.T) {
 	}
 }
 
+// TestIndexEscapesPipes is AC-1 of TASK-057 for tasks: the open and the closed rows.
+func TestIndexEscapesPipes(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "Fix a|b parse")
+	create(t, s, "Fix c|d parse")
+	force(t, s, "TASK-002", "Done")
+	data, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
+	for _, want := range []string{"| Fix a\\|b parse | `Draft` |", "| Fix c\\|d parse | `Done` |"} {
+		if !strings.Contains(string(data), want) {
+			t.Errorf("README.md has no %q:\n%s", want, data)
+		}
+	}
+}
+
 // TestOldDoneDependency is AC-1 to AC-3 of TASK-040.
 func TestOldDoneDependency(t *testing.T) {
 	s := newStore(t)

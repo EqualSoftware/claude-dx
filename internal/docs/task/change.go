@@ -362,7 +362,7 @@ func (s Store) AddQuestion(id, question, owner string) (string, error) {
 		section, _ := markdown.Section(d.body, "13")
 		lines, next := withoutPlaceholders(strings.Split(section, "\n"))
 		qid = fmt.Sprintf("Q-%d", next)
-		row := fmt.Sprintf("| %s | %s | %s | Open |", qid, cell(question), cell(owner))
+		row := fmt.Sprintf("| %s | %s | %s | Open |", qid, docfile.Cell(question), docfile.Cell(owner))
 		body, err := markdown.ReplaceSection(d.body, "13", strings.Join(insertRow(lines, row), "\n"))
 		d.body = body
 		return err
@@ -413,7 +413,7 @@ func (s Store) AnswerQuestion(id, qid, answer string) error {
 			if m == nil || !strings.EqualFold(m[1], qid) {
 				continue
 			}
-			lines[i] = fmt.Sprintf("| %s | %s | %s | %s |", m[1], m[3], m[4], cell(answer))
+			lines[i] = fmt.Sprintf("| %s | %s | %s | %s |", m[1], m[3], m[4], docfile.Cell(answer))
 			body, err := markdown.ReplaceSection(d.body, "13", strings.Join(lines, "\n"))
 			d.body = body
 			return err

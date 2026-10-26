@@ -168,6 +168,18 @@ func TestIndex(t *testing.T) {
 	}
 }
 
+// TestIndexEscapesPipes is AC-1 of TASK-057 for learnings.
+func TestIndexEscapesPipes(t *testing.T) {
+	s := newStore(t)
+	if err := s.Create("a-topic", "About a|b.", "Lesson."); err != nil {
+		t.Fatal(err)
+	}
+	data, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
+	if want := "| [a-topic](a-topic.md) | About a\\|b. |\n"; !strings.HasSuffix(string(data), want) {
+		t.Fatalf("README.md =\n%s\nwant suffix %s", data, want)
+	}
+}
+
 func TestCreateRefusesReadme(t *testing.T) {
 	s := newStore(t)
 	for _, topic := range []string{"readme", "README"} {

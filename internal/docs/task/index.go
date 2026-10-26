@@ -62,11 +62,11 @@ func (s Store) WriteIndex() error {
 		if i == 0 || f.Milestone != open[i-1].Front.Milestone {
 			fmt.Fprintf(&b, openHeader, milestoneName(f.Milestone))
 		}
-		fmt.Fprintf(&b, "| [%s](%s) | %s | `%s` | `%s` | %s | %s |\n", f.ID, t.File, f.Title, f.Status, f.Priority, list(f.Area, "`"), list(f.DependsOn, ""))
+		fmt.Fprintf(&b, "| [%s](%s) | %s | `%s` | `%s` | %s | %s |\n", f.ID, t.File, docfile.Cell(f.Title), f.Status, f.Priority, list(f.Area, "`"), list(f.DependsOn, ""))
 	}
 	b.WriteString(closedHeader)
 	for _, t := range closed {
-		fmt.Fprintf(&b, "| [%s](%s) | %s | `%s` | %s |\n", t.Front.ID, t.File, t.Front.Title, t.Front.Status, t.Closed)
+		fmt.Fprintf(&b, "| [%s](%s) | %s | `%s` | %s |\n", t.Front.ID, t.File, docfile.Cell(t.Front.Title), t.Front.Status, t.Closed)
 	}
 	return docfile.Write(filepath.Join(s.Dir, "README.md"), []byte(b.String()))
 }

@@ -30,7 +30,7 @@ func (s Store) WriteIndex() error {
 	var b strings.Builder
 	b.WriteString(indexHeader)
 	for _, l := range list {
-		fmt.Fprintf(&b, "| [%s](%s.md) | %s |\n", l.Topic, l.Topic, l.Description)
+		fmt.Fprintf(&b, "| [%s](%s.md) | %s |\n", l.Topic, l.Topic, docfile.Cell(l.Description))
 	}
 	return docfile.Write(filepath.Join(s.Dir, indexFile), []byte(b.String()))
 }

@@ -154,6 +154,11 @@ func NotExist(err error) bool {
 	return errors.Is(err, fs.ErrNotExist)
 }
 
+// Cell makes text safe for one Markdown table cell: it escapes "|" and puts a space for each line break.
+func Cell(text string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(strings.TrimSpace(text), "\n", " "), "|", `\|`)
+}
+
 // Slug makes the file name part from a title: lowercase ASCII words joined by "-", maximum MaxTitle
 // characters, cut at a word boundary. The title limit makes the cut a guard for old titles only.
 func Slug(title string) string {

@@ -27,7 +27,7 @@ func (s Store) WriteIndex() error {
 	var b strings.Builder
 	b.WriteString(indexHeader)
 	for _, e := range list {
-		fmt.Fprintf(&b, "| [%s](%s) | %s | %s | %s |\n", kind.ID(e.Number), e.File, e.Title, e.Status, e.Date)
+		fmt.Fprintf(&b, "| [%s](%s) | %s | %s | %s |\n", kind.ID(e.Number), e.File, docfile.Cell(e.Title), e.Status, e.Date)
 	}
 	return docfile.Write(filepath.Join(s.Dir, "README.md"), []byte(b.String()))
 }

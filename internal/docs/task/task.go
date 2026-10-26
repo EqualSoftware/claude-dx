@@ -283,7 +283,7 @@ func (s Store) addHistory(d *doc, note string) error {
 	if !ok {
 		return errors.New("the task has no Document History section")
 	}
-	row := fmt.Sprintf("| %s | %s | %s |", s.today(), s.author(), cell(note))
+	row := fmt.Sprintf("| %s | %s | %s |", s.today(), s.author(), docfile.Cell(note))
 	body, err := markdown.ReplaceSection(d.body, "Document History", history+"\n"+row)
 	d.body = body
 	return err
@@ -295,11 +295,6 @@ func lastDate(history string) string {
 		return ""
 	}
 	return m[len(m)-1][1]
-}
-
-// cell makes text safe for one Markdown table cell.
-func cell(text string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(strings.TrimSpace(text), "\n", " "), "|", `\|`)
 }
 
 func sortedNames(files map[int][]string) []string {

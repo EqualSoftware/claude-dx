@@ -100,3 +100,9 @@ func TestCheckTitle(t *testing.T) {
 		t.Errorf("new title: %v", err)
 	}
 }
+
+func TestCell(t *testing.T) {
+	if got := Cell(" a|b\nc "); got != `a\|b c` {
+		t.Errorf("Cell = %q", got)
+	}
+}
