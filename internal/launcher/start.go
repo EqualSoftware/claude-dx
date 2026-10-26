@@ -8,6 +8,10 @@ import (
 	"syscall"
 )
 
+// drop gets the ignored signals while start runs. Nobody reads it, so the package drops them. A test reads
+// it to know that start got a signal.
+var drop = make(chan os.Signal, 1)
+
 // start runs claude as a child process with the same terminal and environment, waits for it and returns
 // its exit code (ADR-015). So the locks of this process live as long as the session, and no child of claude
 // gets them. This process ignores the signals that the terminal also sends to claude, and sends the
@@ -17,7 +21,6 @@ func start(claude string, args []string) (int, error) {
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 	// Notify and drop, not signal.Ignore: an ignored signal stays ignored in claude after exec, a caught
 	// signal does not. cmd/go does the same for "go run".
-	drop := make(chan os.Signal, 1)
 	signal.Notify(drop, ignored...)
 	defer signal.Stop(drop)
 	if err := cmd.Start(); err != nil {
