@@ -17,6 +17,7 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/docs/glossary"
 	"github.com/EqualSoftware/claude-dx/internal/docs/learning"
+	"github.com/EqualSoftware/claude-dx/internal/docs/spec"
 	"github.com/EqualSoftware/claude-dx/internal/docs/task"
 	"github.com/EqualSoftware/claude-dx/internal/numbering"
 	"github.com/EqualSoftware/claude-dx/internal/project"
@@ -41,6 +42,8 @@ func New(version, dir string) (*mcp.Server, error) {
 	server := mcp.NewServer(&mcp.Implementation{Name: "dx", Version: version}, nil)
 	adr.Register(server, adr.Store{Dir: filepath.Join(p.Root, "docs", "decisions"), Alloc: alloc, Lock: lock})
 	task.Register(server, task.Store{Dir: filepath.Join(p.Root, "docs", "tasks"), Alloc: alloc, Author: gitUser(p.Root), Lock: lock})
+	spec.Register(server, spec.Store{Dir: filepath.Join(p.Root, "docs", "specs"), ADRDir: filepath.Join(p.Root, "docs", "decisions"),
+		Root: p.Root, Author: gitUser(p.Root), Lock: lock})
 	learning.Register(server, learning.Store{Dir: filepath.Join(p.Root, "docs", "learnings"), Lock: lock})
 	glossary.Register(server, glossary.Store{Path: filepath.Join(p.Root, "docs", "GLOSSARY.md"), Lock: lock})
 	return server, nil

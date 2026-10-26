@@ -1,7 +1,7 @@
 ---
 id: TASK-063
 title: Spec documents and spec tools
-status: Approved
+status: In Development
 priority: P1
 milestone: v0.1.0
 type: feat
@@ -22,6 +22,7 @@ related: [ADR-016, ADR-013, ADR-006]
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill: Q-2 to Q-28. |
 | 2026-10-26 | Equal | The user approved the task in the chat. |
+| 2026-10-26 | Equal | Status: In Development. |
 
 ## 1. Summary
 
@@ -245,6 +246,9 @@ To remove: delete `internal/docs/spec/`, `internal/plugin/assets/skills/spec/`, 
 | Q-26 | Requirement tools: arguments, defaults, replies and Document History notes. | Maintainer | spec_req_add(slug, text): status Planned, reply "Added R-n.", history "Added R-n.". spec_req_set(slug, rid, text?, status?): refuses with "give text, status or both" when both are empty; reply "Updated R-n."; history "R-n: text changed." and/or "R-n: status Done.". The text is one line, escaped with docfile.Cell. spec_question_add and spec_question_answer work as the task tools, owner default Maintainer. |
 | Q-27 | Refusal texts of the spec tools that have no task counterpart. | Maintainer | spec "x" does not exist (also for move_to); spec "x" exists; slug "general" is reserved; requirement R-n does not exist; move_to must be another spec; file "a.svg" exists in docs/specs/y; docs/specs/x has other files: a.svg, b.png. Give move_to or discard_files; give move_to or discard_files, not both. |
 | Q-28 | Final check: lock and git order, package files, SPEC.md heading, spec_create reply, git process metric. | Maintainer | Approved: git status in the lock for spec_delete, git log after the read lock for spec_get; the package files of 7.1; the reply "Created slug."; 2 git processes for spec_get. Change: the SPEC.md heading is "# Title", with no slug. |
+| Q-29 | Implementation: In Review with no requirement, texts of In Review after spec_question_add, template placeholder texts, index header, spec_set_status note, reply when docs/specs does not exist. | Maintainer | (a) In Review refuses a spec with no requirement: "section 5 has no requirement. Add one with spec_req_add". (b) spec_question_add on Approved: history "Status: In Review. Q-n is Open.", reply "Added Q-n. Q-n is Open, so slug is In Review. The user must approve it again."; spec_req_add and spec_req_set use the task text and add the rows "Added R-n." and "Status: In Review. The scope changed in section 5.". (c) The placeholders of the chat (task template style), None rows in sections 5 and 8. (d) The index header of the chat, one table ordered by milestone, then slug. (e) spec_set_status has an optional note, default "Status: X.". (f) When docs/specs does not exist: normal reply "No specs. docs/specs does not exist." |
+| Q-30 | Implementation texts: empty delete reason, empty requirement text, slug too long, related ADR that does not exist, git status failure in spec_delete. | Maintainer | Yes: "give the reason"; "give the text of the requirement"; "the slug has N characters. The limit is 40. Write a shorter slug"; "related "ADR-9": ADR-009 does not exist"; "git status failed: error". |
+| Q-31 | result.Sentence makes the first letter capital. Three texts start with a path or an argument name (docs/specs/x, move_to). Rewrite them? | Maintainer | Yes: "the folder docs/specs/x has changes that are not committed. Commit them first", "the folder docs/specs/x has other files: ... Give move_to or discard_files", "the argument move_to must be another spec". The shared docfile text "X has the same title" does not change. |
 
 The status cannot be `Approved` while a question is `Open`.
 
