@@ -129,7 +129,11 @@ The status cannot be `Approved` while a question is `Open`.
 ## 14. Definition of Done
 
 - [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`README.md`, `SECURITY.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: actionlint .github/workflows/release.yml passes. go build and go test ./... pass (no Go change). Commit d2739dc.
+- [x] Docs are updated (`README.md`, `SECURITY.md`).
+  - Evidence: README.md (Install section) and SECURITY.md (Verify a release) give gh attestation verify <file> --repo EqualSoftware/claude-dx.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: one workflow step, no design diagram.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: No architecture decision: one more step in the release workflow of ADR-004 and ADR-012. The choice of actions/attest is in FR-1.
