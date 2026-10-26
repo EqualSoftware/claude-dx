@@ -111,8 +111,8 @@ module_verb(argument) -> result
 
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | Which specs do the 62 tasks become? Proposal: launcher-and-cli, cache-and-update, mcp-server, document-tools, git-tools, lsp-servers, release. | Maintainer | Open |
-| Q-2 | The glossary rows Task and the task terms describe the old model. Do we change them in this task, with the new rows Spec, Requirement and Resume? | Maintainer | Open |
+| Q-1 | Which specs do the 62 tasks become? Proposal: launcher-and-cli, cache-and-update, mcp-server, document-tools, git-tools, lsp-servers, release. | Maintainer | Yes: launcher-and-cli, cache-and-update, mcp-server, document-tools, git-tools, lsp-servers, release. |
+| Q-2 | The glossary rows Task and the task terms describe the old model. Do we change them in this task, with the new rows Spec, Requirement and Resume? | Maintainer | Yes. Change the task terms and add Spec, Requirement and Resume in this task. |
 
 The status cannot be `Approved` while a question is `Open`.
 

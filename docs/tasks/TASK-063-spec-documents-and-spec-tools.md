@@ -114,7 +114,7 @@ module_verb(argument) -> result
 
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | spec_get (R-7) and claude-dx resume (TASK-066) need git log and git status. The git runner is TASK-009 in v0.2.0. Do we move TASK-009 to v0.1.0, or run git directly as internal/project/project.go:57 does? | Maintainer | Open |
+| Q-1 | spec_get (R-7) and claude-dx resume (TASK-066) need git log and git status. The git runner is TASK-009 in v0.2.0. Do we move TASK-009 to v0.1.0, or run git directly as internal/project/project.go:57 does? | Maintainer | Run git directly, as internal/project/project.go:57 does. The git runner of TASK-009 can replace it later. |
 
 The status cannot be `Approved` while a question is `Open`.
 

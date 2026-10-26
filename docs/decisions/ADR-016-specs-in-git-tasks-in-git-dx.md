@@ -8,6 +8,7 @@
 Each unit of work is a task file in docs/tasks, in git. QA, explorations and small fixes make many task files: 62 tasks before v0.1.0. In a large project this is too many files. A task ID in git also has a number collision when two persons make tasks on two branches, because the counter of ADR-007 is local to one machine. The task files also do not give the current behavior of a feature: the data is in many closed tasks. The hand-written HANDOFF.md repeats rules, user preferences and task status that other files already have, and the model must remember to update it.
 
 ## Decision
+
 Spec:
 - A spec is the current definition of one feature or scope. It is in git: `docs/specs/<slug>/SPEC.md`, and other files of the spec (diagrams, designs) in the same folder. The ID is the slug, with no number, so two branches do not get the same ID. The slug `general` is reserved.
 - Frontmatter: `slug`, `title`, `status`, `milestone`, `priority`, `area`, `related` (ADRs).
@@ -17,16 +18,18 @@ Spec:
 - A spec that is removed from the product, or split, is deleted. Git keeps the old version. A new spec from a split gives the old slug in its Document History. The reason of a delete goes to the commit message.
 - Design links to the ADRs and does not copy them. A spec change that selects a new architecture approach needs an ADR.
 - A spec does not contain task IDs. A commit gives the requirements that it implements in a trailer `Refs: <slug>#R-N`. A trailer stays the same after a rebase. `spec_get` finds the commits of each requirement with `git log`.
+- The tools run git directly, as `internal/project/project.go:57` does. The git runner of TASK-009 can replace this later.
 
 Task:
 - A task is a local work item of one developer. It is in `<git-common-dir>/dx/tasks/<spec>/<task-slug>.md`, or in `<git-common-dir>/dx/tasks/general/<task-slug>.md` for work that has no spec. Git does not track the git common directory, and all worktrees of a repository share it.
+- Outside a git repository, the tasks are in `<cache>/projects/<key>/tasks/`, with the key of ADR-007. When the project becomes a git repository, the first task tool call moves them to `<git-common-dir>/dx/tasks/`.
 - The ID is `<spec>/<task-slug>`. There is no counter.
 - A task points to one spec. A spec can have many tasks. `depends_on` gives tasks of the same spec only, because a dependency on a task of another spec makes a dependency between specs.
 - Frontmatter: `id`, `title`, `status`, `priority`, `covers` (requirement IDs), `depends_on`. The milestone is the milestone of the spec.
 - Sections: Plan (a checklist of steps), Notes, Definition of Done.
 - Status: `Todo`, `In Progress`, `Blocked`, `Done`. No approval, because the spec has the approved scope.
 - When a task goes to `Done`, the tool sets the requirements in `covers` to `Done` in the spec and adds a Document History row with no task ID.
-- The task lock is `<git-common-dir>/dx/tasks.lock`, shared by all worktrees.
+- The task lock is `tasks.lock` in the task folder, shared by all worktrees.
 
 Tools:
 - Add: `spec_list`, `spec_get`, `spec_create`, `spec_update_section`, `spec_set_status`, `spec_req_add`, `spec_req_set`, `spec_question_add`, `spec_question_answer`, `spec_delete`, `task_step_check`.

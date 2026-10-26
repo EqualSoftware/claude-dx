@@ -60,7 +60,8 @@ Task files in git make too many files and number collisions between branches (AD
 - R-5: `covers` refuses a requirement that the spec does not have. A `general` task has no `covers`.
 - R-6: `task_set_status` to `Done` sets the `covers` requirements to `Done` in the spec and adds a Document History row with no task ID.
 - R-7: New tool `task_step_check`. Remove `task_renumber`, `task_question_add`, `task_question_answer`, the task counter and the task index.
-- R-8: Task writes hold the lock `<git-common-dir>/dx/tasks.lock` (ADR-015 `filelock`).
+- R-8: Task writes hold the lock `tasks.lock` in the task folder (ADR-015 `filelock`), so all worktrees share it.
+- R-9: Outside a git repository, the task folder is `<cache>/projects/<key>/tasks/`, with the key of ADR-007 (a hash of the project root). When the project becomes a git repository, the first task tool call moves this folder to `<git-common-dir>/dx/tasks/`, because the tasks must not be lost after `git init`.
 
 ## 7. Design
 ### 7.1 Architecture
@@ -115,7 +116,8 @@ module_verb(argument) -> result
 
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | Outside a git repository there is no git common directory. Do the task tools refuse with a message, or use a folder in the cache (<cache>/projects/<key>/tasks)? | Maintainer | Open |
+| Q-1 | Outside a git repository there is no git common directory. Do the task tools refuse with a message, or use a folder in the cache (<cache>/projects/<key>/tasks)? | Maintainer | Use a folder in the cache. When the project becomes a git repository, move the tasks to the git common directory. |
+| Q-2 | `cache clean` removes `<cache>/projects/`. Outside git, this deletes the local tasks. Does `cache clean` keep the `tasks/` folders, or delete them with a warning? | Maintainer | Open |
 
 The status cannot be `Approved` while a question is `Open`.
 
