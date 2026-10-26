@@ -26,8 +26,8 @@ type New struct {
 
 // check returns an error for a missing or invalid field.
 func (t New) check() error {
-	if strings.TrimSpace(t.Title) == "" {
-		return errors.New("give a title")
+	if err := docfile.CheckTitle(t.Title); err != nil {
+		return err
 	}
 	if err := oneOf("priority", t.Priority, Priorities); err != nil {
 		return err
@@ -47,6 +47,9 @@ func (t New) check() error {
 // Create writes a new Draft task with the next number and returns its path and the warnings.
 func (s Store) Create(t New) (path, warnings string, err error) {
 	if err := t.check(); err != nil {
+		return "", "", err
+	}
+	if err := s.checkNewTitle(t.Title); err != nil {
 		return "", "", err
 	}
 	warnings, err = s.checkDeps(Front{Milestone: t.Milestone, Priority: t.Priority, DependsOn: t.DependsOn})
@@ -91,6 +94,19 @@ func (s Store) fill(t New) (front, body string, err error) {
 		}
 	}
 	return front, body, nil
+}
+
+// checkNewTitle refuses a title that another task has, in all statuses.
+func (s Store) checkNewTitle(title string) error {
+	tasks, _, err := s.List(Filter{"status": "all"})
+	if err != nil && !errors.Is(err, ErrNoDir) {
+		return err
+	}
+	titles := make(map[string]string, len(tasks))
+	for _, t := range tasks {
+		titles[t.Front.ID] = t.Front.Title
+	}
+	return docfile.CheckNewTitle(title, titles)
 }
 
 func setHeader(body, id, title string) string {

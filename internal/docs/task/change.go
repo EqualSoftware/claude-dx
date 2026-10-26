@@ -57,6 +57,11 @@ type Update struct {
 
 // check returns an error for an invalid field.
 func (u Update) check() error {
+	if u.Title != "" {
+		if err := docfile.CheckTitle(u.Title); err != nil {
+			return err
+		}
+	}
 	if u.Milestone != "" {
 		if err := checkMilestone(u.Milestone); err != nil {
 			return err

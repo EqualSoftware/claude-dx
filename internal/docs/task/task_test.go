@@ -454,3 +454,21 @@ func TestUncheckedDoDMessage(t *testing.T) {
 		t.Fatalf("SetStatus(Done) = %v", err)
 	}
 }
+
+// TestTitleRules is AC-1 and AC-3 of TASK-028, and the duplicate title check.
+func TestTitleRules(t *testing.T) {
+	s := newStore(t)
+	_, _, err := s.Create(New{Title: strings.Repeat("x", 41), Priority: "P1", Milestone: "v0.1.0", Type: "feat"})
+	if err == nil || !strings.Contains(err.Error(), "41 characters") {
+		t.Fatalf("41 characters = %v", err)
+	}
+	if _, err := os.Stat(s.Dir); err == nil {
+		t.Fatal("AC-1: a refused Create made docs/tasks")
+	}
+	create(t, s, "One")
+	update(t, s, "TASK-001", Update{Title: strings.Repeat("y", 40)})
+	_, _, err = s.Create(New{Title: strings.Repeat("Y", 40), Priority: "P1", Milestone: "v0.1.0", Type: "feat"})
+	if err == nil || !strings.Contains(err.Error(), "TASK-001") {
+		t.Fatalf("duplicate title = %v", err)
+	}
+}

@@ -132,6 +132,9 @@ func (s Store) Create(adr New) (string, error) {
 	if err := validStatus(adr.Status); err != nil {
 		return "", err
 	}
+	if err := s.checkNewTitle(adr.Title); err != nil {
+		return "", err
+	}
 	var path string
 	_, err := s.Alloc.Next("adr", s.Dir, kind.Pattern, func(n int) error {
 		adr.Number = n
@@ -146,6 +149,19 @@ func (s Store) Create(adr New) (string, error) {
 		return "", err
 	}
 	return path, s.WriteIndex()
+}
+
+// checkNewTitle refuses a long title, and a title that another ADR has, in all statuses.
+func (s Store) checkNewTitle(title string) error {
+	list, _, err := s.List()
+	if err != nil && !errors.Is(err, ErrNoDir) {
+		return err
+	}
+	titles := make(map[string]string, len(list))
+	for _, e := range list {
+		titles[kind.ID(e.Number)] = e.Title
+	}
+	return docfile.CheckNewTitle(title, titles)
 }
 
 func (s Store) defaults(adr New) New {

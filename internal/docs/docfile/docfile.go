@@ -8,9 +8,45 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
+
+// MaxTitle is the maximum length of a task or ADR title, so a file name is short (ADR-013).
+const MaxTitle = 40
+
+// CheckTitle refuses an empty title and a title of more than MaxTitle characters.
+func CheckTitle(title string) error {
+	n := utf8.RuneCountInString(strings.TrimSpace(title))
+	if n == 0 {
+		return errors.New("give a title")
+	}
+	if n > MaxTitle {
+		return fmt.Errorf("the title has %d characters. The limit is %d. Write a shorter title", n, MaxTitle)
+	}
+	return nil
+}
+
+// CheckNewTitle does CheckTitle, and refuses a title that another document has with no case
+// difference, because one title names one thing. titles maps a document ID to its title.
+func CheckNewTitle(title string, titles map[string]string) error {
+	if err := CheckTitle(title); err != nil {
+		return err
+	}
+	ids := make([]string, 0, len(titles))
+	for id := range titles {
+		ids = append(ids, id)
+	}
+	slices.Sort(ids)
+	for _, id := range ids {
+		if strings.EqualFold(strings.TrimSpace(titles[id]), strings.TrimSpace(title)) {
+			return fmt.Errorf("%s has the same title. Give a different title, or change %s", id, id)
+		}
+	}
+	return nil
+}
 
 // Kind describes one type of numbered document, for example ADR-NNN-<slug>.md.
 type Kind struct {
@@ -114,18 +150,19 @@ func NotExist(err error) bool {
 	return errors.Is(err, fs.ErrNotExist)
 }
 
-// Slug makes the file name part from a title: lowercase ASCII words joined by "-", maximum 60 characters.
+// Slug makes the file name part from a title: lowercase ASCII words joined by "-", maximum MaxTitle
+// characters, cut at a word boundary. The title limit makes the cut a guard for old titles only.
 func Slug(title string) string {
 	words := strings.FieldsFunc(strings.ToLower(title), func(r rune) bool {
 		return (r < 'a' || r > 'z') && (r < '0' || r > '9')
 	})
 	slug := strings.Join(words, "-")
-	if len(slug) <= 60 {
+	if len(slug) <= MaxTitle {
 		return slug
 	}
-	cut := strings.LastIndexByte(slug[:61], '-')
+	cut := strings.LastIndexByte(slug[:MaxTitle+1], '-')
 	if cut <= 0 {
-		return slug[:60]
+		return slug[:MaxTitle]
 	}
 	return slug[:cut]
 }

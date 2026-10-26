@@ -17,7 +17,7 @@ type getInput struct {
 }
 
 type createInput struct {
-	Title        string        `json:"title" jsonschema:"short decision title, in ASD-STE100"`
+	Title        string        `json:"title" jsonschema:"short decision title, in ASD-STE100, 40 characters or less, not the title of another ADR"`
 	Context      string        `json:"context" jsonschema:"problem, constraints and why a decision is necessary"`
 	Decision     string        `json:"decision" jsonschema:"the selected approach"`
 	Alternatives []Alternative `json:"alternatives" jsonschema:"the other options and why they are rejected"`

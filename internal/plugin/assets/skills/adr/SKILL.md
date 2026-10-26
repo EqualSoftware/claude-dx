@@ -22,6 +22,7 @@ Record only decisions of the project. Do not record decisions about the agent se
 1. Run `/dx:grill` on the decision. Cover: the problem and constraints, the options, the selected option, the consequences and the follow-up. Skip this step only if the conversation already has all answers and the user confirmed them.
 2. Run `adr_list`. If an ADR already records the same decision, read it with `adr_get` and change it with `adr_update`. Do not make a duplicate.
 3. Run `adr_create` for a new decision. The tool sets the number, the date and the file name.
+   - The title has 40 characters or less, and no other ADR has it. The tool refuses other titles.
    - Set `status` to `Accepted` only when the user approved the decision. Else omit it (`Proposed`).
    - In `evidence`, write only verified facts: `path:line`, commits, benchmarks or issues.
    - Keep each field short. Write in ASD-STE100.

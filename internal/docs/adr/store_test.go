@@ -244,3 +244,14 @@ func TestIndex(t *testing.T) {
 		t.Fatalf("List has README.md: %v", list)
 	}
 }
+
+// TestTitleRules is AC-2 and AC-4 of TASK-028.
+func TestTitleRules(t *testing.T) {
+	s := newStore(t)
+	_, err := s.Create(sample(strings.Repeat("x", 41)))
+	refused(t, err, "41 characters")
+	_, err = s.Create(sample("Use SQLite"))
+	must(t, err)
+	_, err = s.Create(sample("use sqlite"))
+	refused(t, err, "ADR-001")
+}

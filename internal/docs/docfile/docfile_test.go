@@ -59,12 +59,31 @@ func TestSlug(t *testing.T) {
 		"Use stdio":                 "use-stdio",
 		"  Load dx: with flags!  ":  "load-dx-with-flags",
 		"Ação em português":         "a-o-em-portugu-s",
-		strings.Repeat("word ", 20): "word-word-word-word-word-word-word-word-word-word-word-word",
-		strings.Repeat("x", 70):     strings.Repeat("x", 60),
+		strings.Repeat("word ", 20): "word-word-word-word-word-word-word-word",
+		strings.Repeat("x", 70):     strings.Repeat("x", 40),
 	}
 	for title, want := range tests {
 		if got := Slug(title); got != want {
 			t.Errorf("Slug(%q) = %q, want %q", title, got, want)
 		}
+	}
+}
+
+func TestCheckTitle(t *testing.T) {
+	if err := CheckTitle(strings.Repeat("é", 40)); err != nil {
+		t.Errorf("40 characters: %v", err)
+	}
+	if err := CheckTitle(strings.Repeat("x", 41)); err == nil || !strings.Contains(err.Error(), "41 characters") {
+		t.Errorf("41 characters: %v", err)
+	}
+	if err := CheckTitle("  "); err == nil {
+		t.Error("an empty title passed")
+	}
+	titles := map[string]string{"ADR-001": "Use SQLite", "ADR-002": "Use stdio"}
+	if err := CheckNewTitle("use sqlite", titles); err == nil || !strings.Contains(err.Error(), "ADR-001") {
+		t.Errorf("duplicate title: %v", err)
+	}
+	if err := CheckNewTitle("Use HTTP", titles); err != nil {
+		t.Errorf("new title: %v", err)
 	}
 }

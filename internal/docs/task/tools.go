@@ -46,7 +46,7 @@ type getInput struct {
 
 // createInput has the same fields as New, so one converts to the other.
 type createInput struct {
-	Title     string            `json:"title" jsonschema:"short task title, in ASD-STE100"`
+	Title     string            `json:"title" jsonschema:"short task title, in ASD-STE100, 40 characters or less, not the title of another task"`
 	Priority  string            `json:"priority" jsonschema:"P0, P1, P2 or P3"`
 	Milestone string            `json:"milestone" jsonschema:"the release of the task, vMAJOR.MINOR.PATCH, example v0.1.0"`
 	Type      string            `json:"type" jsonschema:"feat, fix, refactor, perf, test, docs, build, ci or chore. It sets the commit type"`
@@ -66,7 +66,7 @@ type sectionInput struct {
 
 type fieldsInput struct {
 	ID        string   `json:"id" jsonschema:"task ID"`
-	Title     string   `json:"title,omitempty"`
+	Title     string   `json:"title,omitempty" jsonschema:"new title, 40 characters or less"`
 	Priority  string   `json:"priority,omitempty" jsonschema:"P0, P1, P2 or P3"`
 	Milestone string   `json:"milestone,omitempty" jsonschema:"vMAJOR.MINOR.PATCH, example v0.1.0"`
 	Type      string   `json:"type,omitempty" jsonschema:"feat, fix, refactor, perf, test, docs, build, ci or chore"`
