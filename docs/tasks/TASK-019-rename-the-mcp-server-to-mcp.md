@@ -3,6 +3,7 @@ id: TASK-019
 title: Rename the dx MCP server to mcp
 status: Done
 priority: P1
+milestone: v0.1.0
 type: refactor
 size: S
 owner: Equal

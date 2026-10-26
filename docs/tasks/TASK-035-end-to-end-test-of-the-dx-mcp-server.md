@@ -3,6 +3,7 @@ id: TASK-035
 title: End-to-end test of the dx MCP server
 status: Done
 priority: P2
+milestone: v0.1.0
 type: test
 size: S
 owner: Equal

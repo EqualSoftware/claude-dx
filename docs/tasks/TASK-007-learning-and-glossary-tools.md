@@ -3,6 +3,7 @@ id: TASK-007
 title: Learning and glossary tools and skills
 status: Done
 priority: P1
+milestone: v0.1.0
 type: feat
 size: M
 owner: Equal

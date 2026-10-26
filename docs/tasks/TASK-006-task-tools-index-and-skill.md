@@ -3,6 +3,7 @@ id: TASK-006
 title: Task tools and the /dx:task skill
 status: Done
 priority: P1
+milestone: v0.1.0
 type: feat
 size: M
 owner: Equal

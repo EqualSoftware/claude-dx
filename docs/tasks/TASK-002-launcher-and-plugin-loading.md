@@ -3,6 +3,7 @@ id: TASK-002
 title: Launcher and plugin loading
 status: Done
 priority: P0
+milestone: v0.1.0
 type: feat
 size: M
 owner: Equal

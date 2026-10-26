@@ -3,6 +3,7 @@ id: TASK-026
 title: Remove the eureka item from the template
 status: Approved
 priority: P1
+milestone: v0.1.0
 type: fix
 size: S
 owner: Equal

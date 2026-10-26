@@ -3,6 +3,7 @@ id: TASK-017
 title: Prepare the repository for release
 status: In Development
 priority: P2
+milestone: v0.1.0
 type: chore
 size: S
 owner: Equal

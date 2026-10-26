@@ -3,6 +3,7 @@ id: TASK-010
 title: Git tools for local changes and history
 status: Approved
 priority: P1
+milestone: v0.2.0
 type: feat
 size: M
 owner: Equal

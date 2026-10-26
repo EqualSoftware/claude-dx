@@ -3,6 +3,7 @@ id: TASK-032
 title: Review again after a scope change
 status: Approved
 priority: P2
+milestone: v0.1.0
 type: feat
 size: S
 owner: Equal

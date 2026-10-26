@@ -3,6 +3,7 @@ id: TASK-027
 title: Keep the dev plugin of a running session
 status: Approved
 priority: P3
+milestone: v0.1.0
 type: fix
 size: S
 owner: Equal

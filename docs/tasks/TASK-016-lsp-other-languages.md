@@ -3,6 +3,7 @@ id: TASK-016
 title: LSP servers for other languages
 status: Draft
 priority: P3
+milestone: v0.5.0
 type: feat
 size: ""
 owner: Equal

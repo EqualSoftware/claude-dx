@@ -3,6 +3,7 @@ id: TASK-028
 title: Limit titles to 40 characters
 status: Approved
 priority: P2
+milestone: v0.1.0
 type: fix
 size: S
 owner: Equal

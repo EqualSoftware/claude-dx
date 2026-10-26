@@ -3,6 +3,7 @@ id: TASK-021
 title: Stop ADR supersede cycles
 status: Approved
 priority: P1
+milestone: v0.1.0
 type: fix
 size: S
 owner: Equal

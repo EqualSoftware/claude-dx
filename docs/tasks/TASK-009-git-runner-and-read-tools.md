@@ -3,6 +3,7 @@ id: TASK-009
 title: Git runner and read-only git tools
 status: Approved
 priority: P1
+milestone: v0.2.0
 type: feat
 size: M
 owner: Equal

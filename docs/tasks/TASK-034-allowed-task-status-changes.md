@@ -3,6 +3,7 @@ id: TASK-034
 title: Allowed task status changes
 status: Approved
 priority: P2
+milestone: v0.1.0
 type: feat
 size: S
 owner: Equal

@@ -3,6 +3,7 @@ id: TASK-003
 title: Update, cache clean and doctor commands
 status: Done
 priority: P1
+milestone: v0.1.0
 type: feat
 size: M
 owner: Equal

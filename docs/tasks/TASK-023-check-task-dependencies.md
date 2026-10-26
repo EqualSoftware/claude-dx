@@ -3,6 +3,7 @@ id: TASK-023
 title: Check task dependencies
 status: Approved
 priority: P1
+milestone: v0.1.0
 type: fix
 size: S
 owner: Equal

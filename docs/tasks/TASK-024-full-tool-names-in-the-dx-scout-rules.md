@@ -3,6 +3,7 @@ id: TASK-024
 title: Full tool names in the dx:scout rules
 status: Approved
 priority: P1
+milestone: v0.1.0
 type: fix
 size: S
 owner: Equal

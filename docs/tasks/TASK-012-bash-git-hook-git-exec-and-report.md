@@ -3,6 +3,7 @@ id: TASK-012
 title: Bash git hook, git_exec and report
 status: Approved
 priority: P1
+milestone: v0.2.0
 type: feat
 size: M
 owner: Equal

@@ -3,6 +3,7 @@ id: TASK-015
 title: LSP manager and core language servers
 status: Draft
 priority: P2
+milestone: v0.4.0
 type: feat
 size: ""
 owner: Equal

@@ -3,6 +3,7 @@ id: TASK-022
 title: Keep omitted fields in glossary_upsert
 status: Approved
 priority: P1
+milestone: v0.1.0
 type: fix
 size: S
 owner: Equal

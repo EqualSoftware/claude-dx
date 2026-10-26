@@ -3,6 +3,7 @@ id: TASK-018
 title: Task list with no extra calls
 status: Done
 priority: P1
+milestone: v0.1.0
 type: fix
 size: S
 owner: Equal

@@ -3,6 +3,7 @@ id: TASK-004
 title: MCP server core and number allocation
 status: Done
 priority: P0
+milestone: v0.1.0
 type: feat
 size: M
 owner: Equal

@@ -3,6 +3,7 @@ id: TASK-008
 title: Grill skill, scout agent and rules
 status: Done
 priority: P1
+milestone: v0.1.0
 type: feat
 size: S
 owner: Equal

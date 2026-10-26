@@ -1,8 +1,9 @@
 ---
 id: TASK-014
-title: Filesystem tools (v0.3)
+title: Filesystem tools
 status: Draft
 priority: P2
+milestone: v0.3.0
 type: feat
 size: ""
 owner: Equal
@@ -12,7 +13,7 @@ depends_on: [TASK-012]
 related: [ADR-010, TASK-004]
 ---
 
-# TASK-014: Filesystem tools (v0.3)
+# TASK-014: Filesystem tools
 
 ## Document History
 | Date | Author | Description / Change Notes |

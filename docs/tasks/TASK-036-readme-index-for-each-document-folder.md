@@ -3,6 +3,7 @@ id: TASK-036
 title: README index for each document folder
 status: Done
 priority: P1
+milestone: v0.1.0
 type: feat
 size: M
 owner: Equal

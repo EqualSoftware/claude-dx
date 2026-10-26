@@ -3,6 +3,7 @@ id: TASK-011
 title: Git tools for branches and remotes
 status: Approved
 priority: P1
+milestone: v0.2.0
 type: feat
 size: M
 owner: Equal

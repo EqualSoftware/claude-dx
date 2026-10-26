@@ -3,6 +3,7 @@ id: TASK-025
 title: Compact Definition of Done message
 status: Cancelled
 priority: P3
+milestone: v0.1.0
 type: fix
 size: S
 owner: Equal

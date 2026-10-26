@@ -3,6 +3,7 @@ id: TASK-029
 title: Task frontmatter with no template comments
 status: Cancelled
 priority: P1
+milestone: v0.1.0
 type: fix
 size: S
 owner: Equal

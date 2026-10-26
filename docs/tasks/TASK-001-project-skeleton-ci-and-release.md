@@ -3,6 +3,7 @@ id: TASK-001
 title: Project skeleton, CI and release
 status: Done
 priority: P0
+milestone: v0.1.0
 type: build
 size: M
 owner: Equal

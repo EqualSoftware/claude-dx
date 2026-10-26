@@ -3,6 +3,7 @@ id: TASK-031
 title: Warn about open tasks on the same files
 status: Approved
 priority: P2
+milestone: v0.1.0
 type: feat
 size: S
 owner: Equal

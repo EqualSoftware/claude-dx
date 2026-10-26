@@ -3,6 +3,7 @@ id: TASK-013
 title: The /dx:commit and /dx:eureka skills
 status: Approved
 priority: P1
+milestone: v0.2.0
 type: feat
 size: S
 owner: Equal

@@ -3,6 +3,7 @@ id: TASK-033
 title: Task fields in the frontmatter
 status: Done
 priority: P1
+milestone: v0.1.0
 type: refactor
 size: M
 owner: Equal

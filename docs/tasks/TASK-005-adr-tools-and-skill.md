@@ -3,6 +3,7 @@ id: TASK-005
 title: ADR tools and the /dx:adr skill
 status: Done
 priority: P1
+milestone: v0.1.0
 type: feat
 size: S
 owner: Equal
