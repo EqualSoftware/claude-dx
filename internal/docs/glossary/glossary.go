@@ -83,7 +83,9 @@ func (s Store) List(area string) ([]Row, error) {
 }
 
 // Upsert adds the row, or replaces the row with the same term, and sorts the rows by term.
-// It makes the file if it does not exist. added is true for a new term.
+// A replaced row keeps the old spelling of the term, and the old Do not use words if row.DoNotUse
+// is nil. An empty list removes the words. It makes the file if it does not exist. added is true
+// for a new term.
 func (s Store) Upsert(row Row) (added bool, err error) {
 	t, err := s.read()
 	if errors.Is(err, ErrNoFile) {
@@ -92,10 +94,16 @@ func (s Store) Upsert(row Row) (added bool, err error) {
 	if err != nil {
 		return false, err
 	}
+	i := t.index(row.Term)
+	if i >= 0 {
+		row.Term = t.rows[i].Term
+		if row.DoNotUse == nil {
+			row.DoNotUse = t.rows[i].DoNotUse
+		}
+	}
 	if err := conflict(t.rows, row); err != nil {
 		return false, err
 	}
-	i := t.index(row.Term)
 	if i < 0 {
 		t.rows = append(t.rows, row)
 	} else {

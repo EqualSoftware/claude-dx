@@ -22,7 +22,7 @@ type upsertInput struct {
 	Term       string   `json:"term" jsonschema:"the approved word"`
 	Definition string   `json:"definition" jsonschema:"one or two sentences: what it is, not how to use it. In ASD-STE100"`
 	Area       string   `json:"area" jsonschema:"project, process, build or the name of an area of the project"`
-	DoNotUse   []string `json:"do_not_use,omitempty" jsonschema:"a list of synonyms to avoid, example [\"ticket\", \"issue\"]; empty list if none"`
+	DoNotUse   []string `json:"do_not_use,omitempty" jsonschema:"a list of synonyms to avoid, example [\"ticket\", \"issue\"]. On a change, omit it to keep the old words, or give [] to remove all"`
 	Source     string   `json:"source" jsonschema:"the file, ADR or task that defines or uses the term"`
 }
 
@@ -38,7 +38,7 @@ func Register(server *mcp.Server, s Store) {
 		})
 	add(server, "glossary_list", "List the terms of docs/GLOSSARY.md, one row for each term (| Term | Definition | Area | Do not use | Source |). Use it when you need many terms; use glossary_lookup for one term.",
 		func(in listInput) (string, error) { return s.listText(in.Area) })
-	add(server, "glossary_upsert", "Add a term to docs/GLOSSARY.md, or replace the row of the term. The tool keeps alphabetical order and refuses a conflict with another row.",
+	add(server, "glossary_upsert", "Add a term to docs/GLOSSARY.md, or replace the row of the term. A replaced row keeps the spelling of the term, and keeps the Do not use words if you omit do_not_use. The tool keeps alphabetical order and refuses a conflict with another row.",
 		func(in upsertInput) (string, error) {
 			added, err := s.Upsert(Row(in))
 			if added {

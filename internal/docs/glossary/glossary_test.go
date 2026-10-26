@@ -208,3 +208,24 @@ func BenchmarkUpsert500(b *testing.B) {
 		}
 	}
 }
+
+// TestUpsertKeepsOmittedFields is AC-1 to AC-3 of TASK-022, through the tool, so it also checks
+// that the SDK gives nil for an omitted do_not_use and an empty list for [] (A-1).
+func TestUpsertKeepsOmittedFields(t *testing.T) {
+	session := connect(t, newStore(t))
+	row := func(term string, extra map[string]any) map[string]any {
+		args := map[string]any{"term": term, "definition": "A place for data.", "area": "project", "source": "x"}
+		for k, v := range extra {
+			args[k] = v
+		}
+		return args
+	}
+	expect(t, session, "glossary_upsert", row("Store", map[string]any{"do_not_use": []string{"bucket"}}), `Added "Store".`)
+	expect(t, session, "glossary_upsert", row("Store", nil), `Changed "Store".`)
+	expect(t, session, "glossary_lookup", map[string]any{"term": "bucket"}, `Use "Store", not "bucket".`)
+	expect(t, session, "glossary_upsert", row("Store", map[string]any{"do_not_use": []string{}}), `Changed "Store".`)
+	expect(t, session, "glossary_lookup", map[string]any{"term": "bucket"}, "No match.")
+	expect(t, session, "glossary_upsert", row("Cache", nil), `Added "Cache".`)
+	expect(t, session, "glossary_upsert", row("cache", nil), `Changed "cache".`)
+	expect(t, session, "glossary_list", map[string]any{}, "| Cache | A place for data. | project | — | x |\n| Store | A place for data. | project | — | x |\n")
+}
