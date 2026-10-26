@@ -1,7 +1,7 @@
 ---
 id: TASK-027
 title: Keep the dev plugin of a running session
-status: Approved
+status: Done
 priority: P3
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,8 @@ related: [ADR-001, TASK-002]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -120,9 +122,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (CONTRIBUTING.md, if it tells how to test a dev build).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. AC-1: `TestEnsureDevKeepsRunningSession` (`internal/plugin/plugin_test.go`): a second dev build goes to a new `dev-<key>` directory and the marker file of the first directory stays. Manual: with the binary of `e1366e3`, `claude-dx -- --version` made `plugin/dev-6845b11f93707d5c` and the `plugin/dev` directory of this running session did not change; `claude-dx doctor` gives `OK plugin dev-6845b11f93707d5c is extracted`.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `e1366e3`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (CONTRIBUTING.md, if it tells how to test a dev build). Not applicable: `CONTRIBUTING.md` and the ADRs do not tell how a dev build extracts the plugin.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no new call flow. Section 7.3 gives the new directory name.
+- [x] ADRs are recorded for architectural decisions. Not applicable: no architecture decision. ADR-001 stays correct.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new reusable lesson.
