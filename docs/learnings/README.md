@@ -6,6 +6,7 @@ This folder has the verified technical lessons of the project. Use `/dx:learning
 | Topic | Description |
 | :--- | :--- |
 | [github-repository-checks](github-repository-checks.md) | How to check GitHub repository settings and branch rules. Use it when you verify the community profile or a ruleset of a repository. |
+| [go-signals-child-process](go-signals-child-process.md) | How Go signal handling of a parent process changes the signals of a child process, and when os/signal drops a signal. Use it when a Go process runs a child and catches or forwards signals. |
 | [go-windows-file-sharing](go-windows-file-sharing.md) | How Go opens files on Windows and why a rename over an open file can fail. Use it when code replaces a file that another process can read. |
 | [go-yaml-flow-lists](go-yaml-flow-lists.md) | How to write a YAML flow list with go.yaml.in/yaml/v3 so that items with commas stay one item. Use it when code writes frontmatter lists. |
 | [subagent-tool-names](subagent-tool-names.md) | How subagent models use MCP tool names from their prompt. Use it when you write agent or skill rules that name tools. |
