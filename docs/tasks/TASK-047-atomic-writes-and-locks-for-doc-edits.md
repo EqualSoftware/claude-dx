@@ -1,7 +1,7 @@
 ---
 id: TASK-047
 title: Atomic writes and locks for doc edits
-status: Approved
+status: Done
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,8 @@ related: [ADR-006, ADR-007, TASK-037, TASK-039]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
+| 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -141,8 +143,13 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (ADR-007).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions (ADR-007 gets the docs lock).
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: AC-1: TestParallelEdits passes with -race -count=3: 20 goroutines add 20 questions to TASK-001 with a docs.lock file, and all 20 stay. With the lock removed from edit, the test fails. AC-2: TestWriteFails: a rename over a directory fails, and the directory has no temporary file. AC-3: TestWriteOpenFile: docfile.Write replaces a file that a reader has open; the reader closes after 100 ms. Assumption A-1 is false: Go opens files on Windows with no FILE_SHARE_DELETE (GOROOT/src/syscall/syscall_windows.go:395), so the rename tries again for 1 s on Windows (Risk mitigation of section 11). The Windows CI run verifies AC-3 after the push. Commit e60dcc5.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet, go test -race ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (ADR-007).
+  - Evidence: ADR-007 Decision has the docs lock, the lock order and the atomic write with the Windows retry.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: no call flow diagram. ADR-007 Decision describes the lock order; docfile.Locked and docfile.Write are in internal/docs/docfile/write.go.
+- [x] ADRs are recorded for architectural decisions (ADR-007 gets the docs lock).
+  - Evidence: ADR-007 gets the docs lock in its Decision.
