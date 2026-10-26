@@ -177,4 +177,4 @@ The status cannot be `Approved` while a question is `Open`.
 - [x] Docs are updated (`/dx:task` skill, ADR-006). Commit `291af8b`: `internal/plugin/assets/skills/task/SKILL.md` gives the frontmatter fields, the filters and the In Review checks; ADR-006 Decision gives the fields and the task tools.
 - [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no call flow or state change. Section 7.3 gives the file format.
 - [x] ADRs are recorded for architectural decisions (ADR-013 has the decision). ADR-013 records the decision. ADR-006 refers to ADR-013.
-- [x] `/dx:eureka` is done. The tool does not exist yet. Lessons recorded by hand: `docs/learnings/go-yaml-flow-lists.md`, `docs/learnings/claude-code-plugin-reload.md`.
+- [x] `/dx:eureka` is done. The tool does not exist yet. Lesson recorded by hand: `docs/learnings/go-yaml-flow-lists.md`.
