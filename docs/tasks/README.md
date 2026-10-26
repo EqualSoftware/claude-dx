@@ -24,8 +24,7 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-021](TASK-021-stop-adr-supersede-cycles.md) | Stop ADR supersede cycles | `Approved` | `P1` | `docs-tools` | None |
-| [TASK-022](TASK-022-keep-omitted-fields-in-glossary-upsert.md) | Keep omitted fields in glossary_upsert | `Approved` | `P1` | `docs-tools` | None |
+| [TASK-022](TASK-022-keep-omitted-fields-in-glossary-upsert.md) | Keep omitted fields in glossary_upsert | `In Development` | `P1` | `docs-tools` | None |
 | [TASK-023](TASK-023-check-task-dependencies.md) | Check task dependencies | `Approved` | `P1` | `docs-tools` | TASK-030 |
 | [TASK-024](TASK-024-full-tool-names-in-the-dx-scout-rules.md) | Full tool names in the dx:scout rules | `Approved` | `P1` | `plugin` | None |
 | [TASK-026](TASK-026-remove-the-eureka-item-from-the-template.md) | Remove the eureka item from the template | `Approved` | `P1` | `docs-tools` | TASK-030 |
@@ -81,6 +80,7 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | [TASK-018](TASK-018-task-skill-list-without-extra-calls.md) | Task list with no extra calls | `Done` | 2026-10-25 |
 | [TASK-019](TASK-019-rename-the-mcp-server-to-mcp.md) | Rename the dx MCP server to mcp | `Done` | 2026-10-25 |
 | [TASK-020](TASK-020-glossary-list-tool.md) | The glossary_list tool | `Done` | 2026-10-25 |
+| [TASK-021](TASK-021-stop-adr-supersede-cycles.md) | Stop ADR supersede cycles | `Done` | 2026-10-25 |
 | [TASK-025](TASK-025-compact-definition-of-done-message.md) | Compact Definition of Done message | `Cancelled` | 2026-10-25 |
 | [TASK-029](TASK-029-task-frontmatter-with-no-template-comments.md) | Task frontmatter with no template comments | `Cancelled` | 2026-10-25 |
 | [TASK-030](TASK-030-task-milestones-and-the-ready-list.md) | Task milestones and the ready list | `Done` | 2026-10-25 |

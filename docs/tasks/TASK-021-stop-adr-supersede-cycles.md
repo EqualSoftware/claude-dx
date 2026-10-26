@@ -1,7 +1,7 @@
 ---
 id: TASK-021
 title: Stop ADR supersede cycles
-status: Approved
+status: Done
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,8 @@ related: [ADR-006, TASK-005]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -128,9 +130,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`/dx:adr` skill, ADR-006: the supersede rules).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. `TestSupersedeRefusesBadChain` (`internal/docs/adr/store_test.go`): AC-1 the cycle is refused and ADR-003 does not change; AC-2 a second replacement is refused; AC-3 a status change of a superseded ADR is refused and a section change passes. `TestSupersede`: AC-4 a Proposed new ADR is refused.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `6f5017f`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (`/dx:adr` skill, ADR-006: the supersede rules). Commit `6f5017f`: `internal/plugin/assets/skills/adr/SKILL.md` step 4 and ADR-006 Decision give the supersede rules.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: checks only, no call flow change.
+- [x] ADRs are recorded for architectural decisions. Not applicable: no architecture decision. ADR-006 gives the rules.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new reusable lesson.
