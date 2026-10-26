@@ -152,15 +152,20 @@ func TestUpdate(t *testing.T) {
 
 func TestSupersede(t *testing.T) {
 	s := newStore(t)
-	for _, title := range []string{"Old", "New"} {
+	for _, title := range []string{"Old", "New", "Draft"} {
 		if _, err := s.Create(sample(title)); err != nil {
 			t.Fatal(err)
 		}
 	}
-	for range 2 { // The second call must not add the line again.
-		if err := s.Supersede("ADR-001", "ADR-002"); err != nil {
-			t.Fatal(err)
-		}
+	// AC-4 of TASK-021: a Proposed ADR cannot replace an ADR.
+	if err := s.Supersede("ADR-001", "ADR-003"); err == nil || !strings.Contains(err.Error(), "must be Accepted") {
+		t.Fatalf("Supersede by a Proposed ADR = %v", err)
+	}
+	if err := s.Update("ADR-002", "Accepted", "", ""); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Supersede("ADR-001", "ADR-002"); err != nil {
+		t.Fatal(err)
 	}
 	old, _ := s.Get("ADR-001", "")
 	if !strings.Contains(old, "- Status: Superseded by ADR-002") {
@@ -172,6 +177,40 @@ func TestSupersede(t *testing.T) {
 	}
 	if err := s.Supersede("ADR-001", "ADR-001"); err == nil {
 		t.Error("an ADR replaced itself")
+	}
+}
+
+// TestSupersedeRefusesBadChain is AC-1 to AC-3 of TASK-021.
+func TestSupersedeRefusesBadChain(t *testing.T) {
+	s := newStore(t)
+	for i, title := range []string{"Old", "New", "Other"} {
+		_, err := s.Create(sample(title))
+		must(t, err)
+		must(t, s.Update(kind.ID(i+1), "Accepted", "", ""))
+	}
+	must(t, s.Supersede("ADR-001", "ADR-003"))
+	before, _ := s.Get("ADR-003", "")
+	refused(t, s.Supersede("ADR-003", "ADR-001"), "must be Accepted")
+	if after, _ := s.Get("ADR-003", ""); after != before {
+		t.Fatal("AC-1: a refused Supersede changed ADR-003")
+	}
+	refused(t, s.Supersede("ADR-001", "ADR-002"), "one replacement")
+	refused(t, s.Update("ADR-001", "Accepted", "", ""), "cannot change")
+	must(t, s.Update("ADR-001", "", "Evidence", "More evidence."))
+}
+
+func must(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// refused fails the test if err is nil or does not contain want.
+func refused(t *testing.T, err error, want string) {
+	t.Helper()
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("error = %v, want %q", err, want)
 	}
 }
 

@@ -25,7 +25,7 @@ Record only decisions of the project. Do not record decisions about the agent se
    - Set `status` to `Accepted` only when the user approved the decision. Else omit it (`Proposed`).
    - In `evidence`, write only verified facts: `path:line`, commits, benchmarks or issues.
    - Keep each field short. Write in ASD-STE100.
-4. If the new ADR replaces an older ADR, run `adr_supersede` with the old and the new ID.
+4. If the new ADR replaces an older ADR, set the new ADR to `Accepted`, then run `adr_supersede` with the old and the new ID. The tool refuses a new ADR that is not `Accepted` and an old ADR that is already superseded. The status of a superseded ADR cannot change.
 5. When the user approves a `Proposed` ADR, run `adr_update` with `status: Accepted`.
 
 Do not change files in `docs/decisions` with Edit or Write. Use the ADR tools. The tools also write the index `docs/decisions/README.md`. Do not read it: it is for persons. Use `adr_list`.

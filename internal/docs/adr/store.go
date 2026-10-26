@@ -169,7 +169,7 @@ func (s Store) Update(id, status, section, body string) error {
 		return errors.New("give a status, or a section and a body")
 	}
 	if status != "" {
-		if err := validStatus(status); err != nil {
+		if err := s.canSetStatus(id, status); err != nil {
 			return err
 		}
 	}
@@ -202,7 +202,7 @@ func (s Store) Supersede(oldID, newID string) error {
 	if oldN == newN {
 		return errors.New("an ADR cannot replace itself")
 	}
-	if _, err := s.find(newID); err != nil {
+	if err := s.canSupersede(oldID, newID); err != nil {
 		return err
 	}
 	err = s.edit(oldID, func(doc string) (string, error) {
@@ -218,6 +218,55 @@ func (s Store) Supersede(oldID, newID string) error {
 		return err
 	}
 	return s.WriteIndex()
+}
+
+// canSetStatus refuses a status that is not valid, and a status change of a superseded ADR,
+// because only adr_supersede sets that status.
+func (s Store) canSetStatus(id, status string) error {
+	if err := validStatus(status); err != nil {
+		return err
+	}
+	current, err := s.status(id)
+	if err != nil {
+		return err
+	}
+	if strings.HasPrefix(current, "Superseded") {
+		return fmt.Errorf("%s is %q. Its status cannot change. You can change its sections", id, current)
+	}
+	return nil
+}
+
+// canSupersede refuses a chain that is not correct: the old ADR has one replacement, and the new ADR
+// is the current decision, so it is Accepted. This also stops cycles.
+func (s Store) canSupersede(oldID, newID string) error {
+	oldStatus, err := s.status(oldID)
+	if err != nil {
+		return err
+	}
+	if strings.HasPrefix(oldStatus, "Superseded") {
+		return fmt.Errorf("%s is already %q. One ADR has one replacement", oldID, oldStatus)
+	}
+	newStatus, err := s.status(newID)
+	if err != nil {
+		return err
+	}
+	if newStatus != "Accepted" {
+		return fmt.Errorf("%s is %q. The new ADR must be Accepted", newID, newStatus)
+	}
+	return nil
+}
+
+// status returns the status line value of the ADR.
+func (s Store) status(id string) (string, error) {
+	path, err := s.find(id)
+	if err != nil {
+		return "", err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return first(statusLine, data), nil
 }
 
 // addReplaces puts "Replaces ADR-NNN." at the start of Context, one time only.
