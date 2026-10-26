@@ -1,7 +1,7 @@
 ---
 id: TASK-043
 title: Warn about ADR and learning read errors
-status: Approved
+status: Done
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,8 @@ related: [TASK-005, TASK-007]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
+| 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -126,8 +128,13 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (no docs change expected).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: TestListBadFrontmatter (AC-1, FR-3): learning_list gives a-topic and b-topic, then "Warning: bad.md: the frontmatter is not valid..."; README.md does not have bad.md. TestListBadFile (AC-2): adr_list gives ADR-001 and ADR-002 and one "Warning: ADR-003-bad.md:" line; WriteIndex does not fail. Commit fc8364a.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet, go test ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (no docs change expected).
+  - Evidence: Not applicable: no doc describes the list errors. The List comments in internal/docs/adr/store.go and internal/docs/learning/learning.go describe the warnings.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: a change in two List functions, no design diagram.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: No architecture decision: the ADR and learning lists use the warning rule of task_list, with no change of structure or file format.
