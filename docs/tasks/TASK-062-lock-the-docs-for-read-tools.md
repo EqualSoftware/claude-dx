@@ -1,7 +1,7 @@
 ---
 id: TASK-062
 title: Lock the docs for read tools
-status: Approved
+status: In Review
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,7 @@ related: [ADR-015, ADR-007, TASK-047]
 | 2026-10-26 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Status: In Review. |
 | 2026-10-26 | Equal | Status: Approved. |
+| 2026-10-26 | Equal | Status: In Review. The scope changed in section 6.1. |
 
 ## 1. Summary
 
@@ -60,7 +61,8 @@ Not applicable.
 ### 6.1 Functional
 
 - FR-1: `docfile.RLocked(lock, fn)` holds the read side of a `sync.RWMutex` and a shared OS lock. `docfile.Locked` holds the write side and the exclusive OS lock.
-- FR-2: The read tools `task_list`, `task_get`, `adr_list`, `adr_get`, `learning_list`, `learning_get`, `glossary_lookup` and `glossary_list` run in `docfile.RLocked`.
+- FR-2: The read tools `task_list`, `task_get`, `adr_list`, `adr_get`, `learning_list`, `learning_get`, `glossary_lookup` and `glossary_list` run in `docfile.RLocked`. If the lock fails, the tool returns the error, as the write tools do.
+- FR-3: `Locked` and `RLocked` refuse an empty lock path with the error "the docs lock path is empty", because a store with no lock path loses the lock between processes with no sign. The tests use a lock file in a temporary directory.
 
 ### 6.2 Non-Functional
 
@@ -91,15 +93,16 @@ Not applicable.
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | `internal/docs/docfile/write.go`, `internal/docs/docfile/write_test.go` | FR-1, with tests. | `go test ./internal/docs/docfile/` |
-| 2 | `internal/docs/task/`, `internal/docs/adr/`, `internal/docs/learning/`, `internal/docs/glossary/` (the read functions and their tests) | FR-2, with tests. | `go test ./internal/docs/...` |
-| 3 | ADR-007 (with `adr_update`), `docs/GLOSSARY.md` (with `glossary_upsert` for `Docs lock`) | The shared lock for reads. | `glossary_lookup Docs lock` |
+| 1 | `internal/docs/docfile/write.go`, `internal/docs/docfile/write_test.go` | FR-1, FR-3, with tests. | `go test ./internal/docs/docfile/` |
+| 2 | `internal/docs/task/`, `internal/docs/adr/`, `internal/docs/learning/`, `internal/docs/glossary/` (the read functions, the test stores and their tests) | FR-2, FR-3, with tests. | `go test ./internal/docs/...` |
+| 3 | `docs/GLOSSARY.md` (with `glossary_upsert` for `Docs lock`) | The shared lock for reads. ADR-007 does not change, because it is pushed (ADR-017) and ADR-015 already gives the shared lock for reads. TASK-068 supersedes ADR-007. | `glossary_lookup Docs lock` |
 
 ## 9. Acceptance Criteria
 
 - AC-1: Given a process that holds the exclusive docs lock, when `task_list` runs, then it waits until the lock is released.
 - AC-2: Given a process that holds a shared docs lock, when `task_get` runs, then it does not wait.
 - AC-3: Given a process that holds a shared docs lock, when `task_update_section` runs, then it waits.
+- AC-4: Given an empty lock path, when `Locked` or `RLocked` runs, then it returns "the docs lock path is empty" and does not call fn.
 
 ## 10. Validation and Metrics
 
