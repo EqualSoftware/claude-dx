@@ -1,7 +1,7 @@
 ---
 id: TASK-038
 title: Replace block lists in the frontmatter
-status: Approved
+status: In Development
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,7 @@ related: [TASK-033, go-yaml-flow-lists]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
+| 2026-10-26 | Equal | Status: In Development. |
 
 ## 1. Summary
 
@@ -56,7 +57,7 @@ related: [TASK-033, go-yaml-flow-lists]
 ## 6. Requirements
 ### 6.1 Functional
 
-- FR-1: `SetField` replaces the line of the key and all next lines that start with a space or with `-`, up to the next line that does not.
+- FR-1: `SetField` replaces the line of the key and all next lines that start with a space or with `-`, up to the next line that does not. Empty lines are part of the match only when a continuation line comes after them (Q-2).
 - FR-2: The new value is in flow style, as now.
 
 ### 6.2 Non-Functional
@@ -88,7 +89,7 @@ Not applicable.
 
 | Work batch | Files | Steps | Check |
 | :--- | :--- | :--- | :--- |
-| 1 | `internal/markdown/frontmatter.go`, `internal/markdown/markdown_test.go` | FR-1, FR-2. Tests: indented block list, block list with no indent, block list as the last key, multi-line scalar, flow list (no change of behavior). | `go test ./internal/markdown/` |
+| 1 | `internal/markdown/frontmatter.go`, `internal/markdown/markdown_test.go` | FR-1, FR-2. Tests: indented block list, block list with no indent, block list as the last key, multi-line scalar with an empty line, flow list (no change of behavior). | `go test ./internal/markdown/` |
 
 ## 9. Acceptance Criteria
 
@@ -120,6 +121,7 @@ Revert the change in `SetField`.
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
 | Q-1 | Does `SetField` fix a block list, or refuse it? Recommended: replace the key and its continuation lines. | Equal | Replace (grill Q-3, Q-16). |
+| Q-2 | A block scalar can have an empty line between its indented lines. FR-1 stops at the empty line and keeps the next indented lines, so the YAML is not valid. Does the match also include empty lines? Recommended: include empty lines only when a continuation line comes after them. | Equal | Include empty lines only when a continuation line comes after them. Empty lines before the next key stay. |
 
 The status cannot be `Approved` while a question is `Open`.
 

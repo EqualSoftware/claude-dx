@@ -38,11 +38,13 @@ func Decode(front string, v any) error {
 	return yaml.Unmarshal([]byte(front), v)
 }
 
-// SetField sets key to value (a string or a []string). It replaces the full line of the key.
+// SetField sets key to value (a string or a []string). It replaces the line of the key and its
+// continuation lines (lines that start with a space or "-", as in a block list or a block scalar).
+// Empty lines are replaced only when a continuation line comes after them.
 // If the key does not exist, SetField adds it at the end.
 func SetField(front, key string, value any) string {
 	line := key + ": " + format(value)
-	pattern := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(key) + `:.*$`)
+	pattern := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(key) + `:.*(?:\n+[ -].*)*`)
 	m := pattern.FindStringIndex(front)
 	if m == nil {
 		return front + line + "\n"

@@ -82,6 +82,33 @@ func TestSetFieldReplacesLine(t *testing.T) {
 	}
 }
 
+func TestSetFieldReplacesBlockValue(t *testing.T) {
+	tests := []struct {
+		name  string
+		front string
+		want  string
+	}{
+		{"indented list", "id: T\narea:\n  - a\n  - b\nstatus: Draft\n", "id: T\narea: [c]\nstatus: Draft\n"},
+		{"list with no indent", "id: T\narea:\n- a\n- b\nstatus: Draft\n", "id: T\narea: [c]\nstatus: Draft\n"},
+		{"list as last key", "id: T\narea:\n  - a\n  - b\n", "id: T\narea: [c]\n"},
+		{"scalar with empty line", "id: T\narea: |\n  one\n\n  two\n\nstatus: Draft\n", "id: T\narea: [c]\n\nstatus: Draft\n"},
+		{"flow list", "id: T\narea: [a, b]\nstatus: Draft\n", "id: T\narea: [c]\nstatus: Draft\n"},
+	}
+	for _, tt := range tests {
+		got := SetField(tt.front, "area", []string{"c"})
+		if got != tt.want {
+			t.Errorf("%s: SetField =\n%q\nwant\n%q", tt.name, got, tt.want)
+		}
+		var v struct {
+			Area   []string `yaml:"area"`
+			Status string   `yaml:"status"`
+		}
+		if err := Decode(got, &v); err != nil {
+			t.Errorf("%s: Decode: %v", tt.name, err)
+		}
+	}
+}
+
 func TestSection(t *testing.T) {
 	_, body := Split(task)
 	tests := map[string]string{
