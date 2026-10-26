@@ -25,6 +25,9 @@ Sort the terms in alphabetical order.
 | Main branch | The branch that `origin/HEAD` names, else `main`, else `master`. | git | trunk, default branch | TASK-011 |
 | Milestone | The release version of a task, example `v0.1.0`. A frontmatter field of each task. | process | target version, release field | ADR-013 |
 | Owner | The git `user.name` of the person who creates a task. A frontmatter field of each task. | process | assignee, reviewer | ADR-013 |
+| Project data directory | The directory of the local data of one project: `<git-common-dir>/dx/` in a git repository, else `<cache>/projects/<key>/`. It holds the docs lock, the Project file (data) and the local tasks. All worktrees of a repository share it. | docs-tools | dx folder, project cache | ADR-015 |
+| Project file (cache) | The file `<cache>/projects/<key>/project.json`. It holds the project path and the last use date, so `claude-dx clean` can show each project. | cli | — | ADR-018 |
+| Project file (data) | The file `project.json` in the project data directory. It holds the number counters. | docs-tools | — | ADR-018 |
 | Project key | The first 16 hex characters of the SHA-256 of the git common directory (or of the project root outside git). All worktrees of one repository have the same key. | mcp | project id | ADR-007 |
 | Project root | The git top level of the current directory, or the current directory outside git. Tools refuse paths outside it. | mcp | workspace, base dir | ADR-005 |
 | Ready task | An open task that is not `Blocked` and has all dependencies `Done`. `task_list(status: ready)` gives these tasks. | process | next task, unblocked task | ADR-013 |

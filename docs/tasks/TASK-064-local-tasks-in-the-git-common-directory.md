@@ -53,15 +53,15 @@ Task files in git make too many files and number collisions between branches (AD
 
 ## 6. Requirements
 
-- R-1: Path `<git-common-dir>/dx/tasks/<spec>/<task-slug>.md`, or `general/` for a task with no spec. ID `<spec>/<task-slug>`.
+- R-1: Path `tasks/<spec>/<task-slug>.md` in the project data directory (ADR-015), or `tasks/general/` for a task with no spec. ID `<spec>/<task-slug>`.
 - R-2: Frontmatter `id`, `title`, `status`, `priority`, `covers`, `depends_on`. Sections Plan (checklist), Notes, Definition of Done.
 - R-3: Status `Todo`, `In Progress`, `Blocked`, `Done`. `Done` needs all Definition of Done items checked.
 - R-4: `depends_on` refuses a task of another spec, a missing task, the same task and a cycle.
 - R-5: `covers` refuses a requirement that the spec does not have. A `general` task has no `covers`.
 - R-6: `task_set_status` to `Done` sets the `covers` requirements to `Done` in the spec and adds a Document History row with no task ID.
 - R-7: New tool `task_step_check`. Remove `task_renumber`, `task_question_add`, `task_question_answer`, the task counter and the task index.
-- R-8: Task writes hold the lock `tasks.lock` in the task folder (ADR-015 `filelock`), so all worktrees share it.
-- R-9: Outside a git repository, the task folder is `<cache>/projects/<key>/tasks/`, with the key of ADR-007 (a hash of the project root). When the project becomes a git repository, the first task tool call moves this folder to `<git-common-dir>/dx/tasks/`, because the tasks must not be lost after `git init`.
+- R-8: Task writes hold the docs lock of the project data directory, as spec writes do, so one lock protects a task and its spec.
+- R-9: The project data directory and the move from the cache after `git init` come from TASK-068.
 
 ## 7. Design
 ### 7.1 Architecture

@@ -8,15 +8,19 @@
 `cache clean` removes all of the cache (`internal/cache/cache.go:24`). After ADR-016, the cache also has the local tasks of projects outside git, and `<git-common-dir>/dx/` has the local tasks of each git project. A full delete can lose work of the user. The cache folder of a project has a hash as its name (ADR-007), so a person cannot see which project it is. `cache clean` also needs the exclusive cache lock, so it cannot remove anything while a session runs.
 
 ## Decision
+
 - The command `claude-dx clean` replaces `cache clean`. It shows an interactive multi-select with the `charmbracelet/huh` library, then asks for a confirmation. Nothing is deleted without a selection and a confirmation of the user.
 - Items:
   - Global: old plugin versions, and each LSP server.
   - Projects: for each known project, its cache data and its local tasks (by spec and status). A project that is not on the disk is shown as missing.
 - Lock files are never shown and never deleted (ADR-015).
-- Each item has its lock. Global items need the exclusive cache lock: while a session runs, they are disabled with the reason. Project items use the docs lock or the task lock of that project, so a person can clean one project while another project has a session.
+- Each item has its lock. Global items need the exclusive cache lock: while a session runs, they are disabled with the reason. Project items use the docs lock of that project, so a person can clean one project while another project has a session.
 - `claude-dx clean --list` prints the same tree with sizes and status and deletes nothing.
 - With no interactive terminal, `claude-dx clean` refuses. Only `--list` works. There are no flags that delete with no selection.
-- Each project has `<cache>/projects/<key>/project.json`. It contains the project path, the last use date and the number counters that `counters.json` has now. The MCP server writes the path and the date at start. All writes hold the docs lock and are atomic.
+- Two project files:
+  - Project file (cache): `<cache>/projects/<key>/project.json`. It contains the project path and the last use date, so `claude-dx clean` can show each project. The MCP server writes it at start.
+  - Project file (data): `project.json` in the project data directory (ADR-015). It contains the number counters, so `clean` of the cache does not remove them and all worktrees share them.
+- All writes of the two files hold the docs lock of the project and are atomic.
 
 ## Alternatives
 - Numbered list with no new dependency: The user wants an interactive and good-looking selection.
