@@ -24,13 +24,14 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-051](TASK-051-keep-the-cache-lock-during-cache-clean.md) | Keep the cache lock during cache clean | `Draft` | `P1` | `cli` | None |
+| [TASK-051](TASK-051-rename-and-check-the-cache-lock.md) | Rename and check the cache lock | `Draft` | `P1` | `cli` | None |
 | [TASK-052](TASK-052-keep-questions-that-start-with-a-bracket.md) | Keep questions that start with a bracket | `Draft` | `P1` | `docs-tools` | None |
 | [TASK-053](TASK-053-check-section-bodies-of-task-tools.md) | Check section bodies of task tools | `Draft` | `P1` | `docs-tools` | None |
 | [TASK-054](TASK-054-keep-one-task-id-when-renumber-fails.md) | Keep one task ID when renumber fails | `Draft` | `P1` | `docs-tools` | None |
 | [TASK-055](TASK-055-extract-the-plugin-per-binary-path.md) | Extract the plugin per binary path | `Draft` | `P1` | `plugin`, `cli` | None |
 | [TASK-056](TASK-056-refuse-a-used-title-in-a-title-change.md) | Refuse a used title in a title change | `Draft` | `P2` | `docs-tools` | None |
 | [TASK-057](TASK-057-escape-pipes-in-readme-index-rows.md) | Escape pipes in README index rows | `Draft` | `P2` | `docs-tools` | None |
+| [TASK-059](TASK-059-remove-the-numbering-lock.md) | Remove the numbering lock | `Draft` | `P2` | `docs-tools` | None |
 | [TASK-058](TASK-058-keep-the-file-mode-in-docfile-write.md) | Keep the file mode in docfile.Write | `Draft` | `P3` | `docs-tools` | None |
 
 ## v0.2.0
