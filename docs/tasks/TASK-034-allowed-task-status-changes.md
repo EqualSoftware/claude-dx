@@ -1,7 +1,7 @@
 ---
 id: TASK-034
 title: Allowed task status changes
-status: Approved
+status: Done
 priority: P2
 milestone: v0.1.0
 type: feat
@@ -22,6 +22,8 @@ related: [ADR-013, TASK-006]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -129,9 +131,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`/dx:task` skill, ADR-013: the table of FR-1).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions (ADR-013 has the decision).
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. `TestStatusChanges` (`internal/docs/task/task_test.go`) checks each row of FR-1 against all statuses; AC-1 Draft to Approved is refused with "Allowed: In Review, Cancelled"; AC-2 Done to In Development is refused. AC-3: `TestQuestions` sets an In Review task with answered questions to Approved.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `8a20853`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (`/dx:task` skill, ADR-013: the table of FR-1). Commit `8a20853`: the `/dx:task` skill (Change the status) and ADR-013 Decision give the table of FR-1.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. The state table is in ADR-013 Decision and in the `/dx:task` skill. No other diagram.
+- [x] ADRs are recorded for architectural decisions (ADR-013 has the decision). ADR-013 records the decision and the table.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new reusable lesson.
