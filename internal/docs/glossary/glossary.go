@@ -30,7 +30,7 @@ const (
 // Store reads and writes the glossary of one project.
 type Store struct {
 	Path string // absolute path of docs/GLOSSARY.md
-	Lock string // path of the docs lock (TASK-047); empty takes only the lock of this process
+	Lock string // path of the docs lock (TASK-047); required
 }
 
 // Row is one term of the glossary.

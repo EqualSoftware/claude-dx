@@ -12,7 +12,7 @@ import (
 
 func newStore(t *testing.T) Store {
 	t.Helper()
-	return Store{Dir: filepath.Join(t.TempDir(), "docs", "learnings")}
+	return Store{Dir: filepath.Join(t.TempDir(), "docs", "learnings"), Lock: filepath.Join(t.TempDir(), "docs.lock")}
 }
 
 // connect returns a client session to a server with the learning tools of s, over memory.

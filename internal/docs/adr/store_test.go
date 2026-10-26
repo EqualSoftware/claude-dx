@@ -17,6 +17,7 @@ func newStore(t *testing.T) Store {
 		Dir:   filepath.Join(t.TempDir(), "docs", "decisions"),
 		Alloc: numbering.Allocator{Dir: t.TempDir()},
 		Now:   func() time.Time { return time.Date(2026, 10, 25, 0, 0, 0, 0, time.UTC) },
+		Lock:  filepath.Join(t.TempDir(), "docs.lock"),
 	}
 }
 

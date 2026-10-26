@@ -49,7 +49,7 @@ type Store struct {
 	Alloc  numbering.Allocator // number allocation (ADR-007)
 	Now    func() time.Time    // clock; nil means time.Now
 	Author func() string       // author of Document History rows; nil means "Agent"
-	Lock   string              // path of the docs lock (TASK-047); empty takes only the lock of this process
+	Lock   string              // path of the docs lock (TASK-047); required
 }
 
 // Front is the YAML frontmatter of a task. It is the only source of these fields.

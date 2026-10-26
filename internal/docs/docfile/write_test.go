@@ -117,3 +117,31 @@ func TestLocked(t *testing.T) {
 		t.Fatalf("Locked did not make the lock file: %v", err)
 	}
 }
+
+// TestNoLockPath is AC-4 of TASK-062.
+func TestNoLockPath(t *testing.T) {
+	for name, run := range map[string]func(string, func() error) error{"Locked": Locked, "RLocked": RLocked} {
+		ran := false
+		if err := run("", func() error { ran = true; return nil }); !errors.Is(err, errNoLock) || ran {
+			t.Fatalf("%s with no path = %v, ran %v; want %v", name, err, ran, errNoLock)
+		}
+	}
+}
+
+func TestRLockedShares(t *testing.T) {
+	lock := filepath.Join(t.TempDir(), "docs.lock")
+	err := RLocked(lock, func() error {
+		// A second read in another goroutine does not wait for this read.
+		done := make(chan error, 1)
+		go func() { done <- RLocked(lock, func() error { return nil }) }()
+		select {
+		case err := <-done:
+			return err
+		case <-time.After(5 * time.Second):
+			return errors.New("a read waited for another read")
+		}
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}

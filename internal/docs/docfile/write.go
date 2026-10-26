@@ -12,22 +12,38 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/filelock"
 )
 
-// mu orders the document changes of one process. The OS lock of Locked orders the changes of processes.
-var mu sync.Mutex
+// mu orders the document reads and changes of one process. The OS lock orders them between processes.
+var mu sync.RWMutex
 
-// Locked runs fn with the docs lock of the project (TASK-047), so two sessions do not lose an edit.
-// lock is the path of the lock file; an empty lock takes only the lock of this process. The docs lock
-// also protects the number counter (ADR-015).
+// errNoLock means that a store has no docs lock path. Without it, two processes could change one
+// document at the same time with no sign.
+var errNoLock = errors.New("the docs lock path is empty")
+
+// Locked runs fn with the exclusive docs lock of the project (TASK-047), so two sessions do not lose
+// an edit. lock is the path of the lock file. The docs lock also protects the number counter (ADR-015).
 func Locked(lock string, fn func() error) error {
 	mu.Lock()
 	defer mu.Unlock()
+	return withLock(lock, filelock.Lock, fn)
+}
+
+// RLocked runs fn with a shared docs lock, so a read never sees half of a change of more than one
+// file. Reads do not wait for other reads (ADR-015).
+func RLocked(lock string, fn func() error) error {
+	mu.RLock()
+	defer mu.RUnlock()
+	return withLock(lock, filelock.RLock, fn)
+}
+
+// withLock takes the OS lock of lock with take, runs fn and releases the lock.
+func withLock(lock string, take func(string) (func() error, error), fn func() error) error {
 	if lock == "" {
-		return fn()
+		return errNoLock
 	}
 	if err := os.MkdirAll(filepath.Dir(lock), 0o755); err != nil {
 		return err
 	}
-	unlock, err := filelock.Lock(lock)
+	unlock, err := take(lock)
 	if err != nil {
 		return err
 	}

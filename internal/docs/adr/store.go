@@ -41,7 +41,7 @@ type Store struct {
 	Dir   string              // absolute path of docs/decisions
 	Alloc numbering.Allocator // number allocation (ADR-007)
 	Now   func() time.Time    // clock; nil means time.Now
-	Lock  string              // path of the docs lock (TASK-047); empty takes only the lock of this process
+	Lock  string              // path of the docs lock (TASK-047); required
 }
 
 // Entry is one ADR in a list.

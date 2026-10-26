@@ -1,7 +1,7 @@
 ---
 id: TASK-062
 title: Lock the docs for read tools
-status: In Development
+status: Done
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -25,6 +25,7 @@ related: [ADR-015, ADR-007, TASK-047]
 | 2026-10-26 | Equal | Status: In Review. The scope changed in section 6.1. |
 | 2026-10-26 | Equal | Status: Approved. |
 | 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -134,8 +135,14 @@ Revert the change.
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: AC-1 TestReadWaitsForWrite, AC-2 TestReadDoesNotWaitForRead, AC-3 TestWriteWaitsForRead (internal/docs/task/lock_test.go, helper processes); AC-4 TestNoLockPath; TestRLockedShares. go test ./... passes on macOS; Windows and Linux by CI after push.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet (also GOOS=windows), go test ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: Glossary Docs lock changed (shared lock for reads). Store Lock field comments say "required". README.md and CLAUDE.md do not describe the docs lock.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: No diagram: the task adds a shared mode to an existing lock and no new flow.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: ADR-015 records the shared docs lock for reads and the required lock path. ADR-007 does not change (ADR-017); TASK-068 supersedes it.

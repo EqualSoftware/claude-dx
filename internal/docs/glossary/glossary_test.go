@@ -14,7 +14,7 @@ import (
 
 func newStore(t *testing.T) Store {
 	t.Helper()
-	return Store{Path: filepath.Join(t.TempDir(), "docs", "GLOSSARY.md")}
+	return Store{Path: filepath.Join(t.TempDir(), "docs", "GLOSSARY.md"), Lock: filepath.Join(t.TempDir(), "docs.lock")}
 }
 
 // connect returns a client session to a server with the glossary tools of s, over memory.

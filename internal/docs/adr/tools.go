@@ -8,6 +8,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/result"
 )
 
@@ -43,11 +44,15 @@ type supersedeInput struct {
 func Register(server *mcp.Server, s Store) {
 	mcp.AddTool(server, &mcp.Tool{Name: "adr_list", Description: "List the ADRs in docs/decisions: number, status and title."},
 		func(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
-			return reply(s.listText())
+			var text string
+			err := docfile.RLocked(s.Lock, func() (err error) { text, err = s.listText(); return err })
+			return reply(text, err)
 		})
 	mcp.AddTool(server, &mcp.Tool{Name: "adr_get", Description: "Read one ADR, or one section of it. Read one section when you need only that part."},
 		func(_ context.Context, _ *mcp.CallToolRequest, in getInput) (*mcp.CallToolResult, any, error) {
-			return reply(s.Get(in.ID, in.Section))
+			var text string
+			err := docfile.RLocked(s.Lock, func() (err error) { text, err = s.Get(in.ID, in.Section); return err })
+			return reply(text, err)
 		})
 	mcp.AddTool(server, &mcp.Tool{Name: "adr_create", Description: "Record a new ADR in docs/decisions. The tool sets the number, the date and the file name."},
 		func(_ context.Context, _ *mcp.CallToolRequest, in createInput) (*mcp.CallToolResult, any, error) {

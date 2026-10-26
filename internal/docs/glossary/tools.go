@@ -7,6 +7,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/result"
 )
 
@@ -29,15 +30,19 @@ type upsertInput struct {
 // Register adds the glossary tools to the server.
 func Register(server *mcp.Server, s Store) {
 	add(server, "glossary_lookup", "Find a term in docs/GLOSSARY.md, also in the Do not use column. Returns the row (| Term | Definition | Area | Do not use | Source |), the approved term, or No match.",
-		func(in termInput) (string, error) {
-			text, ok, err := s.Lookup(in.Term)
+		func(in termInput) (text string, err error) {
+			ok := false
+			err = docfile.RLocked(s.Lock, func() (err error) { text, ok, err = s.Lookup(in.Term); return err })
 			if err == nil && !ok {
 				return "No match.", nil
 			}
 			return text, err
 		})
 	add(server, "glossary_list", "List the terms of docs/GLOSSARY.md, one row for each term (| Term | Definition | Area | Do not use | Source |). Use it when you need many terms; use glossary_lookup for one term.",
-		func(in listInput) (string, error) { return s.listText(in.Area) })
+		func(in listInput) (text string, err error) {
+			err = docfile.RLocked(s.Lock, func() (err error) { text, err = s.listText(in.Area); return err })
+			return text, err
+		})
 	add(server, "glossary_upsert", "Add a term to docs/GLOSSARY.md, or replace the row of the term. All fields but do_not_use are required. A replaced row keeps the spelling of the term, and keeps the Do not use words if you omit do_not_use. The tool keeps alphabetical order and refuses a conflict with another row.",
 		func(in upsertInput) (string, error) {
 			added, err := s.Upsert(Row(in))

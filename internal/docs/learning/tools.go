@@ -7,6 +7,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/result"
 )
 
@@ -29,9 +30,15 @@ type updateInput struct {
 // Register adds the learning tools to the server.
 func Register(server *mcp.Server, s Store) {
 	add(server, "learning_list", "List the learnings in docs/learnings: topic and description. Run it before learning_create.",
-		func(struct{}) (string, error) { return s.listText() })
+		func(struct{}) (text string, err error) {
+			err = docfile.RLocked(s.Lock, func() (err error) { text, err = s.listText(); return err })
+			return text, err
+		})
 	add(server, "learning_get", "Read one learning file.",
-		func(in topicInput) (string, error) { return s.Get(in.Topic) })
+		func(in topicInput) (text string, err error) {
+			err = docfile.RLocked(s.Lock, func() (err error) { text, err = s.Get(in.Topic); return err })
+			return text, err
+		})
 	add(server, "learning_create", "Create docs/learnings/<topic>.md. The tool refuses a topic that exists.",
 		func(in createInput) (string, error) {
 			return "Created docs/learnings/" + in.Topic + ".md.", s.Create(in.Topic, in.Description, in.Body)

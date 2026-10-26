@@ -9,6 +9,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/result"
 )
 
@@ -120,9 +121,15 @@ type renumberInput struct {
 // Register adds the task tools to the server.
 func Register(server *mcp.Server, s Store) {
 	add(server, "task_list", "List tasks: ID, status, priority, milestone, title, areas and dependencies. Filter by any frontmatter field; a task must match all filters. Default: open tasks. A dependency that is not Done shows its status. Do not read docs/tasks/README.md; use this tool.",
-		func(in listInput) (string, error) { return s.listText(in) })
+		func(in listInput) (text string, err error) {
+			err = docfile.RLocked(s.Lock, func() (err error) { text, err = s.listText(in); return err })
+			return text, err
+		})
 	add(server, "task_get", "Read one task, or one section of it.",
-		func(in getInput) (string, error) { return s.Get(in.ID, in.Section) })
+		func(in getInput) (text string, err error) {
+			err = docfile.RLocked(s.Lock, func() (err error) { text, err = s.Get(in.ID, in.Section); return err })
+			return text, err
+		})
 	add(server, "task_create", "Create a Draft task in docs/tasks from the template. The tool sets the number, the date, the author and the file name.",
 		func(in createInput) (string, error) { return s.createText(in) })
 	add(server, "task_update_section", "Replace one section of a task.",

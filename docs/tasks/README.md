@@ -31,7 +31,6 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | [TASK-067](TASK-067-migrate-tasks-to-specs.md) | Migrate tasks to specs | `Draft` | `P1` | `docs`, `plugin` | TASK-064, TASK-065, TASK-066, TASK-070 |
 | [TASK-068](TASK-068-project-data-directory.md) | Project data directory | `Draft` | `P1` | `mcp`, `cli` | TASK-062 |
 | [TASK-069](TASK-069-interactive-clean-command.md) | Interactive clean command | `Draft` | `P1` | `cli`, `cache` | TASK-061, TASK-068 |
-| [TASK-062](TASK-062-lock-the-docs-for-read-tools.md) | Lock the docs for read tools | `In Development` | `P2` | `docs-tools` | TASK-061, TASK-059 |
 | [TASK-058](TASK-058-keep-the-file-mode-in-docfile-write.md) | Keep the file mode in docfile.Write | `Approved` | `P3` | `docs-tools` | TASK-062 |
 
 ## v0.2.0
@@ -120,4 +119,5 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | [TASK-059](TASK-059-remove-the-numbering-lock.md) | Remove the numbering lock | `Done` | 2026-10-26 |
 | [TASK-060](TASK-060-run-claude-as-a-child-process-on-unix.md) | Run claude as a child process on Unix | `Done` | 2026-10-26 |
 | [TASK-061](TASK-061-use-a-read-write-cache-lock.md) | Use a read-write cache lock | `Done` | 2026-10-26 |
+| [TASK-062](TASK-062-lock-the-docs-for-read-tools.md) | Lock the docs for read tools | `Done` | 2026-10-26 |
 | [TASK-070](TASK-070-ask-choices-found-during-work.md) | Ask choices found during work | `Done` | 2026-10-26 |

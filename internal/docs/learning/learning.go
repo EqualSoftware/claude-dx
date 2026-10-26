@@ -22,7 +22,7 @@ var topicPattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
 // Store reads and writes the learning files of one project.
 type Store struct {
 	Dir  string // absolute path of docs/learnings
-	Lock string // path of the docs lock (TASK-047); empty takes only the lock of this process
+	Lock string // path of the docs lock (TASK-047); required
 }
 
 // Learning is one learning file in a list.
