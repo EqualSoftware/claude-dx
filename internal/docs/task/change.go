@@ -155,14 +155,14 @@ func (u Update) fields() []field {
 	}
 }
 
-// UpdateFields changes the frontmatter fields and returns the warnings. A new depends_on list is
-// checked against the milestone and the priority after the change.
-func (s Store) UpdateFields(id string, u Update) (string, error) {
+// UpdateFields changes the frontmatter fields and returns the new file name and the warnings. A new depends_on
+// list is checked against the milestone and the priority after the change. A new title renames the file to
+// the slug of the title, so the file name and the title agree. file is empty if the name does not change.
+func (s Store) UpdateFields(id string, u Update) (file, warnings string, err error) {
 	if err := u.check(); err != nil {
-		return "", err
+		return "", "", err
 	}
-	var warnings string
-	err := s.edit(id, func(d *doc) error {
+	err = s.edit(id, func(d *doc) error {
 		var old Front
 		if u.DependsOn != nil {
 			_ = markdown.Decode(d.front, &old) // a bad frontmatter fails after the change
@@ -173,7 +173,7 @@ func (s Store) UpdateFields(id string, u Update) (string, error) {
 			}
 		}
 		if u.Title != "" {
-			d.body = setHeader(d.body, kind.ID(mustNumber(d.path)), u.Title)
+			file = retitle(d, u.Title)
 		}
 		if u.DependsOn == nil {
 			return nil
@@ -187,7 +187,23 @@ func (s Store) UpdateFields(id string, u Update) (string, error) {
 		warnings, err = s.checkDeps(f, old.DependsOn)
 		return err
 	})
-	return warnings, err
+	if err != nil {
+		return "", "", err
+	}
+	return file, warnings, nil
+}
+
+// retitle sets the header of d to title and the path of d to the file name of title. It returns the new
+// file name, or "" if the name does not change.
+func retitle(d *doc, title string) string {
+	n := mustNumber(d.path)
+	d.body = setHeader(d.body, kind.ID(n), title)
+	name := kind.FileName(n, title)
+	if name == filepath.Base(d.path) {
+		return ""
+	}
+	d.path = filepath.Join(filepath.Dir(d.path), name)
+	return name
 }
 
 // SetStatus changes the status, adds a Document History row and enforces the status rules.

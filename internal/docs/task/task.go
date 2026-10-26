@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -216,7 +217,8 @@ type doc struct {
 	body  string
 }
 
-// edit reads the task, changes it with fn, writes it and makes README.md again.
+// edit reads the task, changes it with fn, writes it and makes README.md again. If fn changes d.path, edit
+// writes the new file, and removes the old file. It refuses a new path that exists.
 func (s Store) edit(id string, fn func(*doc) error) error {
 	path, err := s.find(id)
 	if err != nil {
@@ -231,10 +233,27 @@ func (s Store) edit(id string, fn func(*doc) error) error {
 	if err := fn(d); err != nil {
 		return err
 	}
-	if err := os.WriteFile(path, []byte(markdown.Join(d.front, d.body)), 0o644); err != nil {
+	data = []byte(markdown.Join(d.front, d.body))
+	if d.path == path {
+		err = os.WriteFile(path, data, 0o644)
+	} else {
+		err = rename(path, d.path, data)
+	}
+	if err != nil {
 		return err
 	}
 	return s.WriteIndex()
+}
+
+// rename writes data to the new path and removes the old path.
+func rename(old, path string, data []byte) error {
+	if err := docfile.Create(path, data); err != nil {
+		if errors.Is(err, fs.ErrExist) {
+			return fmt.Errorf("%s exists. Give a different title", filepath.Base(path))
+		}
+		return err
+	}
+	return os.Remove(old)
 }
 
 func (s Store) today() string {

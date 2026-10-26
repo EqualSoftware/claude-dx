@@ -47,7 +47,7 @@ func setStatus(s Store, id, status, note string) error {
 
 func update(t *testing.T, s Store, id string, u Update) {
 	t.Helper()
-	if _, err := s.UpdateFields(id, u); err != nil {
+	if _, _, err := s.UpdateFields(id, u); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -328,7 +328,7 @@ func TestUpdateFields(t *testing.T) {
 	s := newStore(t)
 	create(t, s, "One")
 	u := Update{Title: "New title", Priority: "P0", Milestone: "v0.2.0", Type: "fix", Size: "M", Owner: "Equal", DependsOn: []string{}, Related: []string{"ADR-001"}}
-	if _, err := s.UpdateFields("TASK-001", u); err != nil {
+	if _, _, err := s.UpdateFields("TASK-001", u); err != nil {
 		t.Fatal(err)
 	}
 	doc := read(t, s, "TASK-001")
@@ -341,7 +341,7 @@ func TestUpdateFields(t *testing.T) {
 		}
 	}
 	for _, bad := range []Update{{Priority: "P5"}, {Milestone: "v1"}, {Type: "feature"}, {Size: "L"}} {
-		if _, err := s.UpdateFields("TASK-001", bad); err == nil {
+		if _, _, err := s.UpdateFields("TASK-001", bad); err == nil {
 			t.Errorf("UpdateFields(%+v) did not fail", bad)
 		}
 	}
@@ -451,12 +451,12 @@ func TestDependsOnRules(t *testing.T) {
 	}
 	update(t, s, "TASK-001", Update{DependsOn: []string{"TASK-002"}})
 	before := read(t, s, "TASK-002")
-	_, err = s.UpdateFields("TASK-002", Update{DependsOn: []string{"TASK-001"}})
+	_, _, err = s.UpdateFields("TASK-002", Update{DependsOn: []string{"TASK-001"}})
 	refused(err, "TASK-002 -> TASK-001 -> TASK-002")
 	if read(t, s, "TASK-002") != before {
 		t.Fatal("AC-2: a refused change changed the file")
 	}
-	_, err = s.UpdateFields("TASK-002", Update{DependsOn: []string{"TASK-002"}})
+	_, _, err = s.UpdateFields("TASK-002", Update{DependsOn: []string{"TASK-002"}})
 	refused(err, "itself")
 	force(t, s, "TASK-003", "Done")
 	force(t, s, "TASK-004", "Cancelled")
@@ -466,10 +466,10 @@ func TestDependsOnRules(t *testing.T) {
 	}
 	update(t, s, "TASK-001", Update{DependsOn: []string{}})
 	update(t, s, "TASK-002", Update{Milestone: "v0.2.0"})
-	_, err = s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002"}})
+	_, _, err = s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002"}})
 	refused(err, "later milestone v0.2.0")
 	update(t, s, "TASK-002", Update{Milestone: "v0.1.0", Priority: "P3"})
-	warnings, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002"}})
+	_, warnings, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002"}})
 	if err != nil || !strings.Contains(warnings, "TASK-002 has the lower priority P3") {
 		t.Fatalf("AC-6: warnings = %q, %v", warnings, err)
 	}
@@ -484,16 +484,63 @@ func TestOldDoneDependency(t *testing.T) {
 	update(t, s, "TASK-001", Update{DependsOn: []string{"TASK-002"}})
 	force(t, s, "TASK-002", "Done")
 	force(t, s, "TASK-004", "Done")
-	if _, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002", "TASK-003"}}); err != nil {
+	if _, _, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002", "TASK-003"}}); err != nil {
 		t.Fatalf("AC-1: UpdateFields = %v", err)
 	}
-	_, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002", "TASK-003", "TASK-004"}})
+	_, _, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002", "TASK-003", "TASK-004"}})
 	if err == nil || !strings.Contains(err.Error(), "TASK-004 is Done") {
 		t.Fatalf("AC-2: UpdateFields = %v", err)
 	}
-	_, err = s.UpdateFields("TASK-003", Update{DependsOn: []string{"TASK-001"}})
+	_, _, err = s.UpdateFields("TASK-003", Update{DependsOn: []string{"TASK-001"}})
 	if err == nil || !strings.Contains(err.Error(), "TASK-003 -> TASK-001 -> TASK-003") {
 		t.Fatalf("AC-3: UpdateFields = %v", err)
+	}
+}
+
+// TestRenameOnTitle is AC-1 to AC-3 of TASK-042.
+func TestRenameOnTitle(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "Old")
+	file, _, err := s.UpdateFields("TASK-001", Update{Title: "New name"})
+	if err != nil || file != "TASK-001-new-name.md" {
+		t.Fatalf("AC-1: UpdateFields = %q, %v", file, err)
+	}
+	if _, err := os.Stat(filepath.Join(s.Dir, "TASK-001-old.md")); !os.IsNotExist(err) {
+		t.Fatalf("AC-1: the old file exists: %v", err)
+	}
+	index, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
+	if !strings.Contains(string(index), "TASK-001-new-name.md") {
+		t.Fatalf("AC-1: README.md =\n%s", index)
+	}
+	file, _, err = s.UpdateFields("TASK-001", Update{Title: "New Name"})
+	if err != nil || file != "" {
+		t.Fatalf("AC-2: UpdateFields = %q, %v", file, err)
+	}
+	must(t, os.WriteFile(filepath.Join(s.Dir, "TASK-001-taken.md"), nil, 0o644))
+	before, _ := os.ReadFile(filepath.Join(s.Dir, "TASK-001-new-name.md"))
+	if _, _, err := s.UpdateFields("TASK-001", Update{Title: "Taken"}); err == nil {
+		t.Fatal("AC-3: UpdateFields to an existing file name did not fail")
+	}
+	after, _ := os.ReadFile(filepath.Join(s.Dir, "TASK-001-new-name.md"))
+	if string(after) != string(before) {
+		t.Fatal("AC-3: a refused change changed the file")
+	}
+}
+
+// TestRenameExists is FR-2 of TASK-042 in edit: a new path that exists is refused.
+func TestRenameExists(t *testing.T) {
+	dir := t.TempDir()
+	old, path := filepath.Join(dir, "a.md"), filepath.Join(dir, "b.md")
+	must(t, os.WriteFile(old, []byte("a"), 0o644))
+	must(t, os.WriteFile(path, []byte("b"), 0o644))
+	if err := rename(old, path, []byte("c")); err == nil || !strings.Contains(err.Error(), "b.md exists") {
+		t.Fatalf("rename = %v", err)
+	}
+	if data, _ := os.ReadFile(path); string(data) != "b" {
+		t.Fatalf("rename changed the existing file: %q", data)
+	}
+	if _, err := os.Stat(old); err != nil {
+		t.Fatalf("rename removed the old file: %v", err)
 	}
 }
 
