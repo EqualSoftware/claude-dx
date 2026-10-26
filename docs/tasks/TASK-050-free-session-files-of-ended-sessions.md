@@ -1,7 +1,7 @@
 ---
 id: TASK-050
 title: Free session files of ended sessions
-status: In Development
+status: Done
 priority: P2
 milestone: v0.1.0
 type: fix
@@ -23,6 +23,7 @@ related: [TASK-041, ADR-014]
 | 2026-10-26 | Equal | Status: In Review. |
 | 2026-10-26 | Equal | Status: Approved. |
 | 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -131,8 +132,14 @@ Remove `alive` and the `os.Remove` in `hold`.
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: TestStartOwnPIDHeld (AC-1, Unix): a helper process holds sessions/<own pid>.lock, and Start passes and writes "new". TestCleanDeadPIDHeld (AC-2, Unix): a helper process holds the file of a PID that ended, and Clean removes the cache. TestCleanRefusesRunningSession (AC-3): a held file with the live parent PID makes Clean refuse. A-1 and A-2 are verified by these tests. Each new test fails when its fix is removed. Commit 4d238c1.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet (macOS and GOOS=windows), go test -race ./... pass; golangci-lint v2.15.0: 0 issues on macOS, GOOS=windows and GOOS=linux; govulncheck: No vulnerabilities found. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: ADR-014 Decision has the rule for session files that a child of an ended session holds. No area doc or CLAUDE.md text describes the session files.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: the TASK-041 section 7.1 diagram does not change; this task adds one check in running and one remove in hold.
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: ADR-014 Decision is updated with the ended-session rule.
