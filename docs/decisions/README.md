@@ -20,6 +20,6 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-013](ADR-013-task-workflow-gates-in-the-task-tools.md) | Task workflow gates in the task tools | Accepted | 2026-10-25 |
 | [ADR-014](ADR-014-session-lock-files-for-the-plugin-cache.md) | Session lock files for the plugin cache | Superseded by ADR-015 | 2026-10-26 |
 | [ADR-015](ADR-015-read-write-locks-for-the-cache-and-docs.md) | Read-write locks for the cache and docs | Accepted | 2026-10-26 |
-| [ADR-016](ADR-016-specs-in-git-tasks-in-git-dx.md) | Specs in git, tasks in .git/dx | Proposed | 2026-10-26 |
-| [ADR-017](ADR-017-adrs-do-not-change-after-a-push.md) | ADRs do not change after a push | Proposed | 2026-10-26 |
-| [ADR-018](ADR-018-interactive-clean-command.md) | Interactive clean command | Proposed | 2026-10-26 |
+| [ADR-016](ADR-016-specs-in-git-tasks-in-git-dx.md) | Specs in git, tasks in .git/dx | Accepted | 2026-10-26 |
+| [ADR-017](ADR-017-adrs-do-not-change-after-a-push.md) | ADRs do not change after a push | Accepted | 2026-10-26 |
+| [ADR-018](ADR-018-interactive-clean-command.md) | Interactive clean command | Accepted | 2026-10-26 |

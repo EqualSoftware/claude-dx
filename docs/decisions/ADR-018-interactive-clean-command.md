@@ -1,6 +1,6 @@
 # ADR-018: Interactive clean command
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-26
 - Owners: Maintainer
 

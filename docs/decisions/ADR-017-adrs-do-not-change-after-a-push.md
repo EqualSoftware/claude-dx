@@ -1,6 +1,6 @@
 # ADR-017: ADRs do not change after a push
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-26
 - Owners: Maintainer
 

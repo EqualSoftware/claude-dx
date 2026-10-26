@@ -1,6 +1,6 @@
 # ADR-016: Specs in git, tasks in .git/dx
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-26
 - Owners: Maintainer
 
@@ -13,7 +13,7 @@ Spec:
 - A spec is the current definition of one feature or scope. It is in git: `docs/specs/<slug>/SPEC.md`, and other files of the spec (diagrams, designs) in the same folder. The ID is the slug, with no number, so two branches do not get the same ID. The slug `general` is reserved.
 - Frontmatter: `slug`, `title`, `status`, `milestone`, `priority`, `area`, `related` (ADRs).
 - Sections: Summary, Problem, Goals, Out of Scope, Requirements, Design, Acceptance Criteria, Open Questions, Document History. Requirements is a table `ID | Requirement | Status`. A requirement ID is `R-N` and does not change. Its status is `Planned` or `Done`.
-- Status: `Draft`, `In Review`, `Approved`. The gates of ADR-013 apply to the spec: `Approved` needs no `Open` question, and a change of Goals, Out of Scope, Requirements, Design or Acceptance Criteria of an `Approved` spec sets it to `In Review`.
+- Status: Accepted
 - A spec does not depend on another spec, so each spec can be done alone and in parallel.
 - A spec that is removed from the product, or split, is deleted. Git keeps the old version. A new spec from a split gives the old slug in its Document History. The reason of a delete goes to the commit message.
 - Design links to the ADRs and does not copy them. A spec change that selects a new architecture approach needs an ADR.
@@ -27,7 +27,7 @@ Task:
 - A task points to one spec. A spec can have many tasks. `depends_on` gives tasks of the same spec only, because a dependency on a task of another spec makes a dependency between specs.
 - Frontmatter: `id`, `title`, `status`, `priority`, `covers` (requirement IDs), `depends_on`. The milestone is the milestone of the spec.
 - Sections: Plan (a checklist of steps), Notes, Definition of Done.
-- Status: `Todo`, `In Progress`, `Blocked`, `Done`. No approval, because the spec has the approved scope.
+- Status: Accepted
 - When a task goes to `Done`, the tool sets the requirements in `covers` to `Done` in the spec and adds a Document History row with no task ID.
 - The task lock is `tasks.lock` in the task folder, shared by all worktrees.
 
