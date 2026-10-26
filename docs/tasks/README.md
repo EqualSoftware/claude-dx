@@ -24,7 +24,7 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-064](TASK-064-local-tasks-in-the-project-data-dir.md) | Local tasks in the project data dir | `Draft` | `P1` | `mcp`, `docs` | TASK-063, TASK-068 |
+| [TASK-064](TASK-064-local-tasks-in-the-project-data-dir.md) | Local tasks in the project data dir | `In Review` | `P1` | `mcp`, `docs`, `plugin` | TASK-063, TASK-068 |
 | [TASK-065](TASK-065-lock-pushed-adrs-in-adr-update.md) | Lock pushed ADRs in adr_update | `Draft` | `P1` | `mcp`, `docs` | TASK-058 |
 | [TASK-066](TASK-066-resume-command-and-sessionstart-hook.md) | Resume command and SessionStart hook | `Draft` | `P1` | `cli`, `plugin` | TASK-064 |
 | [TASK-067](TASK-067-migrate-tasks-to-specs.md) | Migrate tasks to specs | `Draft` | `P1` | `docs`, `plugin` | TASK-064, TASK-065, TASK-066, TASK-070 |
