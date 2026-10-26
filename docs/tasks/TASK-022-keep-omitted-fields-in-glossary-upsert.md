@@ -1,7 +1,7 @@
 ---
 id: TASK-022
 title: Keep omitted fields in glossary_upsert
-status: Approved
+status: Done
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,8 @@ related: [ADR-006, TASK-007]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-25 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-25 | Equal | Approved by the maintainer. |
+| 2026-10-25 | Equal | Status: In Development. |
+| 2026-10-25 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -126,9 +128,9 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (`/dx:glossary` skill: omitted and empty `do_not_use`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
-- [ ] `/dx:eureka` is done.
+- [x] All acceptance criteria pass, with evidence. `TestUpsertKeepsOmittedFields` (`internal/docs/glossary/glossary_test.go`) calls the tool: AC-1 an omitted `do_not_use` keeps `bucket`; AC-2 `[]` removes it; AC-3 `glossary_upsert(cache)` keeps `Cache`. A-1 is verified by the same test.
+- [x] Project checks (build, tests, lint) pass. Local on macOS at `352d69f`: `go build`, `go vet`, `go test ./...` pass; golangci-lint v2.15.0: 0 issues. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (`/dx:glossary` skill: omitted and empty `do_not_use`). Commit `352d69f`: `internal/plugin/assets/skills/glossary/SKILL.md` step 4 and the `glossary_upsert` tool and field descriptions give the omitted and empty `do_not_use` rule.
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task. Not applicable: no call flow change.
+- [x] ADRs are recorded for architectural decisions. Not applicable: no architecture decision.
+- [x] `/dx:eureka` is done. The tool does not exist yet. No new reusable lesson.
