@@ -24,7 +24,8 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-046](TASK-046-build-provenance-for-release-files.md) | Build provenance for release files | `In Development` | `P3` | `ci` | TASK-041 |
+| [TASK-049](TASK-049-rename-task-files-with-one-rename.md) | Rename task files with one rename | `In Review` | `P2` | `docs-tools` | None |
+| [TASK-050](TASK-050-free-session-files-of-ended-sessions.md) | Free session files of ended sessions | `In Review` | `P2` | `cli`, `plugin` | None |
 
 ## v0.2.0
 
@@ -97,5 +98,6 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | [TASK-043](TASK-043-warn-about-adr-and-learning-read-errors.md) | Warn about ADR and learning read errors | `Done` | 2026-10-26 |
 | [TASK-044](TASK-044-refuse-a-title-with-an-empty-file-slug.md) | Refuse a title with an empty file slug | `Done` | 2026-10-26 |
 | [TASK-045](TASK-045-align-result-tables-by-character.md) | Align result tables by character | `Done` | 2026-10-26 |
+| [TASK-046](TASK-046-build-provenance-for-release-files.md) | Build provenance for release files | `Done` | 2026-10-26 |
 | [TASK-047](TASK-047-atomic-writes-and-locks-for-doc-edits.md) | Atomic writes and locks for doc edits | `Done` | 2026-10-26 |
 | [TASK-048](TASK-048-show-open-dependencies-in-task-list.md) | Show open dependencies in task_list | `Done` | 2026-10-26 |

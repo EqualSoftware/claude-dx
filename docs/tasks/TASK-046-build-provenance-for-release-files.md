@@ -1,7 +1,7 @@
 ---
 id: TASK-046
 title: Build provenance for release files
-status: In Development
+status: Done
 priority: P3
 milestone: v0.1.0
 type: ci
@@ -23,6 +23,7 @@ related: [ADR-004, ADR-012, TASK-001]
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
 | 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -128,7 +129,8 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: AC-1: release v0.1.0-rc.1 (Release run 40269318737, step actions/attest success). gh attestation verify --repo EqualSoftware/claude-dx exits 0 for checksums.txt, claude-dx_0.1.0-rc.1_darwin_arm64.tar.gz and claude-dx_0.1.0-rc.1_windows_amd64.zip. The signer is .github/workflows/release.yml@refs/tags/v0.1.0-rc.1.
 - [x] Project checks (build, tests, lint) pass.
   - Evidence: actionlint .github/workflows/release.yml passes. go build and go test ./... pass (no Go change). Commit d2739dc.
 - [x] Docs are updated (`README.md`, `SECURITY.md`).
