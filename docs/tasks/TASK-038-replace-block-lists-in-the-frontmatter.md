@@ -1,7 +1,7 @@
 ---
 id: TASK-038
 title: Replace block lists in the frontmatter
-status: In Development
+status: Done
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -23,6 +23,7 @@ related: [TASK-033, go-yaml-flow-lists]
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
 | 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -127,8 +128,13 @@ The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
 
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (no docs change expected).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: TestSetFieldReplacesBlockValue passes (go test ./internal/markdown/ -run SetField -v): AC-1 "indented list", AC-2 "list with no indent", AC-3 "flow list"; each case checks the next key and Decode. Also "list as last key" and "scalar with empty line" (Q-2). Commit d2c11b8.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: go build, go vet, go test ./... pass; golangci-lint v2.15.0: 0 issues; govulncheck: No vulnerabilities found. CI runs on macOS, Linux and Windows after the push.
+- [x] Docs are updated (no docs change expected).
+  - Evidence: No docs change: public API and behavior of the tools stay the same. The SetField doc comment is updated (internal/markdown/frontmatter.go:41).
+- [x] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
+  - Evidence: Not applicable: a change inside one function, no design diagram (section 7.1).
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: No architecture decision: a bug fix in SetField with no change of structure, interface or file format.
