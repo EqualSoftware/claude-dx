@@ -18,8 +18,9 @@ The project is published at `github.com/EqualSoftware/claude-dx`. The maintainer
 - No signature (minisign, cosign) in v1. Checksum only.
 
 ## Alternatives
+
 - Homebrew tap, Scoop, `go install`: rejected by the maintainer.
-- Check for updates in the launcher: rejected. It delays the start of Claude Code, and `syscall.Exec` ends the launcher process (ADR-003).
+- Check for updates in the launcher: rejected. It delays the start of Claude Code.
 
 ## Consequences
 - Positive: one distribution channel. No start delay.
