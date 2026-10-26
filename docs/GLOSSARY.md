@@ -21,8 +21,11 @@ Sort the terms in alphabetical order.
 | Learning | A file in `docs/learnings/<topic>.md` about one topic. It holds one or more lessons. | docs-tools | note, tip | ADR-006 |
 | Lesson | A verified, reusable and not obvious technical fact from finished work. `/dx:eureka` records it. | process | insight | ADR-009 |
 | Main branch | The branch that `origin/HEAD` names, else `main`, else `master`. | git | trunk, default branch | TASK-011 |
+| Milestone | The release version of a task, example `v0.1.0`. A frontmatter field of each task. | process | target version, release field | ADR-013 |
+| Owner | The git `user.name` of the person who creates a task. A frontmatter field of each task. | process | assignee, reviewer | ADR-013 |
 | Project key | The first 16 hex characters of the SHA-256 of the git common directory (or of the project root outside git). All worktrees of one repository have the same key. | mcp | project id | ADR-007 |
 | Project root | The git top level of the current directory, or the current directory outside git. Tools refuse paths outside it. | mcp | workspace, base dir | ADR-005 |
+| Ready task | An open task that is not `Blocked` and has all dependencies `Done`. `task_list(status: ready)` gives these tasks. | process | next task, unblocked task | ADR-013 |
 | Scout | The read-only agent `dx:scout` on Haiku. Skills give it fact searches of more than 3 files. | plugin | explorer, searcher | ADR-009 |
 | Shared rules | The short dx rules text (`rules.md` in the dx plugin) that the launcher gives to Claude Code with `--append-system-prompt-file`. | plugin | RULES.md | ADR-009 |
 | Task | A spec file in `docs/tasks/` for one unit of work. | process | ticket, issue | `docs/tasks/` |

@@ -58,6 +58,7 @@ The tools accept titles of any length, and `docfile.Slug` cuts the slug at 60 ch
 - FR-1: `task_create`, `task_update_fields` and `adr_create` refuse a title of more than 40 characters, and give the length and the limit, because a long title gives a long file name (ADR-013).
 - FR-2: The `title` field descriptions give the limit.
 - FR-3: `docfile.Slug` cuts at 40 characters, at a word boundary, as a guard for old titles.
+- FR-4: `task_create` and `adr_create` refuse a title that another task or ADR has, with no case difference, and give the ID of that document, because two documents with one title are a duplicate or a bad title. In the v0.1.0 QA session, `adr_create` made ADR-001 and ADR-002 with the title "Use SQLite for cache".
 
 ### 6.2 Non-Functional
 - NFR-1: Not applicable.
@@ -92,6 +93,7 @@ Not applicable.
 - AC-1: When `task_create` runs with a title of 41 characters, then the tool refuses it and no file is created.
 - AC-2: When `adr_create` runs with a title of 41 characters, then the tool refuses it.
 - AC-3: When `task_update_fields` runs with a title of 40 characters, then the change is done.
+- AC-4: Given ADR-001 with the title "Use SQLite", when `adr_create` runs with the title "use sqlite", then the tool refuses it and gives ADR-001.
 
 ## 10. Validation and Metrics
 | Metric | Baseline | Target | How to measure |

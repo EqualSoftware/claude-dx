@@ -43,6 +43,8 @@ Sort by priority, then by ID.
 | [TASK-028](TASK-028-limit-titles-to-40-characters.md) | Limit titles to 40 characters | `Draft` | `P2` | `docs-tools` | TASK-021, TASK-023 |
 | [TASK-031](TASK-031-warn-about-open-tasks-on-the-same-files.md) | Warn about open tasks on the same files | `Draft` | `P2` | `docs-tools` | TASK-028 |
 | [TASK-032](TASK-032-review-again-after-a-scope-change.md) | Review again after a scope change | `Draft` | `P2` | `docs-tools`, `plugin` | TASK-031 |
+| [TASK-034](TASK-034-allowed-task-status-changes.md) | Allowed task status changes | `Draft` | `P2` | `docs-tools` | TASK-032 |
+| [TASK-035](TASK-035-end-to-end-test-of-the-dx-mcp-server.md) | End-to-end test of the dx MCP server | `Draft` | `P2` | `mcp` | None |
 | [TASK-016](TASK-016-lsp-other-languages.md) | LSP servers for other languages | `Draft` | `P3` | `lsp` | TASK-015 |
 | [TASK-027](TASK-027-keep-the-dev-plugin-of-a-running-session.md) | Keep the dev plugin of a running session | `Draft` | `P3` | `cli`, `plugin` | None |
 
