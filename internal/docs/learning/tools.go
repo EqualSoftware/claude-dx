@@ -53,16 +53,16 @@ func add[In any](server *mcp.Server, name, description string, fn func(In) (stri
 }
 
 func (s Store) listText() (string, error) {
-	list, err := s.List()
+	list, warnings, err := s.List()
 	if err != nil {
 		return "", err
 	}
 	if len(list) == 0 {
-		return "No learnings in docs/learnings.", nil
+		return strings.TrimSpace("No learnings in docs/learnings.\n" + warnings), nil
 	}
 	var b strings.Builder
 	for _, l := range list {
 		fmt.Fprintf(&b, "%s: %s\n", l.Topic, l.Description)
 	}
-	return b.String(), nil
+	return b.String() + warnings, nil
 }

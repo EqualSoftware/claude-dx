@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/result"
 )
 
@@ -69,18 +69,18 @@ func reply(text string, err error) (*mcp.CallToolResult, any, error) {
 }
 
 func (s Store) listText() (string, error) {
-	list, files, err := s.List()
+	list, warnings, err := s.List()
 	if err != nil {
 		return "", err
 	}
 	if len(list) == 0 {
-		return "No ADRs in docs/decisions.", nil
+		return strings.TrimSpace("No ADRs in docs/decisions.\n" + warnings), nil
 	}
 	rows := make([][]string, 0, len(list))
 	for _, e := range list {
 		rows = append(rows, []string{kind.ID(e.Number), e.Status, e.Title})
 	}
-	return result.Table(rows) + docfile.Duplicates(kind, files), nil
+	return result.Table(rows) + warnings, nil
 }
 
 func (s Store) createText(in createInput) (string, error) {

@@ -115,16 +115,27 @@ func TestUpdateNeedsAChange(t *testing.T) {
 	}
 }
 
+// TestListBadFrontmatter is AC-1 of TASK-043.
 func TestListBadFrontmatter(t *testing.T) {
 	s := newStore(t)
-	if err := os.MkdirAll(s.Dir, 0o755); err != nil {
-		t.Fatal(err)
+	for _, topic := range []string{"a-topic", "b-topic"} {
+		if err := s.Create(topic, "About "+topic+".", "Lesson."); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if err := os.WriteFile(filepath.Join(s.Dir, "bad.md"), []byte("---\ndescription: [\n---\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.List(); err == nil || !strings.Contains(err.Error(), "docs/learnings/bad.md") {
-		t.Fatalf("List = %v", err)
+	text, err := s.listText()
+	if err != nil || !strings.HasPrefix(text, "a-topic: About a-topic.\nb-topic: About b-topic.\nWarning: bad.md: the frontmatter is not valid") {
+		t.Fatalf("learning_list = %q, %v", text, err)
+	}
+	if err := s.WriteIndex(); err != nil {
+		t.Fatalf("WriteIndex = %v", err)
+	}
+	data, _ := os.ReadFile(filepath.Join(s.Dir, indexFile))
+	if strings.Contains(string(data), "bad") {
+		t.Fatalf("README.md has the bad file:\n%s", data)
 	}
 }
 
@@ -144,7 +155,7 @@ func TestIndex(t *testing.T) {
 	if string(data) != want {
 		t.Fatalf("README.md =\n%s\nwant\n%s", data, want)
 	}
-	list, _ := s.List()
+	list, _, _ := s.List()
 	if len(list) != 2 {
 		t.Fatalf("List has README.md: %v", list)
 	}

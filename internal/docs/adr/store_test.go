@@ -115,6 +115,27 @@ func TestList(t *testing.T) {
 	}
 }
 
+// TestListBadFile is AC-2 of TASK-043. A directory with an ADR file name cannot be read on all platforms.
+func TestListBadFile(t *testing.T) {
+	s := newStore(t)
+	for _, title := range []string{"One", "Two"} {
+		if _, err := s.Create(sample(title)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.Mkdir(filepath.Join(s.Dir, "ADR-003-bad.md"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	text, err := s.listText()
+	if err != nil || !strings.Contains(text, "ADR-001") || !strings.Contains(text, "ADR-002") ||
+		strings.Count(text, "Warning: ADR-003-bad.md:") != 1 {
+		t.Fatalf("adr_list = %q, %v", text, err)
+	}
+	if err := s.WriteIndex(); err != nil {
+		t.Fatalf("WriteIndex = %v", err)
+	}
+}
+
 func TestGet(t *testing.T) {
 	s := newStore(t)
 	if _, err := s.Create(sample("Use stdio")); err != nil {

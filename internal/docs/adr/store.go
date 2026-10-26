@@ -79,26 +79,29 @@ type New struct {
 	Evidence     string
 }
 
-// List returns the ADRs by number, and the files of each number.
-func (s Store) List() ([]Entry, map[int][]string, error) {
+// List returns the ADRs by number, and one warning line for each file that it cannot read or each number
+// with many files. It skips a bad file, so one bad file does not hide the other ADRs.
+func (s Store) List() ([]Entry, string, error) {
 	files, err := kind.Files(s.Dir)
 	if docfile.NotExist(err) {
-		return nil, nil, ErrNoDir
+		return nil, "", ErrNoDir
 	}
 	if err != nil {
-		return nil, nil, err
+		return nil, "", err
 	}
 	var list []Entry
+	warnings := docfile.Duplicates(kind, files)
 	for _, n := range sortedKeys(files) {
 		for _, name := range files[n] {
 			entry, err := s.read(name, n)
 			if err != nil {
-				return nil, nil, err
+				warnings += fmt.Sprintf("Warning: %s: %v.\n", name, err)
+				continue
 			}
 			list = append(list, entry)
 		}
 	}
-	return list, files, nil
+	return list, warnings, nil
 }
 
 func (s Store) read(name string, n int) (Entry, error) {

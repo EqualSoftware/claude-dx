@@ -30,16 +30,18 @@ type Learning struct {
 	Description string
 }
 
-// List returns the learnings by topic.
-func (s Store) List() ([]Learning, error) {
+// List returns the learnings by topic, and one warning line for each file that it cannot read or parse. It
+// skips a bad file, so one bad file does not hide the other learnings.
+func (s Store) List() ([]Learning, string, error) {
 	entries, err := os.ReadDir(s.Dir)
 	if docfile.NotExist(err) {
-		return nil, ErrNoDir
+		return nil, "", ErrNoDir
 	}
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	var list []Learning
+	var warnings string
 	for _, e := range entries {
 		topic, ok := strings.CutSuffix(e.Name(), ".md")
 		if !ok || e.IsDir() || strings.EqualFold(e.Name(), indexFile) {
@@ -47,11 +49,12 @@ func (s Store) List() ([]Learning, error) {
 		}
 		description, err := s.description(e.Name())
 		if err != nil {
-			return nil, err
+			warnings += fmt.Sprintf("Warning: %s: %v.\n", e.Name(), err)
+			continue
 		}
 		list = append(list, Learning{Topic: topic, Description: description})
 	}
-	return list, nil
+	return list, warnings, nil
 }
 
 func (s Store) description(name string) (string, error) {
@@ -64,7 +67,7 @@ func (s Store) description(name string) (string, error) {
 		Description string `yaml:"description"`
 	}
 	if err := markdown.Decode(front, &f); err != nil {
-		return "", fmt.Errorf("docs/learnings/%s: the frontmatter is not valid: %w", name, err)
+		return "", fmt.Errorf("the frontmatter is not valid: %w", err)
 	}
 	return f.Description, nil
 }

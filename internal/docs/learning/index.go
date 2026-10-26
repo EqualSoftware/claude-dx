@@ -22,7 +22,7 @@ This folder has the verified technical lessons of the project. Use ` + "`/dx:lea
 // WriteIndex makes docs/learnings/README.md from the frontmatter of the learning files.
 // It is for persons on GitHub; the model uses learning_list.
 func (s Store) WriteIndex() error {
-	list, err := s.List()
+	list, _, err := s.List()
 	if err != nil {
 		return err
 	}
