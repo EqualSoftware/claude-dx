@@ -201,6 +201,7 @@ func TestSetStatusRules(t *testing.T) {
 	}
 }
 
+// TestInReviewWhenComplete is also AC-8 of TASK-037: sections 13 and 14 keep the template text.
 func TestInReviewWhenComplete(t *testing.T) {
 	s := newStore(t)
 	sections := map[string]string{}
@@ -232,7 +233,7 @@ func TestQuestions(t *testing.T) {
 	must(t, s.AnswerQuestion("TASK-001", "q-2", "SQLite."))
 	must(t, setStatus(s, "TASK-001", "Approved", ""))
 	table, _ := s.Get("TASK-001", "13")
-	if strings.Contains(table, "[Question]") || !strings.Contains(table, `| Q-1 | Which \| cache? | Maintainer | SQLite. |`) {
+	if strings.Contains(table, "None.") || !strings.Contains(table, `| Q-1 | Which \| cache? | Maintainer | SQLite. |`) {
 		t.Fatalf("questions table =\n%s", table)
 	}
 	if err := s.AnswerQuestion("TASK-001", "Q-9", "x"); err == nil {
@@ -517,9 +518,9 @@ func TestScopeChangeNeedsReview(t *testing.T) {
 	s := newStore(t)
 	create(t, s, "One")
 	force(t, s, "TASK-001", "Approved")
-	review, err := s.UpdateSection("TASK-001", "13", "No open questions.")
+	review, err := s.UpdateSection("TASK-001", "5.1", "The current state.")
 	if err != nil || review || !strings.Contains(read(t, s, "TASK-001"), "status: Approved\n") {
-		t.Fatalf("AC-2: section 13 = %v, %v", review, err)
+		t.Fatalf("AC-2: section 5.1 = %v, %v", review, err)
 	}
 	update(t, s, "TASK-001", Update{Priority: "P0"})
 	if !strings.Contains(read(t, s, "TASK-001"), "status: Approved\n") {
@@ -560,5 +561,80 @@ func TestStatusChanges(t *testing.T) {
 	force(t, s, "TASK-001", "Done")
 	if err := setStatus(s, "TASK-001", "In Development", ""); err == nil {
 		t.Fatal("AC-2: Done -> In Development passed")
+	}
+}
+
+// TestProtectedSections is AC-1 and AC-2 of TASK-037.
+func TestProtectedSections(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "One")
+	for _, ref := range []string{"Document History", "13", "Open Questions", "14", "definition of done"} {
+		if _, err := s.UpdateSection("TASK-001", ref, "- [x] Done."); err == nil || !strings.Contains(err.Error(), "changes only with task_") {
+			t.Errorf("AC-1: UpdateSection(%s) = %v", ref, err)
+		}
+	}
+	for _, ref := range []string{"13", "14"} {
+		_, _, err := s.Create(New{Title: "Two " + ref, Priority: "P1", Milestone: "v0.1.0", Type: "feat", Sections: map[string]string{ref: "- [x] Done."}})
+		if err == nil {
+			t.Errorf("AC-2: Create with section %s passed", ref)
+		}
+	}
+}
+
+// section14 returns the Definition of Done and the Document History of TASK-001.
+func section14(s Store) (dod, history string) {
+	dod, _ = s.Get("TASK-001", "14")
+	history, _ = s.Get("TASK-001", "Document History")
+	return dod, history
+}
+
+// TestDoDCheckUncheck is AC-3 and AC-7 of TASK-037.
+func TestDoDCheckUncheck(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "One")
+	must(t, s.CheckDoD("TASK-001", 1, "line one\nline two"))
+	if dod, _ := section14(s); !strings.HasPrefix(dod, "- [x] All acceptance criteria pass, with evidence.\n  - Evidence: line one line two\n- [ ] ") {
+		t.Fatalf("AC-7: section 14 =\n%s", dod)
+	}
+	if err := s.UncheckDoD("TASK-001", 1, ""); err == nil {
+		t.Error("uncheck with no reason passed")
+	}
+	must(t, s.UncheckDoD("TASK-001", 1, "Wrong run."))
+	dod, history := section14(s)
+	if strings.Contains(dod, "Evidence") || !strings.HasPrefix(dod, "- [ ] All acceptance") || !strings.Contains(history, "Definition of Done item 1 unchecked: Wrong run.") {
+		t.Fatalf("AC-3: section 14 =\n%s\nhistory =\n%s", dod, history)
+	}
+	if err := s.UncheckDoD("TASK-001", 1, "Again."); err == nil {
+		t.Error("uncheck of an unchecked item passed")
+	}
+}
+
+// TestDoDAddRemove is AC-4 and AC-5 of TASK-037.
+func TestDoDAddRemove(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "One")
+	must(t, s.CheckDoD("TASK-001", 5, "ok"))
+	n, err := s.AddDoD("TASK-001", "Benchmark\npasses.")
+	if dod, _ := section14(s); err != nil || n != 6 || !strings.HasSuffix(dod, "  - Evidence: ok\n- [ ] Benchmark passes.") {
+		t.Fatalf("AC-4: AddDoD = %d, %v\n%s", n, err, dod)
+	}
+	must(t, s.RemoveDoD("TASK-001", 5, "Not needed."))
+	dod, history := section14(s)
+	if strings.Contains(dod, "ADRs are recorded") || strings.Contains(dod, "Evidence: ok") || !strings.Contains(history, "item 5 removed (ADRs are recorded for architectural decisions.): Not needed.") {
+		t.Fatalf("AC-5: section 14 =\n%s\nhistory =\n%s", dod, history)
+	}
+}
+
+// TestDoDDoneTask is AC-6 of TASK-037.
+func TestDoDDoneTask(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "One")
+	force(t, s, "TASK-001", "Done")
+	_, addErr := s.AddDoD("TASK-001", "x")
+	errs := []error{s.CheckDoD("TASK-001", 1, "x"), s.UncheckDoD("TASK-001", 1, "x"), s.RemoveDoD("TASK-001", 1, "x"), addErr}
+	for i, err := range errs {
+		if err == nil || !strings.Contains(err.Error(), "TASK-001 is Done") {
+			t.Errorf("tool %d on a Done task = %v", i, err)
+		}
 	}
 }

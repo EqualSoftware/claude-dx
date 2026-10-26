@@ -101,7 +101,7 @@ module_verb(argument) -> result
 ## 13. Open Questions
 | ID | Question | Owner | Answer |
 | :--- | :--- | :--- | :--- |
-| Q-1 | [Question] | [Name] | [Answer, or Open] |
+| — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
 

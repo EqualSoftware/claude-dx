@@ -20,7 +20,28 @@ var (
 )
 
 // leafSections are the sections with no subsections. In Review needs all of them filled.
-var leafSections = []string{"1", "2", "3", "4", "5.1", "5.2", "5.3", "6.1", "6.2", "7.1", "7.2", "7.3", "7.4", "7.5", "8", "9", "10", "11", "12", "13", "14"}
+// Sections 13 and 14 are not in the list, because their template text is valid and only their tools change them.
+var leafSections = []string{"1", "2", "3", "4", "5.1", "5.2", "5.3", "6.1", "6.2", "7.1", "7.2", "7.3", "7.4", "7.5", "8", "9", "10", "11", "12"}
+
+// noQuestions is the template row of section 13. task_question_add removes it.
+const noQuestions = "| — | None. | — | — |"
+
+// protected are the sections that only their own tools change, so the flow checks of ADR-013 stay true.
+var protected = []struct{ number, title, tools string }{
+	{"", "Document History", "task_set_status"},
+	{"13", "Open Questions", "task_question_add and task_question_answer"},
+	{"14", "Definition of Done", "task_dod_add, task_dod_remove, task_dod_check and task_dod_uncheck"},
+}
+
+// checkSection refuses a protected section.
+func checkSection(ref string) error {
+	for _, p := range protected {
+		if ref == p.number || strings.EqualFold(ref, p.title) {
+			return fmt.Errorf("section %q changes only with %s", ref, p.tools)
+		}
+	}
+	return nil
+}
 
 // pristine holds the template text of each leaf section.
 var pristine = func() map[string]string {
@@ -39,6 +60,9 @@ var scopeSections = []string{"3", "4", "6", "7", "9"}
 // UpdateSection replaces one section. A scope change of an Approved task sets it to In Review,
 // because the user must approve the new scope. review is true after that status change.
 func (s Store) UpdateSection(id, section, content string) (review bool, err error) {
+	if err := checkSection(section); err != nil {
+		return false, err
+	}
 	err = s.edit(id, func(d *doc) error {
 		body, err := markdown.ReplaceSection(d.body, section, content)
 		if err != nil {
@@ -323,11 +347,14 @@ func (s Store) AddQuestion(id, question, owner string) (string, error) {
 	return qid, err
 }
 
-// withoutPlaceholders removes template rows ("[Question]", "None.") and returns the next question number.
+// withoutPlaceholders removes template rows (noQuestions, "[Question]", "None.") and returns the next question number.
 func withoutPlaceholders(lines []string) ([]string, int) {
 	var out []string
 	next := 1
 	for _, line := range lines {
+		if line == noQuestions {
+			continue
+		}
 		m := questionRow.FindStringSubmatch(line)
 		if m != nil && (strings.HasPrefix(m[3], "[") || m[3] == "None.") {
 			continue
@@ -371,33 +398,139 @@ func (s Store) AnswerQuestion(id, qid, answer string) error {
 	})
 }
 
-// CheckDoD checks one Definition of Done item (1 is the first item) and adds the evidence.
+// evidencePrefix starts the sub-item that holds the evidence of a checked Definition of Done item.
+const evidencePrefix = "  - Evidence: "
+
+// CheckDoD checks one Definition of Done item (1 is the first item) and adds the evidence as a sub-item.
 func (s Store) CheckDoD(id string, item int, evidence string) error {
-	if strings.TrimSpace(evidence) == "" {
+	evidence = oneLine(evidence)
+	if evidence == "" {
 		return errors.New("give the evidence")
 	}
-	return s.edit(id, func(d *doc) error {
-		section, _ := markdown.Section(d.body, "14")
-		lines := strings.Split(section, "\n")
-		count := 0
+	return s.editDoD(id, func(_ *doc, lines []string) ([]string, error) {
+		start, end, err := findItem(lines, item)
+		if err != nil {
+			return nil, err
+		}
+		m := dodItem.FindStringSubmatch(lines[start])
+		if m[1] == "x" {
+			return nil, fmt.Errorf("item %d is already checked", item)
+		}
+		return slices.Concat(lines[:start], []string{"- [x] " + m[2]}, lines[start+1:end], []string{evidencePrefix + evidence}, lines[end:]), nil
+	})
+}
+
+// UncheckDoD unchecks one Definition of Done item, removes its evidence and adds the reason to the Document History.
+// An item that was checked before the evidence sub-item keeps its full text.
+func (s Store) UncheckDoD(id string, item int, reason string) error {
+	if strings.TrimSpace(reason) == "" {
+		return errors.New("give the reason")
+	}
+	return s.editDoD(id, func(d *doc, lines []string) ([]string, error) {
+		start, end, err := findItem(lines, item)
+		if err != nil {
+			return nil, err
+		}
+		m := dodItem.FindStringSubmatch(lines[start])
+		if m[1] != "x" {
+			return nil, fmt.Errorf("item %d is not checked", item)
+		}
+		subItems := slices.DeleteFunc(slices.Clone(lines[start+1:end]), func(line string) bool {
+			return strings.HasPrefix(line, evidencePrefix)
+		})
+		if err := s.addHistory(d, fmt.Sprintf("Definition of Done item %d unchecked: %s", item, reason)); err != nil {
+			return nil, err
+		}
+		return slices.Concat(lines[:start], []string{"- [ ] " + m[2]}, subItems, lines[end:]), nil
+	})
+}
+
+// AddDoD adds an unchecked Definition of Done item after the last item and returns its number.
+func (s Store) AddDoD(id, text string) (int, error) {
+	text = oneLine(text)
+	if text == "" {
+		return 0, errors.New("give the text of the item")
+	}
+	var n int
+	err := s.editDoD(id, func(_ *doc, lines []string) ([]string, error) {
+		at := 0
 		for i, line := range lines {
-			m := dodItem.FindStringSubmatch(line)
-			if m == nil {
-				continue
+			if dodItem.MatchString(line) {
+				n++
+				at = i + 1
+			} else if n > 0 && at == i && strings.HasPrefix(line, " ") {
+				at = i + 1 // a sub-item of the last item
 			}
-			if count++; count != item {
-				continue
-			}
-			if m[1] == "x" {
-				return fmt.Errorf("item %d is already checked", item)
-			}
-			lines[i] = "- [x] " + m[2] + " " + strings.TrimSpace(evidence)
-			body, err := markdown.ReplaceSection(d.body, "14", strings.Join(lines, "\n"))
-			d.body = body
+		}
+		n++
+		return slices.Insert(lines, at, "- [ ] "+text), nil
+	})
+	return n, err
+}
+
+// RemoveDoD removes one Definition of Done item with its sub-items, and adds its text and the reason to the Document History.
+func (s Store) RemoveDoD(id string, item int, reason string) error {
+	if strings.TrimSpace(reason) == "" {
+		return errors.New("give the reason")
+	}
+	return s.editDoD(id, func(d *doc, lines []string) ([]string, error) {
+		start, end, err := findItem(lines, item)
+		if err != nil {
+			return nil, err
+		}
+		text := dodItem.FindStringSubmatch(lines[start])[2]
+		if err := s.addHistory(d, fmt.Sprintf("Definition of Done item %d removed (%s): %s", item, text, reason)); err != nil {
+			return nil, err
+		}
+		return slices.Delete(lines, start, end), nil
+	})
+}
+
+// editDoD changes the lines of the Definition of Done with fn and writes the task.
+// It refuses a Done task, because Done is final (ADR-013).
+func (s Store) editDoD(id string, fn func(d *doc, lines []string) ([]string, error)) error {
+	return s.edit(id, func(d *doc) error {
+		var f Front
+		if err := markdown.Decode(d.front, &f); err != nil {
+			return fmt.Errorf("bad frontmatter: %w", err)
+		}
+		if f.Status == "Done" {
+			return fmt.Errorf("%s is Done. Done is final: make a new task", kind.ID(mustNumber(d.path)))
+		}
+		section, _ := markdown.Section(d.body, "14")
+		lines, err := fn(d, strings.Split(section, "\n"))
+		if err != nil {
 			return err
 		}
-		return fmt.Errorf("item %d does not exist. The Definition of Done has %d items", item, count)
+		body, err := markdown.ReplaceSection(d.body, "14", strings.Join(lines, "\n"))
+		d.body = body
+		return err
 	})
+}
+
+// findItem returns the lines [start, end) of Definition of Done item n (1 is the first item):
+// the item line and its indented sub-items.
+func findItem(lines []string, n int) (start, end int, err error) {
+	count := 0
+	for i, line := range lines {
+		if !dodItem.MatchString(line) {
+			continue
+		}
+		if count++; count != n {
+			continue
+		}
+		end = i + 1
+		for end < len(lines) && strings.HasPrefix(lines[end], " ") {
+			end++
+		}
+		return i, end, nil
+	}
+	return 0, 0, fmt.Errorf("item %d does not exist. The Definition of Done has %d items", n, count)
+}
+
+// oneLine joins the lines of text with one space, because a Definition of Done line is one line.
+func oneLine(text string) string {
+	return strings.Join(strings.Fields(text), " ")
 }
 
 // Renumber gives the task in file the next free number. It returns the new ID and the tasks

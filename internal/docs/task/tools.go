@@ -102,6 +102,17 @@ type dodInput struct {
 	Evidence string `json:"evidence" jsonschema:"verified evidence: command output, CI run, path:line"`
 }
 
+type dodReasonInput struct {
+	ID     string `json:"id" jsonschema:"task ID"`
+	Item   int    `json:"item" jsonschema:"Definition of Done item number; 1 is the first item"`
+	Reason string `json:"reason" jsonschema:"why the item changes. The tool adds it to the Document History"`
+}
+
+type dodAddInput struct {
+	ID   string `json:"id" jsonschema:"task ID"`
+	Text string `json:"text" jsonschema:"the new Definition of Done item, one line"`
+}
+
 type renumberInput struct {
 	File string `json:"file" jsonschema:"task file name, example TASK-005-add-cache.md. Use the file name, because two files can have one number"`
 }
@@ -146,6 +157,19 @@ func Register(server *mcp.Server, s Store) {
 	add(server, "task_dod_check", "Check one Definition of Done item of a task and add its evidence.",
 		func(in dodInput) (string, error) {
 			return fmt.Sprintf("Checked item %d of %s.", in.Item, in.ID), s.CheckDoD(in.ID, in.Item, in.Evidence)
+		})
+	add(server, "task_dod_uncheck", "Uncheck one Definition of Done item of a task and remove its evidence. The reason goes to the Document History.",
+		func(in dodReasonInput) (string, error) {
+			return fmt.Sprintf("Unchecked item %d of %s.", in.Item, in.ID), s.UncheckDoD(in.ID, in.Item, in.Reason)
+		})
+	add(server, "task_dod_add", "Add an unchecked item at the end of the Definition of Done of a task.",
+		func(in dodAddInput) (string, error) {
+			n, err := s.AddDoD(in.ID, in.Text)
+			return fmt.Sprintf("Added item %d to %s.", n, in.ID), err
+		})
+	add(server, "task_dod_remove", "Remove one Definition of Done item of a task. The item text and the reason go to the Document History.",
+		func(in dodReasonInput) (string, error) {
+			return fmt.Sprintf("Removed item %d of %s.", in.Item, in.ID), s.RemoveDoD(in.ID, in.Item, in.Reason)
 		})
 	add(server, "task_renumber", "Give a task file the next free number, for example when two files have the same number.",
 		func(in renumberInput) (string, error) { return s.renumberText(in.File) })

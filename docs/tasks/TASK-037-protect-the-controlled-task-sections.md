@@ -1,7 +1,7 @@
 ---
 id: TASK-037
 title: Controlled task sections and DoD tools
-status: Approved
+status: In Development
 priority: P1
 milestone: v0.1.0
 type: fix
@@ -22,6 +22,7 @@ related: [ADR-013, TASK-006, TASK-034]
 | 2026-10-25 | Equal | Initial draft specification |
 | 2026-10-26 | Equal | Refined with /dx:grill. The maintainer confirmed the same understanding. |
 | 2026-10-26 | Equal | Approved by the maintainer. |
+| 2026-10-26 | Equal | Status: In Development. |
 
 ## 1. Summary
 
@@ -37,7 +38,7 @@ related: [ADR-013, TASK-006, TASK-034]
 
 - G-1: Only the DoD tools change section 14, only the question tools change section 13, and only the status tools and the DoD tools add Document History rows.
 - G-2: Each change of a checked Definition of Done item has a reason in the Document History.
-- G-3: Each Definition of Done item stays one line.
+- G-3: Each Definition of Done item is one line, and its evidence is one sub-item line.
 
 ## 4. Out of Scope
 
@@ -63,12 +64,13 @@ related: [ADR-013, TASK-006, TASK-034]
 
 - FR-1: `task_update_section` refuses the Document History, section 13 and section 14, by number or by title, with no case difference. The message names the tools to use: `task_set_status` for the Document History, `task_question_add` and `task_question_answer` for section 13, `task_dod_add`, `task_dod_remove`, `task_dod_check` and `task_dod_uncheck` for section 14.
 - FR-2: `task_create` applies FR-1 to its `sections`. A new task has the template Document History row, section 13 and section 14.
-- FR-3: `task_dod_uncheck(id, item, reason)` sets a `- [x]` item to `- [ ]`, removes its evidence and adds a Document History row with the reason. It refuses an item that is not checked.
-- FR-4: `task_dod_add(id, text)` adds `- [ ] <text>` after the last item of section 14 and returns its item number.
-- FR-5: `task_dod_remove(id, item, reason)` removes one item, checked or not, and adds a Document History row with the text of the item and the reason.
+- FR-3: `task_dod_uncheck(id, item, reason)` sets a `- [x]` item to `- [ ]`, removes its evidence sub-items and adds a Document History row with the reason. It refuses an item that is not checked. An item checked in the old format (evidence after the text) keeps its full text.
+- FR-4: `task_dod_add(id, text)` adds `- [ ] <text>` after the last item of section 14 and its sub-items, and returns its item number.
+- FR-5: `task_dod_remove(id, item, reason)` removes one item, checked or not, with its sub-items, and adds a Document History row with the text of the item and the reason.
 - FR-6: `reason` is required for `task_dod_uncheck` and `task_dod_remove`. All DoD tools (also `task_dod_check`) refuse a `Done` task, because `Done` is final (ADR-013).
-- FR-7: `task_dod_check` and `task_dod_add` join the lines of the text with one space, so the item stays one line.
-- FR-8: The `In Review` check does not refuse section 14 with the template text, because the template Definition of Done is valid.
+- FR-7: `task_dod_check` writes the evidence on one indented sub-item under the item: `  - Evidence: <evidence>`. It joins the lines of the evidence with one space. `task_dod_add` joins the lines of the text with one space.
+- FR-8: The `In Review` check does not refuse section 13 or section 14 with the template text, because the template content is valid.
+- FR-9: The template row of section 13 is `| — | None. | — | — |`. `task_question_add` removes it when it adds the first question.
 
 ### 6.2 Non-Functional
 
@@ -116,12 +118,13 @@ Not applicable.
 
 - AC-1: Given a task, when `task_update_section` replaces `Document History`, `13`, `Open Questions`, `14` or `Definition of Done`, then the tool refuses it and names the tools to use.
 - AC-2: Given `task_create` with section 14 or 13 in `sections`, then the tool refuses it.
-- AC-3: Given a checked item, when `task_dod_uncheck` runs with a reason, then the item is `- [ ]` with no evidence and the Document History has a row with the reason.
+- AC-3: Given a checked item, when `task_dod_uncheck` runs with a reason, then the item is `- [ ]` with no evidence sub-item and the Document History has a row with the reason.
 - AC-4: Given a task, when `task_dod_add` runs, then the new item is the last item and the result gives its number.
-- AC-5: Given a checked item, when `task_dod_remove` runs with a reason, then the item does not exist and the Document History has a row with its text and the reason.
+- AC-5: Given a checked item, when `task_dod_remove` runs with a reason, then the item and its evidence do not exist and the Document History has a row with its text and the reason.
 - AC-6: Given a `Done` task, when a DoD tool runs, then the tool refuses it.
-- AC-7: Given text with two lines, when `task_dod_check` or `task_dod_add` runs, then the item is one line.
-- AC-8: Given a task with the template section 14 and all other sections filled, when `task_set_status(In Review)` runs, then the change is done.
+- AC-7: Given evidence with two lines, when `task_dod_check` runs, then the item has one sub-item `  - Evidence: <line 1> <line 2>`.
+- AC-8: Given a task with the template sections 13 and 14 and all other sections filled, when `task_set_status(In Review)` runs, then the change is done.
+- AC-9: Given a new task, when `task_question_add` runs, then section 13 has the new question and no `None.` row.
 
 ## 10. Validation and Metrics
 
@@ -154,6 +157,8 @@ Delete the protection function, the three DoD tools and their skill lines. No ef
 | Q-4 | Rules of the DoD tools. Recommended: reason for uncheck and remove, a Document History row, no change of a `Done` task, remove only unchecked items. | Equal | Yes, but `task_dod_remove` also removes a checked item (grill Q-32). |
 | Q-5 | Is the template section 14 valid for `In Review`? | Equal | Yes (grill Q-33). |
 | Q-6 | One task or two? | Equal | One task, size M (grill Q-34). |
+| Q-7 | How does a task with no questions pass In Review, when task_update_section cannot change section 13? Recommended: the template row is "\| — \| None. \| — \| — \|", In Review does not check section 13, and task_question_add removes that row. | Equal | Yes, as recommended (grill Q-35). |
+| Q-8 | Which format does task_dod_check use for the evidence, so that task_dod_uncheck can remove it? Recommended: "- [x] <text> Evidence: <evidence>" on one line. | Equal | A sub-item: the evidence goes on an indented line "  - Evidence: <evidence>" under the item (grill Q-36). |
 
 The status cannot be `Approved` while a question is `Open`.
 

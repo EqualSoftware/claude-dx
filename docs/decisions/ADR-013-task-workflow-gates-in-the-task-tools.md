@@ -43,6 +43,13 @@ The task tools check the task process at each status step. A check refuses a cha
 | `Cancelled` | `Draft` |
 | `Done` | None, because a new finding is a new task (step 5). |
 
+Only their own tools change the sections that the gates read (TASK-037), so a gate cannot be passed with a free text edit:
+
+- Document History: `task_set_status` and the Definition of Done tools add the rows.
+- Section 13 (Open Questions): `task_question_add` and `task_question_answer`. The template row `| — | None. | — | — |` is valid for a task with no questions.
+- Section 14 (Definition of Done): `task_dod_add`, `task_dod_remove`, `task_dod_check` and `task_dod_uncheck`. `task_dod_check` writes the evidence as a sub-item `  - Evidence: <evidence>`. `task_dod_remove` and `task_dod_uncheck` need a reason, which goes to the Document History. The tools refuse a `Done` task. The template items are valid for `In Review`.
+- `task_update_section` and `task_create` refuse these three sections.
+
 Before v0.1.0, all titles longer than 40 characters get shorter. Only files with a slug longer than 40 characters get a new name, because the older files have short names that a person selected. Links change in the same commit.
 
 ## Alternatives

@@ -89,6 +89,9 @@ func (s Store) fill(t New) (front, body string, err error) {
 	body = strings.Replace(body, "| YYYY-MM-DD | [Name] | Initial draft specification |",
 		fmt.Sprintf("| %s | %s | Initial draft specification |", s.today(), s.author()), 1)
 	for ref, content := range t.Sections {
+		if err := checkSection(ref); err != nil {
+			return "", "", err
+		}
 		if body, err = markdown.ReplaceSection(body, ref, content); err != nil {
 			return "", "", err
 		}

@@ -24,7 +24,7 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-037](TASK-037-protect-the-controlled-task-sections.md) | Controlled task sections and DoD tools | `Approved` | `P1` | `docs-tools`, `plugin` | None |
+| [TASK-037](TASK-037-protect-the-controlled-task-sections.md) | Controlled task sections and DoD tools | `In Development` | `P1` | `docs-tools`, `plugin` | None |
 | [TASK-038](TASK-038-replace-block-lists-in-the-frontmatter.md) | Replace block lists in the frontmatter | `Approved` | `P1` | `docs-tools` | None |
 | [TASK-039](TASK-039-check-the-glossary-row-fields.md) | Check the glossary row fields | `Approved` | `P2` | `docs-tools` | None |
 | [TASK-040](TASK-040-check-only-the-new-task-dependencies.md) | Check only the new task dependencies | `Approved` | `P2` | `docs-tools` | TASK-037 |

@@ -18,7 +18,7 @@ The task tools check each step of the flow of ADR-013:
 3. Approve: `Approved` only when the user approves. A change of section 3, 4, 6, 7 or 9 of an `Approved` task sets it to `In Review`, and the user approves it again.
 4. Select: `task_list` with `status: ready` gives the next work.
 5. Develop: `In Development`. A new finding during work is a new task, not a change of the scope.
-6. Close: check each Definition of Done item, then `Done`.
+6. Close: check each Definition of Done item with `task_dod_check`, then `Done`.
 
 Merge rule: tasks with the same milestone, the same files and a similar goal are one task, if the size stays `S` or `M`.
 
@@ -32,7 +32,7 @@ Each unit of work of the project gets a task. Changes to the agent setup (`.clau
 
 1. Collect the inputs: the request of the user, documents, related code, ADRs (`adr_list`) and tasks (`task_list` with `status: all`). Do not repeat an investigation that is already in the conversation. Give a search of more than 3 files to the `dx:scout` agent, with a closed list of questions, and use its `path:line` findings.
 2. If a task has the same objective, refine it. Do not make a duplicate.
-3. Run `task_create` with the title (40 characters or less, not the title of another task), priority, milestone (`vMAJOR.MINOR.PATCH`, example `v0.1.0`), type, areas, dependencies, size, platforms, related IDs and the sections that you know. The tool sets the owner to the git `user.name`. The task starts as `Draft`.
+3. Run `task_create` with the title (40 characters or less, not the title of another task), priority, milestone (`vMAJOR.MINOR.PATCH`, example `v0.1.0`), type, areas, dependencies, size, platforms, related IDs and the sections that you know, but not the Document History, section 13 or section 14. The tool sets the owner to the git `user.name`. The task starts as `Draft`.
 4. `depends_on` gives only open tasks that must be done first. The tools refuse an ID with no task file, the same task, a cycle, a `Done` or `Cancelled` task (put it in `related`) and a task of a later milestone. They warn when a dependency has a lower priority.
 5. Write only verified facts. Write "Not applicable" for a section that does not apply.
 6. Add each unknown item with `task_question_add`. Do not guess.
@@ -51,7 +51,11 @@ Run `/dx:grill` on the task. Use `task_question_add` and `task_question_answer` 
 7. Acceptance criteria and metrics.
 8. Risks, removal and compatibility.
 
-Change the sections with `task_update_section` and the frontmatter fields with `task_update_fields`.
+Change the sections with `task_update_section` and the frontmatter fields with `task_update_fields`. Only their own tools change these sections, so the flow checks stay true:
+
+- Document History: `task_set_status` and the Definition of Done tools add the rows.
+- Section 13 (Open Questions): `task_question_add` and `task_question_answer`. A task with no questions keeps the `None.` row.
+- Section 14 (Definition of Done): `task_dod_add` and `task_dod_remove` change the items. `task_dod_check` checks an item and adds its evidence. `task_dod_uncheck` unchecks an item. Removal and uncheck need a reason. The template items are valid.
 
 A task is ready for review when:
 - each goal has an acceptance criterion and a metric or a check,
@@ -82,7 +86,7 @@ The allowed changes are:
 - `Approved`: only when the user approves.
 - `In Development`: when work starts.
 - `Blocked`: give the blocker in `note`.
-- `Done`: first check each Definition of Done item with `task_dod_check` and its evidence.
+- `Done`: first check each Definition of Done item with `task_dod_check` and its evidence. A `Done` task is final: the Definition of Done tools refuse it.
 - `Cancelled`: give the reason in `note`.
 
 If `task_list` warns that two files have one number, run `task_renumber` with the file name of the newer task.
