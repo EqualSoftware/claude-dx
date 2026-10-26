@@ -108,19 +108,21 @@ flowchart LR
 ### 7.2 Public API
 
 ```text
-spec_create(slug, title, milestone, priority, area[], related[]) -> "Created <slug>."
+spec_create(slug, title, milestone, priority, area[], related[], split_from?) -> "Created <slug>."
 spec_list(status?, milestone?, priority?, area?, related?) -> lines
 spec_get(slug, section?) -> text (with commits for full or section 5)
 spec_update_section(slug, section, body) -> "Updated section N of <slug>." [+ In Review note]
-spec_set_status(slug, status) -> as task_set_status
-spec_req_add(slug, text) -> "Added R-n."
-spec_req_set(slug, rid, text?, status?) -> "Updated R-n."
-spec_question_add(slug, question, owner?) -> "Added Q-n."
+spec_set_status(slug, status, note?) -> "<slug> is <status>."
+spec_req_add(slug, text) -> "Added R-n." [+ In Review note]
+spec_req_set(slug, rid, text?, status?) -> "Updated R-n." [+ In Review note]
+spec_question_add(slug, question, owner?) -> "Added Q-n." [+ "Q-n is Open, so <slug> is In Review. The user must approve it again."]
 spec_question_answer(slug, qid, answer) -> "Answered Q-n."
 spec_delete(slug, reason, move_to?, discard_files?) -> "Deleted <slug>. Give this reason in the commit message: <reason>"
 ```
 
-Texts that have a task counterpart copy the task text with spec in place of task (Q-23). Refusals with no counterpart (Q-27): `spec "x" does not exist`, `spec "x" exists`, `slug "general" is reserved`, `slug "X" is not kebab-case. Example: docs-lock`, `requirement R-n does not exist`, `give text, status or both`, `move_to must be another spec`, `file "a.svg" exists in docs/specs/y`, `docs/specs/x has other files: a.svg, b.png. Give move_to or discard_files`, `give move_to or discard_files, not both`, `docs/specs/x has changes that are not committed. Commit them first`, `git log failed: <error>`. No breaking change.
+`split_from` gives the old slug of a split; the first Document History row is "Initial draft specification. Split from <slug>." (Q-32).
+
+Texts that have a task counterpart copy the task text with spec in place of task (Q-23). Refusals with no counterpart (Q-27, Q-30, Q-31): `spec "x" does not exist`, `spec "x" exists`, `slug "general" is reserved`, `slug "X" is not kebab-case. Example: docs-lock`, `the slug has N characters. The limit is 40. Write a shorter slug`, `related "ADR-9": ADR-009 does not exist`, `requirement R-n does not exist`, `give the text of the requirement`, `give text, status or both`, `give the reason`, `the argument move_to must be another spec`, `file "a.svg" exists in docs/specs/y`, `the folder docs/specs/x has other files: a.svg, b.png. Give move_to or discard_files`, `give move_to or discard_files, not both`, `the folder docs/specs/x has changes that are not committed. Commit them first`, `git log failed: <error>`, `git status failed: <error>`, `section 5 has no requirement. Add one with spec_req_add`. No breaking change.
 
 ### 7.3 Data and File Formats
 
@@ -249,6 +251,7 @@ To remove: delete `internal/docs/spec/`, `internal/plugin/assets/skills/spec/`, 
 | Q-29 | Implementation: In Review with no requirement, texts of In Review after spec_question_add, template placeholder texts, index header, spec_set_status note, reply when docs/specs does not exist. | Maintainer | (a) In Review refuses a spec with no requirement: "section 5 has no requirement. Add one with spec_req_add". (b) spec_question_add on Approved: history "Status: In Review. Q-n is Open.", reply "Added Q-n. Q-n is Open, so slug is In Review. The user must approve it again."; spec_req_add and spec_req_set use the task text and add the rows "Added R-n." and "Status: In Review. The scope changed in section 5.". (c) The placeholders of the chat (task template style), None rows in sections 5 and 8. (d) The index header of the chat, one table ordered by milestone, then slug. (e) spec_set_status has an optional note, default "Status: X.". (f) When docs/specs does not exist: normal reply "No specs. docs/specs does not exist." |
 | Q-30 | Implementation texts: empty delete reason, empty requirement text, slug too long, related ADR that does not exist, git status failure in spec_delete. | Maintainer | Yes: "give the reason"; "give the text of the requirement"; "the slug has N characters. The limit is 40. Write a shorter slug"; "related "ADR-9": ADR-009 does not exist"; "git status failed: error". |
 | Q-31 | result.Sentence makes the first letter capital. Three texts start with a path or an argument name (docs/specs/x, move_to). Rewrite them? | Maintainer | Yes: "the folder docs/specs/x has changes that are not committed. Commit them first", "the folder docs/specs/x has other files: ... Give move_to or discard_files", "the argument move_to must be another spec". The shared docfile text "X has the same title" does not change. |
+| Q-32 | ADR-016: a new spec from a split gives the old slug in its Document History. Document History is protected. Which tool writes that row? | Maintainer | spec_create has an optional argument split_from (the old slug). The first row is "Initial draft specification. Split from slug.". The tool does not check that the old spec exists, because it can be deleted. |
 
 The status cannot be `Approved` while a question is `Open`.
 

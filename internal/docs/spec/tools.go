@@ -31,6 +31,7 @@ type createInput struct {
 	Priority  string   `json:"priority" jsonschema:"P0, P1, P2 or P3"`
 	Area      []string `json:"area" jsonschema:"the areas of the project, example [api] or [docs, ci]"`
 	Related   []string `json:"related,omitempty" jsonschema:"IDs of ADRs that exist, example [ADR-016]"`
+	SplitFrom string   `json:"split_from,omitempty" jsonschema:"slug of the old spec when this spec comes from a split. It goes to the Document History"`
 }
 
 type sectionInput struct {

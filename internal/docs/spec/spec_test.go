@@ -112,7 +112,9 @@ func TestCreateAndList(t *testing.T) {
 		{"spec_create", createArgs("docs-lock", "Docs lock"), "Created docs-lock."},
 		{"spec_create", createArgs("docs-lock", "Other"), `ERR Spec "docs-lock" exists.`},
 		{"spec_create", createArgs("other", "DOCS LOCK"), "ERR Docs-lock has the same title. Give a different title, or change docs-lock."},
-		{"spec_create", map[string]any{"slug": "cache", "title": "Cache", "milestone": "v0.2.0", "priority": "P2", "area": []string{"cli"}}, "Created cache."},
+		{"spec_create", map[string]any{"slug": "cache", "title": "Cache", "milestone": "v0.2.0", "priority": "P2", "area": []string{"cli"}, "split_from": "Old"},
+			`ERR Slug "Old" is not kebab-case. Example: docs-lock.`},
+		{"spec_create", map[string]any{"slug": "cache", "title": "Cache", "milestone": "v0.2.0", "priority": "P2", "area": []string{"cli"}, "split_from": "old-cache"}, "Created cache."},
 		{"spec_list", map[string]any{}, "cache      Draft  P2  v0.2.0  Cache      [cli]   0/0\ndocs-lock  Draft  P1  v0.1.0  Docs lock  [docs]  0/0\n"},
 		{"spec_list", map[string]any{"related": "adr-016"}, "docs-lock  Draft  P1  v0.1.0  Docs lock  [docs]  0/0\n"},
 		{"spec_list", map[string]any{"status": "Approved"}, "No specs match.\n"},
@@ -129,6 +131,9 @@ func TestCreateAndList(t *testing.T) {
 		if !strings.Contains(doc, want) {
 			t.Errorf("SPEC.md has no %q:\n%s", want, doc)
 		}
+	}
+	if text, _ := s.Get("cache", "9"); !strings.Contains(text, "| 2026-10-26 | Tester | Initial draft specification. Split from old-cache. |") {
+		t.Errorf("cache history =\n%s", text)
 	}
 	index, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
 	rows := "| [docs-lock](docs-lock/SPEC.md) | Docs lock | `Draft` | v0.1.0 | `P1` | `docs` | 0/0 |\n" +

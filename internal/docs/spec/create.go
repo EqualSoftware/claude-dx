@@ -27,12 +27,16 @@ type New struct {
 	Priority  string
 	Area      []string
 	Related   []string
+	SplitFrom string // slug of the old spec of a split, for the Document History
 }
 
 // check returns an error for a missing or invalid field.
 func (n New) check() error {
 	if err := checkSlug(n.Slug); err != nil {
 		return err
+	}
+	if n.SplitFrom != "" && !slugPattern.MatchString(n.SplitFrom) {
+		return fmt.Errorf("slug %q is not kebab-case. Example: docs-lock", n.SplitFrom)
 	}
 	if !milestonePattern.MatchString(n.Milestone) {
 		return fmt.Errorf("milestone %q is not valid. Use vMAJOR.MINOR.PATCH, example v0.1.0", n.Milestone)
@@ -104,8 +108,12 @@ func (s Store) fill(n New) string {
 	front = markdown.SetField(front, "area", nonNil(n.Area))
 	front = markdown.SetField(front, "related", nonNil(n.Related))
 	body = headerLine.ReplaceAllLiteralString(body, "# "+n.Title)
+	note := "Initial draft specification"
+	if n.SplitFrom != "" {
+		note += ". Split from " + n.SplitFrom + "."
+	}
 	body = strings.Replace(body, "| YYYY-MM-DD | [Name] | Initial draft specification |",
-		fmt.Sprintf("| %s | %s | Initial draft specification |", s.today(), docfile.Cell(s.author())), 1)
+		fmt.Sprintf("| %s | %s | %s |", s.today(), docfile.Cell(s.author()), note), 1)
 	return markdown.Join(front, body)
 }
 
