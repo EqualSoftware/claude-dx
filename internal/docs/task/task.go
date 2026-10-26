@@ -57,6 +57,7 @@ type Front struct {
 	Title     string   `yaml:"title"`
 	Status    string   `yaml:"status"`
 	Priority  string   `yaml:"priority"`
+	Milestone string   `yaml:"milestone"`
 	Type      string   `yaml:"type"`
 	Size      string   `yaml:"size"`
 	Owner     string   `yaml:"owner"`
@@ -92,7 +93,8 @@ type Task struct {
 }
 
 // Filter selects tasks in List: a frontmatter key and the value to find. Empty values select all.
-// Status "open" selects all but Done and Cancelled, and "all" selects all.
+// Status "open" selects all but Done and Cancelled, "all" selects all, and "ready" selects the Approved
+// tasks that have all dependencies Done, in milestone order.
 type Filter map[string]string
 
 func (f Filter) match(t Task) bool {
@@ -106,7 +108,7 @@ func (f Filter) match(t Task) bool {
 
 func matchField(f Front, key, value string) bool {
 	switch {
-	case value == "", key == "status" && value == "all":
+	case value == "", key == "status" && (value == "all" || value == "ready"):
 		return true
 	case key == "status" && value == "open":
 		return f.Status != "Done" && f.Status != "Cancelled"
@@ -125,6 +127,7 @@ func (s Store) List(f Filter) ([]Task, string, error) {
 		return nil, "", err
 	}
 	var tasks []Task
+	done := map[string]bool{}
 	warnings := docfile.Duplicates(kind, files)
 	for _, name := range sortedNames(files) {
 		t, err := s.read(name)
@@ -132,9 +135,13 @@ func (s Store) List(f Filter) ([]Task, string, error) {
 			warnings += fmt.Sprintf("Warning: %s: %v.\n", name, err)
 			continue
 		}
+		done[t.Front.ID] = t.Front.Status == "Done"
 		if f.match(t) {
 			tasks = append(tasks, t)
 		}
+	}
+	if f["status"] == "ready" {
+		tasks = ready(tasks, done)
 	}
 	return tasks, warnings, nil
 }

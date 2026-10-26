@@ -3,6 +3,7 @@ id: TASK-NNN
 title: Short task title
 status: Draft
 priority: P2
+milestone: ""
 type: feat
 size: ""
 owner: Agent

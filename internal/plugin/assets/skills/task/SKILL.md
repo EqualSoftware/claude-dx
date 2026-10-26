@@ -11,7 +11,7 @@ Read only what you need: `task_get` with `section` returns one section.
 
 ## List tasks
 
-Run `task_list` with the filters of the request. Each frontmatter field is a filter, example `status`, `priority`, `area`, `owner` or `depends_on` (the tasks that wait for one task). Give its lines to the user and stop. Do not run other tools: `task_list` has all the data of a list. Run `task_get` only when the user asks for the content of a task.
+Run `task_list` with the filters of the request. Each frontmatter field is a filter, example `status`, `priority`, `milestone`, `area`, `owner` or `depends_on` (the tasks that wait for one task). To select the next work, use `status: ready`: it gives the `Approved` tasks that have all dependencies `Done`, in milestone order, then priority order. Give its lines to the user and stop. Do not run other tools: `task_list` has all the data of a list. Run `task_get` only when the user asks for the content of a task.
 
 ## Create a task
 
@@ -19,7 +19,7 @@ Each unit of work of the project gets a task. Changes to the agent setup (`.clau
 
 1. Collect the inputs: the request of the user, documents, related code, ADRs (`adr_list`) and tasks (`task_list` with `status: all`). Do not repeat an investigation that is already in the conversation. Give a search of more than 3 files to the `dx:scout` agent, with a closed list of questions, and use its `path:line` findings.
 2. If a task has the same objective, refine it. Do not make a duplicate.
-3. Run `task_create` with the title, priority, type, areas, dependencies, size, platforms, related IDs and the sections that you know. The tool sets the owner to the git `user.name`. The task starts as `Draft`.
+3. Run `task_create` with the title, priority, milestone (`vMAJOR.MINOR.PATCH`, example `v0.1.0`), type, areas, dependencies, size, platforms, related IDs and the sections that you know. The tool sets the owner to the git `user.name`. The task starts as `Draft`.
 4. Write only verified facts. Write "Not applicable" for a section that does not apply.
 5. Add each unknown item with `task_question_add`. Do not guess.
 6. Use the terms of `docs/GLOSSARY.md`. Run `/dx:glossary` for a new or unclear term.

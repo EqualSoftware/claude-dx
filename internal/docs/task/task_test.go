@@ -32,7 +32,7 @@ func must(t *testing.T, err error) {
 
 func create(t *testing.T, s Store, title string) {
 	t.Helper()
-	if _, err := s.Create(New{Title: title, Priority: "P1", Type: "feat", Area: []string{"cli"}}); err != nil {
+	if _, err := s.Create(New{Title: title, Priority: "P1", Milestone: "v0.1.0", Type: "feat", Area: []string{"cli"}}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -49,7 +49,7 @@ func read(t *testing.T, s Store, id string) string {
 func TestCreate(t *testing.T) {
 	s := newStore(t)
 	path, err := s.Create(New{
-		Title: "Add cache: fast", Priority: "P1", Type: "feat", Area: []string{"cli", "docs"}, DependsOn: []string{"TASK-009"},
+		Title: "Add cache: fast", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Area: []string{"cli", "docs"}, DependsOn: []string{"TASK-009"},
 		Size: "S", Platforms: []string{"macOS", "Windows (amd64, arm64)"}, Related: []string{"ADR-013"},
 		Sections: map[string]string{"1": "The summary.", "Goals": "- G-1: Fast."},
 	})
@@ -61,7 +61,7 @@ func TestCreate(t *testing.T) {
 	}
 	doc := read(t, s, "TASK-001")
 	for _, want := range []string{
-		"id: TASK-001\ntitle: 'Add cache: fast'\nstatus: Draft\npriority: P1\ntype: feat\nsize: S\nowner: Tester\n" +
+		"id: TASK-001\ntitle: 'Add cache: fast'\nstatus: Draft\npriority: P1\nmilestone: v0.1.0\ntype: feat\nsize: S\nowner: Tester\n" +
 			"platforms: [macOS, 'Windows (amd64, arm64)']\narea: [cli, docs]\ndepends_on: [TASK-009]\nrelated: [ADR-013]\n---\n",
 		"# TASK-001: Add cache: fast\n\n## Document History\n",
 		"| 2026-10-25 | Tester | Initial draft specification |",
@@ -82,12 +82,15 @@ func TestCreate(t *testing.T) {
 func TestCreateRefusesBadInput(t *testing.T) {
 	s := newStore(t)
 	bad := []New{
-		{Title: "", Priority: "P1", Type: "feat"},
-		{Title: "X", Priority: "P9", Type: "feat"},
-		{Title: "X", Priority: "P1"},
-		{Title: "X", Priority: "P1", Type: "feature"},
-		{Title: "X", Priority: "P1", Type: "feat", Size: "L"},
-		{Title: "X", Priority: "P1", Type: "feat", Sections: map[string]string{"99": "x"}},
+		{Title: "", Priority: "P1", Milestone: "v0.1.0", Type: "feat"},
+		{Title: "X", Priority: "P9", Milestone: "v0.1.0", Type: "feat"},
+		{Title: "X", Priority: "P1", Milestone: "v0.1.0"},
+		{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feature"},
+		{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Size: "L"},
+		{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Sections: map[string]string{"99": "x"}},
+		// AC-1 of TASK-030: no milestone, or a milestone that is not vMAJOR.MINOR.PATCH.
+		{Title: "X", Priority: "P1", Type: "feat"},
+		{Title: "X", Priority: "P1", Milestone: "0.1", Type: "feat"},
 	}
 	for _, in := range bad {
 		if _, err := s.Create(in); err == nil {
@@ -184,7 +187,7 @@ func TestInReviewWhenComplete(t *testing.T) {
 	for _, ref := range leafSections {
 		sections[ref] = "Filled " + ref + "."
 	}
-	if _, err := s.Create(New{Title: "Full", Priority: "P1", Type: "feat", Area: []string{"cli"}, Size: "M", Platforms: []string{"Linux"}, Sections: sections}); err != nil {
+	if _, err := s.Create(New{Title: "Full", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Area: []string{"cli"}, Size: "M", Platforms: []string{"Linux"}, Sections: sections}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.SetStatus("TASK-001", "In Review", ""); err != nil {
@@ -235,23 +238,68 @@ func TestCheckDoD(t *testing.T) {
 	}
 }
 
+// TestListMilestone is AC-2 of TASK-030.
+func TestListMilestone(t *testing.T) {
+	s := newStore(t)
+	create(t, s, "One")
+	create(t, s, "Two")
+	must(t, s.UpdateFields("TASK-002", Update{Milestone: "v0.2.0"}))
+	got, _, _ := s.List(Filter{"milestone": "v0.1.0"})
+	if len(got) != 1 || got[0].Front.ID != "TASK-001" {
+		t.Fatalf("List(milestone: v0.1.0) = %+v", got)
+	}
+}
+
+// TestListReady is AC-3 and AC-4 of TASK-030.
+func TestListReady(t *testing.T) {
+	s := newStore(t)
+	for _, title := range []string{"Dep", "A", "B", "C", "Later", "Done dep"} {
+		create(t, s, title)
+	}
+	for _, id := range []string{"TASK-002", "TASK-003", "TASK-005"} {
+		force(t, s, id, "Approved")
+	}
+	force(t, s, "TASK-006", "Done")
+	must(t, s.UpdateFields("TASK-002", Update{DependsOn: []string{"TASK-001"}}))
+	must(t, s.UpdateFields("TASK-003", Update{Milestone: "v0.10.0", DependsOn: []string{"TASK-006"}}))
+	must(t, s.UpdateFields("TASK-005", Update{Milestone: "v0.2.0", Priority: "P3"}))
+	got, _, err := s.List(Filter{"status": "ready"})
+	must(t, err)
+	var ids []string
+	for _, task := range got {
+		ids = append(ids, task.Front.ID)
+	}
+	if strings.Join(ids, " ") != "TASK-005 TASK-003" {
+		t.Fatalf("ready = %v, want TASK-005 TASK-003", ids)
+	}
+}
+
+// force sets the status of a Draft task with no status rules.
+func force(t *testing.T, s Store, id, status string) {
+	t.Helper()
+	must(t, s.edit(id, func(d *doc) error {
+		d.front = strings.Replace(d.front, "status: Draft", "status: "+status, 1)
+		return nil
+	}))
+}
+
 func TestUpdateFields(t *testing.T) {
 	s := newStore(t)
 	create(t, s, "One")
-	u := Update{Title: "New title", Priority: "P0", Type: "fix", Size: "M", Owner: "Equal", DependsOn: []string{}, Related: []string{"ADR-001"}}
+	u := Update{Title: "New title", Priority: "P0", Milestone: "v0.2.0", Type: "fix", Size: "M", Owner: "Equal", DependsOn: []string{}, Related: []string{"ADR-001"}}
 	if err := s.UpdateFields("TASK-001", u); err != nil {
 		t.Fatal(err)
 	}
 	doc := read(t, s, "TASK-001")
 	for _, want := range []string{
-		"title: New title\nstatus: Draft\npriority: P0\ntype: fix\nsize: M\nowner: Equal\nplatforms: []\narea: [cli]\ndepends_on: []\nrelated: [ADR-001]\n",
+		"title: New title\nstatus: Draft\npriority: P0\nmilestone: v0.2.0\ntype: fix\nsize: M\nowner: Equal\nplatforms: []\narea: [cli]\ndepends_on: []\nrelated: [ADR-001]\n",
 		"# TASK-001: New title\n",
 	} {
 		if !strings.Contains(doc, want) {
 			t.Errorf("task does not contain %q", want)
 		}
 	}
-	for _, bad := range []Update{{Priority: "P5"}, {Type: "feature"}, {Size: "L"}} {
+	for _, bad := range []Update{{Priority: "P5"}, {Milestone: "v1"}, {Type: "feature"}, {Size: "L"}} {
 		if err := s.UpdateFields("TASK-001", bad); err == nil {
 			t.Errorf("UpdateFields(%+v) did not fail", bad)
 		}
@@ -324,5 +372,21 @@ func BenchmarkList200(b *testing.B) {
 		if _, err := s.listText(listInput{Status: "all"}); err != nil {
 			b.Fatal(err)
 		}
+	}
+}
+
+// TestIndexMilestones is AC-5 of TASK-030: one open table for each milestone, then one closed table.
+func TestIndexMilestones(t *testing.T) {
+	s := newStore(t)
+	for _, title := range []string{"One", "Two", "Three"} {
+		create(t, s, title)
+	}
+	must(t, s.UpdateFields("TASK-001", Update{Milestone: "v0.2.0"}))
+	must(t, s.SetStatus("TASK-003", "Cancelled", "Not necessary."))
+	data, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
+	text := string(data)
+	v1, v2, closed := strings.Index(text, "## v0.1.0\n"), strings.Index(text, "## v0.2.0\n"), strings.Index(text, "## Closed\n")
+	if v1 < 0 || v1 > v2 || v2 > closed || !strings.Contains(text[v1:v2], "TASK-002") || !strings.Contains(text[closed:], "TASK-003") {
+		t.Fatalf("README.md =\n%s", text)
 	}
 }

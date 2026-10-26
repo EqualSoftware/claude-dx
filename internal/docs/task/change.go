@@ -45,6 +45,7 @@ func (s Store) UpdateSection(id, section, content string) error {
 type Update struct {
 	Title     string
 	Priority  string
+	Milestone string
 	Type      string
 	Size      string
 	Owner     string
@@ -56,6 +57,11 @@ type Update struct {
 
 // check returns an error for an invalid field.
 func (u Update) check() error {
+	if u.Milestone != "" {
+		if err := checkMilestone(u.Milestone); err != nil {
+			return err
+		}
+	}
 	for _, c := range []struct {
 		name, value string
 		valid       []string
@@ -82,6 +88,7 @@ func (u Update) fields() []field {
 	return []field{
 		{"title", u.Title, u.Title != ""},
 		{"priority", u.Priority, u.Priority != ""},
+		{"milestone", u.Milestone, u.Milestone != ""},
 		{"type", u.Type, u.Type != ""},
 		{"size", u.Size, u.Size != ""},
 		{"owner", u.Owner, u.Owner != ""},

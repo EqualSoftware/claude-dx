@@ -14,10 +14,11 @@ import (
 
 // listInput has one filter for each frontmatter field. The JSON name is the frontmatter key.
 type listInput struct {
-	Status    string `json:"status,omitempty" jsonschema:"open (default), all, or one status: Draft, In Review, Approved, In Development, Blocked, Done, Cancelled"`
+	Status    string `json:"status,omitempty" jsonschema:"open (default), all, ready (Approved tasks with all dependencies Done, in milestone order), or one status: Draft, In Review, Approved, In Development, Blocked, Done, Cancelled"`
 	ID        string `json:"id,omitempty"`
 	Title     string `json:"title,omitempty" jsonschema:"the full title"`
 	Priority  string `json:"priority,omitempty" jsonschema:"P0, P1, P2 or P3"`
+	Milestone string `json:"milestone,omitempty" jsonschema:"one milestone, example v0.1.0"`
 	Type      string `json:"type,omitempty" jsonschema:"feat, fix, refactor, perf, test, docs, build, ci or chore"`
 	Size      string `json:"size,omitempty" jsonschema:"S or M"`
 	Owner     string `json:"owner,omitempty" jsonschema:"git user.name of the person who created the task"`
@@ -47,6 +48,7 @@ type getInput struct {
 type createInput struct {
 	Title     string            `json:"title" jsonschema:"short task title, in ASD-STE100"`
 	Priority  string            `json:"priority" jsonschema:"P0, P1, P2 or P3"`
+	Milestone string            `json:"milestone" jsonschema:"the release of the task, vMAJOR.MINOR.PATCH, example v0.1.0"`
 	Type      string            `json:"type" jsonschema:"feat, fix, refactor, perf, test, docs, build, ci or chore. It sets the commit type"`
 	Area      []string          `json:"area" jsonschema:"the areas of the project, example [api] or [docs, ci]"`
 	DependsOn []string          `json:"depends_on,omitempty" jsonschema:"open task IDs that must be done first"`
@@ -66,6 +68,7 @@ type fieldsInput struct {
 	ID        string   `json:"id" jsonschema:"task ID"`
 	Title     string   `json:"title,omitempty"`
 	Priority  string   `json:"priority,omitempty" jsonschema:"P0, P1, P2 or P3"`
+	Milestone string   `json:"milestone,omitempty" jsonschema:"vMAJOR.MINOR.PATCH, example v0.1.0"`
 	Type      string   `json:"type,omitempty" jsonschema:"feat, fix, refactor, perf, test, docs, build, ci or chore"`
 	Size      string   `json:"size,omitempty" jsonschema:"S or M"`
 	Owner     string   `json:"owner,omitempty" jsonschema:"git user.name of the person who owns the task"`
@@ -105,7 +108,7 @@ type renumberInput struct {
 
 // Register adds the task tools to the server.
 func Register(server *mcp.Server, s Store) {
-	add(server, "task_list", "List tasks: ID, status, priority, title, areas and dependencies. Filter by any frontmatter field. Default: open tasks. Do not read docs/tasks/README.md; use this tool.",
+	add(server, "task_list", "List tasks: ID, status, priority, milestone, title, areas and dependencies. Filter by any frontmatter field. Default: open tasks. Do not read docs/tasks/README.md; use this tool.",
 		func(in listInput) (string, error) { return s.listText(in) })
 	add(server, "task_get", "Read one task, or one section of it.",
 		func(in getInput) (string, error) { return s.Get(in.ID, in.Section) })
@@ -115,9 +118,9 @@ func Register(server *mcp.Server, s Store) {
 		func(in sectionInput) (string, error) {
 			return "Updated section " + in.Section + " of " + in.ID + ".", s.UpdateSection(in.ID, in.Section, in.Body)
 		})
-	add(server, "task_update_fields", "Change the frontmatter fields of a task: title, priority, type, size, owner, platforms, areas, dependencies or related.",
+	add(server, "task_update_fields", "Change the frontmatter fields of a task: title, priority, milestone, type, size, owner, platforms, areas, dependencies or related.",
 		func(in fieldsInput) (string, error) {
-			u := Update{Title: in.Title, Priority: in.Priority, Type: in.Type, Size: in.Size, Owner: in.Owner,
+			u := Update{Title: in.Title, Priority: in.Priority, Milestone: in.Milestone, Type: in.Type, Size: in.Size, Owner: in.Owner,
 				Platforms: in.Platforms, Area: in.Area, DependsOn: in.DependsOn, Related: in.Related}
 			return "Updated " + in.ID + ".", s.UpdateFields(in.ID, u)
 		})
@@ -165,7 +168,7 @@ func (s Store) listText(in listInput) (string, error) {
 	rows := make([][]string, 0, len(tasks))
 	for _, t := range tasks {
 		f := t.Front
-		rows = append(rows, []string{f.ID, f.Status, f.Priority, f.Title, "[" + strings.Join(f.Area, ", ") + "]", "deps:" + list(f.DependsOn, "")})
+		rows = append(rows, []string{f.ID, f.Status, f.Priority, f.Milestone, f.Title, "[" + strings.Join(f.Area, ", ") + "]", "deps:" + list(f.DependsOn, "")})
 	}
 	return result.Table(rows) + warnings, nil
 }

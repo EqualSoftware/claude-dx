@@ -21,13 +21,15 @@ claude-dx moves this work into Go tools:
 
 ## Roadmap
 
-| Version | Content | Tasks |
-| :--- | :--- | :--- |
-| v0.1 | Launcher, `update`, `cache clean`, `doctor`. Tools and skills for ADRs, tasks, learnings and the glossary. `/dx:grill` and the `scout` agent. | [TASK-001](docs/tasks/TASK-001-project-skeleton-ci-and-release.md) to [TASK-008](docs/tasks/TASK-008-grill-skill-scout-agent-and-rules.md) |
-| v0.2 | Git tools, the Bash git block, `git_exec`, `report`. `/dx:commit` and `/dx:eureka`. | [TASK-009](docs/tasks/TASK-009-git-runner-and-read-tools.md) to [TASK-013](docs/tasks/TASK-013-commit-and-eureka-skills.md) |
-| v0.3 | Filesystem tools. | [TASK-014](docs/tasks/TASK-014-filesystem-tools.md) |
-| v0.4 | LSP servers with a warm cache for Go, TypeScript, JavaScript, Python, C and C++. No install by the user. | [TASK-015](docs/tasks/TASK-015-lsp-core-languages.md) |
-| v0.5 | LSP servers for HTML, CSS, JSON, Bash, CMake, Lua, Make and Ninja. | [TASK-016](docs/tasks/TASK-016-lsp-other-languages.md) |
+Each task has a `milestone` field. The [task index](docs/tasks/) has one table for each milestone.
+
+| Milestone | Content |
+| :--- | :--- |
+| v0.1.0 | Launcher, `update`, `cache clean`, `doctor`. Tools and skills for ADRs, tasks, learnings and the glossary. `/dx:grill` and the `scout` agent. |
+| v0.2.0 | Git tools, the Bash git block, `git_exec`, `report`. `/dx:commit` and `/dx:eureka`. |
+| v0.3.0 | Filesystem tools. |
+| v0.4.0 | LSP servers with a warm cache for Go, TypeScript, JavaScript, Python, C and C++. No install by the user. |
+| v0.5.0 | LSP servers for HTML, CSS, JSON, Bash, CMake, Lua, Make and Ninja. |
 
 ## Install
 

@@ -14,6 +14,7 @@ import (
 type New struct {
 	Title     string
 	Priority  string
+	Milestone string
 	Type      string
 	Area      []string
 	DependsOn []string
@@ -29,6 +30,9 @@ func (t New) check() error {
 		return errors.New("give a title")
 	}
 	if err := oneOf("priority", t.Priority, Priorities); err != nil {
+		return err
+	}
+	if err := checkMilestone(t.Milestone); err != nil {
 		return err
 	}
 	if err := oneOf("type", t.Type, Types); err != nil {
@@ -68,6 +72,7 @@ func (s Store) fill(t New) (front, body string, err error) {
 	front = markdown.SetField(front, "title", t.Title)
 	front = markdown.SetField(front, "status", "Draft")
 	front = markdown.SetField(front, "priority", t.Priority)
+	front = markdown.SetField(front, "milestone", t.Milestone)
 	front = markdown.SetField(front, "type", t.Type)
 	front = markdown.SetField(front, "size", t.Size)
 	front = markdown.SetField(front, "owner", s.author())

@@ -80,9 +80,9 @@ func TestToolsFlow(t *testing.T) {
 		args map[string]any
 		want string
 	}{
-		{"task_create", map[string]any{"title": "Add a cache", "priority": "P1", "type": "feat", "area": []string{"cli"}},
+		{"task_create", map[string]any{"title": "Add a cache", "priority": "P1", "milestone": "v0.1.0", "type": "feat", "area": []string{"cli"}},
 			"Created docs/tasks/TASK-001-add-a-cache.md (Draft)."},
-		{"task_list", map[string]any{}, "TASK-001  Draft  P1  Add a cache  [cli]  deps:None\n"},
+		{"task_list", map[string]any{}, "TASK-001  Draft  P1  v0.1.0  Add a cache  [cli]  deps:None\n"},
 		{"adr_create", map[string]any{
 			"title": "Use stdio", "context": "C.", "decision": "D.", "evidence": "E.",
 			"alternatives": []map[string]any{{"option": "HTTP", "reason": "more work"}},
