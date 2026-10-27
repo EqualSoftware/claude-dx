@@ -124,10 +124,9 @@ func (s Store) SetDoneLocked(slug string, rids []string) error
 
 // internal/docs/task
 type Store struct {
-	Dir   string           // <data dir>/tasks
-	Specs spec.Store       // spec reads and writes; Specs.Author gives the spec row author
-	Lock  string           // path of the docs lock; required
-	Now   func() time.Time // clock; nil means time.Now
+	Dir   string     // <data dir>/tasks
+	Specs spec.Store // spec reads and writes; Specs.Author gives the spec row author
+	Lock  string     // path of the docs lock; required
 }
 ```
 
@@ -139,12 +138,18 @@ task_get(id, section?) -> the task file, or one section
 task_create(spec, slug, title, priority, brief, plan[], covers[]?, depends_on[]?) -> "Created task <id>."
 task_update_section(id, section: Brief | Plan | Notes, body) -> "Updated section <section> of <id>."
 task_update_fields(id, title?, priority?, covers[]?, depends_on[]?) -> "Updated task <id>."
-task_set_status(id, status, note?) -> "Task <id> is <status>." For Done: "Task <id> is Done. Spec <spec>: R-2, R-5: Done."
+task_set_status(id, status, note?) -> "Task <id> is <status>." For Done: "Task <id> is Done. Spec <spec>: R-2, R-5: Done." For a general task: "Task <id> is Done."
 task_step_check(id, step) -> "Checked step <n> of <id>."
-task_dod_check(id, item, evidence) | task_dod_uncheck(id, item, reason) | task_dod_add(id, text) | task_dod_remove(id, item, reason): as now, with the new ID
+task_dod_check(id, item, evidence) | task_dod_uncheck(id, item) | task_dod_add(id, text) | task_dod_remove(id, item, reason): as now, with the new ID
 task_move(ids[], to) -> "Moved <n> tasks to <to>."
 task_delete(ids[]) -> "Deleted <n> tasks."
 ```
+
+- `task_dod_uncheck` has no reason. An uncheck hides nothing. The agent writes a reason in Notes with `task_update_section`.
+- `task_dod_remove` adds a Notes line: "- Definition of Done item <n> removed (<text>): <reason>". A removal makes the Definition of Done weaker, so the reason is required.
+- Each Notes line that a tool adds is a list item, for example "- Blocked: <note>". A move with no covers adds "- Moved from <old>.".
+- A retry of `task_move` removes the old file when the new file has the Notes line "- Moved from <old>." (Q-43).
+- A general task gets "The work of the Brief is done, with evidence." as its first Definition of Done item (Q-42). A task with covers gets "The covered requirements pass their acceptance criteria, with evidence."
 
 Removed: `task_renumber`, `task_question_add`, `task_question_answer`. Removed `task_create` and `task_update_fields` fields: `milestone`, `type`, `size`, `owner`, `platforms`, `area`, `related`.
 
@@ -199,6 +204,7 @@ The user of the tools is the agent. Each text starts with a capital word, not wi
 | Missing requirement | `Spec <spec> has no requirement <R-n>.` |
 | Dependency in another spec | `Task <dep> is in another spec. A task depends only on tasks of its spec.` |
 | Missing task | `Task <dep> does not exist.` |
+| ID that is not `<spec>/<task-slug>` | `Task <id> does not exist.` |
 | Self dependency | `A task does not depend on itself.` |
 | Cycle | `The dependency makes a cycle: <a> -> <b> -> <a>.` |
 | Bad status change | `A task does not go from Todo to Done. Allowed: In Progress, Blocked.` |
@@ -209,13 +215,27 @@ The user of the tools is the agent. Each text starts with a capital word, not wi
 | Change of a Done task | `Task <id> is Done and does not change.` |
 | Delete with a dependent | `Task <x> depends on task <id>.` |
 | Move breaks a dependency | `Task <x> depends on task <id>, which stays in <spec>.` |
+| Move: a task that stays depends on a moved task | `Task <x> depends on task <id>, which goes to <to>.` |
+| Move of tasks of two specs | `The tasks must be of one spec.` |
+| Move to the same spec | `The tasks are in <to> already.` |
 | Step checked | `Step 2 is already checked.` |
 | Missing step | `Step 5 does not exist. The Plan has 3 steps.` |
 | Bad id in a file | `Task file <spec>/<slug>.md has the id <x>.` |
+| Section does not exist (`task_get`) | `Section <x> does not exist. Use Brief, Plan, Notes or Definition of Done.` |
+| Section does not exist (`task_update_section`) | `Section <x> does not exist. Use Brief, Plan or Notes.` |
+| Section Definition of Done in `task_update_section` | `Section Definition of Done changes only with task_dod_add, task_dod_remove, task_dod_check and task_dod_uncheck.` |
+| Create with no brief | `Give the brief.` |
+| Create with no plan | `Give one or more plan steps.` |
+| Move or delete with no ID | `Give one or more task IDs.` |
+| Update with no field | `Give a field to change.` |
 | `spec_delete` with tasks | `Spec <slug> has 3 tasks. Move or delete the tasks first, with task_move or task_delete.` |
+| `spec_delete` with one task | `Spec <slug> has 1 task. Move or delete the task first, with task_move or task_delete.` |
 | Empty list | `No tasks.` |
+| Default first DoD item of a general task | `The work of the Brief is done, with evidence.` |
 
 The result texts are in 7.2.
+
+A retry of `task_move` removes the old file when the new file has the Notes line "- Moved from <old>." (Q-43). No text is shown to the agent for this case.
 
 ### 7.5 Alternatives
 
@@ -233,7 +253,7 @@ The result texts are in 7.2.
 | 1. Shared names and spec methods | `internal/project/data.go`, `internal/mcpserver/server.go`, `internal/docs/spec/change.go`, `internal/docs/spec/delete.go`, `internal/docs/spec/delete_test.go`, `internal/docs/spec/spec_test.go` | Add `project.DocsLock` and `project.Tasks`; use them in `dataNames` and in `server.go`. Add `RequirementsLocked` and `SetDoneLocked` (`SetDoneLocked` also writes `docs/specs/README.md`). `spec_delete` refuses while `tasks/<slug>/` has a `.md` file (R-10). Tests of each. | `go test -race ./internal/project/... ./internal/docs/spec/...` |
 | 2. Local task store | `internal/docs/task/task.go`, `create.go`, `change.go`, `deps.go`, `tools.go`, `task_test.go`, `lock_test.go`; delete `milestone.go`, `overlap.go`, `index.go` | Rewrite the store for the path, ID, format and status rules (R-1 to R-9, R-11, R-12). Remove the numbering calls, the approval gates, the question tools and `task_renumber`. Add `task_step_check`, `task_move`, `task_delete`. MCP end-to-end tests of each tool, each refusal and each text of 7.4. A helper-process test (pattern of `TestHoldDocsLock`) with two processes that change a task and its spec at the same time. | `go test -race ./internal/docs/task/...` |
 | 3. Server wiring | `internal/mcpserver/server.go`, `internal/mcpserver/server_test.go` | Give the task store `Dir = <data dir>/tasks` and the spec store. Update the tool list test. Add a test with two worktrees of one repository (`git worktree add`, commits with `-c commit.gpgsign=false`) that see the same tasks (G-1, R-1). | `go test -race ./internal/mcpserver/...` |
-| 4. Plugin texts | `internal/plugin/assets/skills/task/SKILL.md`, `internal/plugin/assets/skills/grill/SKILL.md`, `internal/plugin/assets/agents/scout.md` | Describe the local task tools, the Brief and the Plan, and remove the approval gates and the question tools of tasks (R-13). Add a test that each task tool name in these files is a registered tool. | `go test ./internal/plugin/...` |
+| 4. Plugin texts | `internal/plugin/assets/skills/task/SKILL.md`, `internal/plugin/assets/skills/grill/SKILL.md`, `internal/plugin/assets/agents/scout.md`, `internal/mcpserver/server_test.go` | Describe the local task tools, the Brief and the Plan, and remove the approval gates and the question tools of tasks (R-13). `scout.md` stays as it is (Q-46). Add `TestPluginTextsNameRegisteredTools` in `internal/mcpserver/server_test.go`: each task tool name in these files is a registered tool (Q-45). | `go test ./internal/mcpserver/...` |
 | 5. ADR | ADR with `/dx:adr` | Record `task_move`, `task_delete`, the `spec_delete` refusal and the Brief section as an addition to ADR-016 (Q-19). | `adr_get` |
 | 6. Checks and close | none | Run the checks of `CLAUDE.md`, plus `GOOS=windows go vet ./...` and `GOOS=linux go vet ./...`. Commit, the user pushes, CI passes. Check the DoD and set TASK-064 `Done` with the old binary. Change TASK-065, TASK-066, TASK-067 and TASK-069 to Draft specs with the spec tools and commit. Then `go install ./cmd/claude-dx` (Q-16, Q-22). | `gh run watch <id> --exit-status` |
 
@@ -316,6 +336,10 @@ The result texts are in 7.2.
 | Q-41 | Notes lines: each line that a tool adds is a list item ("- Blocked: <note>"), so Markdown does not join the lines into one paragraph. A move of a task with no covers adds only "- Moved from <old>.". Do you agree? | Maintainer | Yes. Each Notes line that a tool adds is a list item. A move with no covers adds "- Moved from <old>.". |
 | Q-42 | The first default DoD item says "The covered requirements pass their acceptance criteria, with evidence.", but a general task has no covers. Does a general task get "The work of the Brief is done, with evidence." as its first item? | Maintainer | Yes. A general task gets "The work of the Brief is done, with evidence." as its first DoD item. |
 | Q-43 | Crash during task_move between the write of the new file and the remove of the old file: both files exist. Does a retry remove the old file when the new file has the Notes line "Moved from <old>.", so the retry finishes (as Q-29)? | Maintainer | Yes. A retry removes the old file when the new file has the Notes line "Moved from <old>.". |
+| Q-44 | Q-44: The task_get and task_update_section tools get a section that does not exist. Which text do they return? Section 7.4 does not have this case. | Maintainer | Keep the texts of the code and add them to 7.4. task_get: `Section <x> does not exist. Use Brief, Plan, Notes or Definition of Done.` task_update_section: `Section <x> does not exist. Use Brief, Plan or Notes.` (the DoD tools change the Definition of Done). No quotes, as in the other texts of 7.4. |
+| Q-45 | Where is the R-13 test (each task tool name in the plugin texts is a registered tool)? | Maintainer | In internal/mcpserver/server_test.go, TestPluginTextsNameRegisteredTools. The mcpserver package has the test server. A test in internal/plugin must import mcpserver. The check command of batch 4 is go test ./internal/mcpserver/... |
+| Q-46 | Does agents/scout.md of the plugin change? | Maintainer | No. It names only task_list and task_get, which stay registered. The R-13 test checks it. |
+| Q-47 | Do sections 7.2 and 7.4 give the answers of Q-42 and Q-43? | Maintainer | Yes. Add them to 7.2 and 7.4. |
 
 The status cannot be `Approved` while a question is `Open`.
 
