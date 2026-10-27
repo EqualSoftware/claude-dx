@@ -6,7 +6,7 @@ Go CLI that starts Claude Code with the dx plugin: skills, an MCP server and hoo
 
 - The linter limit of cyclomatic complexity is 10.
 - Add tests for each change. Tests must pass on macOS, Linux and Windows.
-- Tasks: `docs/tasks/`. Work from an approved task. Record each architecture decision as an ADR.
+- Specs: `docs/specs/`. Work from an Approved spec. Record each architecture decision as an ADR.
 - The commit type sets the next version (ADR-012). Rebase only: integrate a branch with a rebase and a fast-forward, no merge commit.
 
 ## Go language server
