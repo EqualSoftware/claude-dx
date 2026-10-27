@@ -120,33 +120,37 @@ func (s Store) exists(id string) bool {
 	return err == nil
 }
 
-// all returns the frontmatter of all tasks, by ID.
-func (s Store) all() (map[string]Front, error) {
+// all returns the frontmatter of all tasks, by ID, and one warning line for each file that it cannot read or
+// parse. It skips a bad file, so one bad file does not hide the other tasks.
+func (s Store) all() (map[string]Front, string, error) {
 	tasks := map[string]Front{}
 	specs, err := os.ReadDir(s.Dir)
 	if docfile.NotExist(err) {
-		return tasks, nil
+		return tasks, "", nil
 	}
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
+	var warnings string
 	for _, e := range specs {
 		if !e.IsDir() {
 			continue
 		}
-		if err := s.readSpec(e.Name(), tasks); err != nil {
-			return nil, err
+		w, err := s.readSpec(e.Name(), tasks)
+		if err != nil {
+			return nil, "", err
 		}
+		warnings += w
 	}
-	return tasks, nil
+	return tasks, warnings, nil
 }
 
-// readSpec adds the tasks of the spec slug to tasks.
-func (s Store) readSpec(slug string, tasks map[string]Front) error {
+// readSpec adds the tasks of the spec slug to tasks. It returns one warning line for each bad file.
+func (s Store) readSpec(slug string, tasks map[string]Front) (warnings string, err error) {
 	dir := filepath.Join(s.Dir, slug)
 	files, err := os.ReadDir(dir)
 	if err != nil {
-		return err
+		return "", err
 	}
 	for _, e := range files {
 		name, ok := strings.CutSuffix(e.Name(), ".md")
@@ -154,29 +158,30 @@ func (s Store) readSpec(slug string, tasks map[string]Front) error {
 			continue
 		}
 		data, err := os.ReadFile(filepath.Join(dir, e.Name()))
-		if err != nil {
-			return err
+		if err == nil {
+			var d *doc
+			if d, err = parse(slug+"/"+name, filepath.Join(dir, e.Name()), data); err == nil {
+				tasks[d.f.ID] = d.f
+			}
 		}
-		d, err := parse(slug+"/"+name, filepath.Join(dir, e.Name()), data)
 		if err != nil {
-			return err
+			warnings += fmt.Sprintf("Warning: %s/%s: %v.\n", slug, e.Name(), err)
 		}
-		tasks[d.f.ID] = d.f
 	}
-	return nil
+	return warnings, nil
 }
 
 // List returns the tasks of the spec slug (all specs if empty) with the status (all if empty), in the
-// order of R-12: spec slug with general last, status, priority, ID.
-func (s Store) List(specSlug, status string) ([]Front, error) {
+// order of R-12: spec slug with general last, status, priority, ID. It also returns the warning lines of all.
+func (s Store) List(specSlug, status string) ([]Front, string, error) {
 	if status != "" {
 		if err := oneOf("status", status, Statuses); err != nil {
-			return nil, err
+			return nil, "", err
 		}
 	}
-	tasks, err := s.all()
+	tasks, warnings, err := s.all()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	var out []Front
 	for _, f := range tasks {
@@ -185,7 +190,7 @@ func (s Store) List(specSlug, status string) ([]Front, error) {
 		}
 	}
 	slices.SortFunc(out, compare)
-	return out, nil
+	return out, warnings, nil
 }
 
 // compare orders two tasks for List.

@@ -59,8 +59,14 @@ func TestCommitsGitFailure(t *testing.T) {
 		t.Fatal(err)
 	}
 	s.Root = t.TempDir() // not a git repository
-	_, err := s.getText(getInput{Slug: "a"})
-	if err == nil || !strings.HasPrefix(err.Error(), "git log failed: ") {
-		t.Fatalf("getText = %v, want a git log failure", err)
+	text, err := s.getText(getInput{Slug: "a"})
+	if err != nil {
+		t.Fatalf("getText = %v, want the spec with a warning", err)
+	}
+	if !strings.Contains(text, "# A") || !strings.Contains(text, "\nWarning: commits: git log failed: ") {
+		t.Errorf("getText has no spec or no warning:\n%s", text)
+	}
+	if strings.Contains(text, "| Commits |") {
+		t.Errorf("getText has commit data:\n%s", text)
 	}
 }

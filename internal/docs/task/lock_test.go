@@ -171,7 +171,7 @@ func TestTwoProcesses(t *testing.T) {
 	for _, cmd := range cmds {
 		must(t, cmd.Wait())
 	}
-	tasks, err := s.List("a", "Done")
+	tasks, _, err := s.List("a", "Done")
 	must(t, err)
 	if len(tasks) != 20 {
 		t.Errorf("%d Done tasks, want 20", len(tasks))

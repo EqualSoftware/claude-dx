@@ -3,6 +3,7 @@ package task
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
@@ -59,7 +60,7 @@ func (s Store) Create(n New) (string, error) {
 		if s.exists(f.ID) {
 			return fmt.Errorf("task %s already exists", f.ID)
 		}
-		if err := s.checkFront(f); err != nil {
+		if err := s.checkFront(&f); err != nil {
 			return err
 		}
 		path, _ := s.path(f.ID)
@@ -71,17 +72,18 @@ func (s Store) Create(n New) (string, error) {
 	})
 }
 
-// checkFront checks the spec, the covers and the dependencies of f. The caller holds the docs lock.
-func (s Store) checkFront(f Front) error {
+// checkFront checks the spec, the covers and the dependencies of f. It changes f.Covers to the form of
+// the spec ("r-2" gives "R-2"). The caller holds the docs lock.
+func (s Store) checkFront(f *Front) error {
 	if err := s.checkCovers(f); err != nil {
 		return err
 	}
-	return s.checkDeps(f)
+	return s.checkDeps(*f)
 }
 
 // checkCovers refuses a spec that does not exist, a requirement that the spec does not have, and covers
 // in a general task (R-5).
-func (s Store) checkCovers(f Front) error {
+func (s Store) checkCovers(f *Front) error {
 	if f.Spec() == general {
 		if len(f.Covers) > 0 {
 			return errors.New("a general task does not cover requirements")
@@ -92,10 +94,12 @@ func (s Store) checkCovers(f Front) error {
 	if err != nil {
 		return err
 	}
-	for _, rid := range f.Covers {
-		if !contains(rids, rid) {
+	for i, rid := range f.Covers {
+		j := slices.IndexFunc(rids, func(r string) bool { return strings.EqualFold(r, rid) })
+		if j < 0 {
 			return fmt.Errorf("spec %s has no requirement %s", f.Spec(), rid)
 		}
+		f.Covers[i] = rids[j]
 	}
 	return nil
 }
@@ -129,14 +133,4 @@ func planText(steps []string) string {
 		}
 	}
 	return strings.Join(lines, "\n")
-}
-
-// contains reports whether list has id, with no case difference.
-func contains(list []string, id string) bool {
-	for _, item := range list {
-		if strings.EqualFold(item, id) {
-			return true
-		}
-	}
-	return false
 }

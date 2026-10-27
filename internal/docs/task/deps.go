@@ -12,7 +12,7 @@ func (s Store) checkDeps(f Front) error {
 	if len(f.DependsOn) == 0 {
 		return nil
 	}
-	tasks, err := s.all()
+	tasks, _, err := s.all()
 	if err != nil {
 		return err
 	}
