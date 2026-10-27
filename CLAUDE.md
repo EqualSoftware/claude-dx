@@ -33,3 +33,13 @@ Use the LSP tool for Go navigation and refactoring (definitions, references, sym
 - Work from an approved task. Record each architecture decision as an ADR.
 - Write docs, code comments, identifiers and commit messages in ASD-STE100 Simplified Technical English. Talk to the user in the language of the user.
 - Commits: Conventional Commits. The type sets the next version (ADR-012). Rebase only, no merge.
+
+## dx-agents profile
+
+- Language: ASD-STE100
+- Acceptance check: `go build ./... && go vet ./... && GOOS=windows go vet ./... && GOOS=linux go vet ./... && go test -race ./... && go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0 run && go tool govulncheck ./...`
+  - Checks: Build, Vet (macOS, Windows, Linux), Test (race), Lint, Vulnerabilities
+  - The tests on Linux and Windows run only in CI after a push.
+- Independent review areas: locks and concurrency (`internal/filelock`, `internal/session`, the docs lock in `internal/docs/docfile`), process start and signals (`internal/launcher`), file formats and data moves (docs frontmatter, `project.json`, `internal/project`), the release workflow (`.github/workflows`)
+- Commit scopes: task, spec, adr, learning, glossary, docs, plugin, mcp, cli, launcher, session, project, release
+- Main branch: main
