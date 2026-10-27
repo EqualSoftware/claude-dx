@@ -1,6 +1,6 @@
 # ADR-017: ADRs do not change after a push
 
-- Status: Accepted
+- Status: Superseded by ADR-021
 - Date: 2026-10-26
 - Owners: Maintainer
 

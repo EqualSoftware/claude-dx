@@ -21,7 +21,8 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-014](ADR-014-session-lock-files-for-the-plugin-cache.md) | Session lock files for the plugin cache | Superseded by ADR-015 | 2026-10-26 |
 | [ADR-015](ADR-015-read-write-locks-for-the-cache-and-docs.md) | Read-write locks for the cache and docs | Accepted | 2026-10-26 |
 | [ADR-016](ADR-016-specs-in-git-tasks-in-git-dx.md) | Specs in git, tasks in .git/dx | Accepted | 2026-10-26 |
-| [ADR-017](ADR-017-adrs-do-not-change-after-a-push.md) | ADRs do not change after a push | Accepted | 2026-10-26 |
+| [ADR-017](ADR-017-adrs-do-not-change-after-a-push.md) | ADRs do not change after a push | Superseded by ADR-021 | 2026-10-26 |
 | [ADR-018](ADR-018-interactive-clean-command.md) | Interactive clean command | Accepted | 2026-10-26 |
 | [ADR-019](ADR-019-number-allocation-in-the-data-dir.md) | Number allocation in the data dir | Accepted | 2026-10-26 |
 | [ADR-020](ADR-020-task-move-delete-and-brief.md) | Task move, delete and Brief | Accepted | 2026-10-26 |
+| [ADR-021](ADR-021-accepted-adrs-do-not-change-after-a-push.md) | Accepted ADRs do not change after a push | Accepted | 2026-10-26 |
