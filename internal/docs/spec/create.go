@@ -41,6 +41,11 @@ func (n New) check() error {
 	if err := checkMilestone(n.Milestone); err != nil {
 		return err
 	}
+	for _, a := range n.Area {
+		if err := docfile.CheckLine(a, "area"); err != nil {
+			return err
+		}
+	}
 	return oneOf("priority", n.Priority, Priorities)
 }
 
@@ -71,7 +76,7 @@ func (s Store) Create(n New) error {
 		return err
 	}
 	return docfile.Locked(s.Lock, func() error {
-		if err := s.checkNew(n); err != nil {
+		if err := s.checkNew(&n); err != nil {
 			return err
 		}
 		if err := docfile.Create(s.path(n.Slug), []byte(s.fill(n))); err != nil {
@@ -81,15 +86,18 @@ func (s Store) Create(n New) error {
 	})
 }
 
-// checkNew refuses a slug that exists, a title that another spec has and an ADR that does not exist.
-func (s Store) checkNew(n New) error {
+// checkNew refuses a slug that exists, a title that another spec has and an ADR that does not exist. It
+// changes n.Related to the canonical ADR IDs.
+func (s Store) checkNew(n *New) error {
 	if _, err := os.Stat(s.path(n.Slug)); err == nil {
 		return fmt.Errorf("spec %q exists", n.Slug)
 	}
 	if err := s.checkTitle(n.Title, ""); err != nil {
 		return err
 	}
-	return s.checkRelated(n.Related)
+	var err error
+	n.Related, err = s.checkRelated(n.Related)
+	return err
 }
 
 // checkTitle refuses a title that a spec other than the spec skip has.
@@ -107,14 +115,21 @@ func (s Store) checkTitle(title, skip string) error {
 	return docfile.CheckNewTitle(title, titles)
 }
 
-// checkRelated refuses an ADR ID that does not exist.
-func (s Store) checkRelated(ids []string) error {
+// checkRelated refuses an ADR ID that does not exist. It returns the IDs in the canonical form
+// ("8" gives "ADR-008"), and nil for nil.
+func (s Store) checkRelated(ids []string) ([]string, error) {
+	var out []string
+	if ids != nil {
+		out = []string{}
+	}
 	for _, id := range ids {
 		if _, err := adrKind.Find(s.ADRDir, id); err != nil {
-			return fmt.Errorf("related %q: %w", id, err)
+			return nil, fmt.Errorf("related %q: %w", id, err)
 		}
+		n, _ := adrKind.Parse(id) // Find parsed it already
+		out = append(out, adrKind.ID(n))
 	}
-	return nil
+	return out, nil
 }
 
 // fill makes a new spec document from the template.

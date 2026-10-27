@@ -107,8 +107,11 @@ func writeProjectFile(path, root, lock string) error {
 		}
 		file := map[string]json.RawMessage{}
 		if data, err := os.ReadFile(path); err == nil {
-			if err := json.Unmarshal(data, &file); err != nil || file == nil {
-				file = map[string]json.RawMessage{} // a bad file, or the value null, has no data to keep
+			if err := json.Unmarshal(data, &file); err != nil {
+				_ = docfile.MoveAside(path) // same as the number counters: keep the bad file
+			}
+			if file == nil {
+				file = map[string]json.RawMessage{} // the value null has no data to keep
 			}
 		}
 		file["path"], _ = json.Marshal(root)

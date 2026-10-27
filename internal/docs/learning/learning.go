@@ -92,6 +92,15 @@ func (s Store) create(topic, description, body string) error {
 	if err := validTopic(topic); err != nil {
 		return err
 	}
+	if strings.TrimSpace(description) == "" {
+		return errors.New("give the description")
+	}
+	if strings.TrimSpace(body) == "" {
+		return errors.New("give the body")
+	}
+	if err := markdown.CheckFence(body, "the body"); err != nil {
+		return err
+	}
 	front := markdown.SetField("topic: "+topic+"\n", "description", oneLine(description))
 	err := docfile.Create(filepath.Join(s.Dir, topic+".md"), []byte(markdown.Join(front, content(body))))
 	if errors.Is(err, fs.ErrExist) {
@@ -112,6 +121,9 @@ func (s Store) update(topic, description, body string) error {
 	if description == "" && body == "" {
 		return errors.New("give a description, or a body, or both")
 	}
+	if err := checkUpdate(description, body); err != nil {
+		return err
+	}
 	path, err := s.find(topic)
 	if err != nil {
 		return err
@@ -131,6 +143,14 @@ func (s Store) update(topic, description, body string) error {
 		return err
 	}
 	return s.WriteIndex()
+}
+
+// checkUpdate refuses a blank description and a body with an unclosed code fence. Empty means no change.
+func checkUpdate(description, body string) error {
+	if description != "" && strings.TrimSpace(description) == "" {
+		return errors.New("give the description")
+	}
+	return markdown.CheckFence(body, "the body")
 }
 
 // Delete removes the learning file and makes README.md again.

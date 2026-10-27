@@ -82,8 +82,11 @@ func (s Store) checkTasks(slug string) error {
 	return fmt.Errorf("spec %s has %d tasks. Move or delete the tasks first, with task_move or task_delete", slug, n)
 }
 
-// checkCommitted refuses a folder with changes or files that git does not have.
+// checkCommitted refuses a folder with changes or files that git does not have. A project outside git has no check.
 func (s Store) checkCommitted(slug, dir string) error {
+	if err := exec.Command("git", "-C", s.Root, "rev-parse", "--git-dir").Run(); err != nil {
+		return nil // the project is not in git (mcp-server#R-2), so there is no commit to compare
+	}
 	out, err := exec.Command("git", "-C", s.Root, "status", "--porcelain", "--untracked-files=all", "--", dir).Output()
 	if err != nil {
 		return fmt.Errorf("git status failed: %w", gitError(err))

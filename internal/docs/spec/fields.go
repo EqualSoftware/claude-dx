@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/markdown"
 )
 
@@ -54,7 +55,12 @@ func (s Store) checkUpdate(slug string, u Update) error {
 			return err
 		}
 	}
-	return s.checkRelated(u.Related)
+	for _, a := range u.Area {
+		if err := docfile.CheckLine(a, "area"); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // UpdateFields changes the frontmatter fields of the spec slug and adds one Document History row. It
@@ -64,6 +70,11 @@ func (s Store) UpdateFields(slug string, u Update) error {
 		if err := s.checkUpdate(slug, u); err != nil {
 			return err
 		}
+		related, err := s.checkRelated(u.Related)
+		if err != nil {
+			return err
+		}
+		u.Related = related
 		u.apply(d)
 		return s.addHistory(d, "Changed fields: "+strings.Join(u.changed(), ", ")+".")
 	})

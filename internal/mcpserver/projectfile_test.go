@@ -65,3 +65,37 @@ func TestProjectFileHasMainRoot(t *testing.T) {
 		t.Fatalf("path = %q, want the main root %q", f.Path, root)
 	}
 }
+
+// A project.json that does not parse stays as project.json.bad, as in the number allocator.
+func TestWriteProjectFileKeepsBadFile(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "project.json")
+	if err := os.WriteFile(path, []byte("{bad"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeProjectFile(path, "/root", filepath.Join(dir, "docs.lock")); err != nil {
+		t.Fatal(err)
+	}
+	if bad, _ := os.ReadFile(path + ".bad"); string(bad) != "{bad" {
+		t.Fatalf("project.json.bad = %q, want the old content", bad)
+	}
+}
+
+// An existing project.json.bad stays: the new bad file gets the next free name.
+func TestWriteProjectFileBadNamesAreUnique(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "project.json")
+	for _, text := range []string{"{one", "{two"} {
+		if err := os.WriteFile(path, []byte(text), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := writeProjectFile(path, "/root", filepath.Join(dir, "docs.lock")); err != nil {
+			t.Fatal(err)
+		}
+	}
+	one, _ := os.ReadFile(path + ".bad")
+	two, _ := os.ReadFile(path + ".bad.1")
+	if string(one) != "{one" || string(two) != "{two" {
+		t.Fatalf("bad files = %q, %q", one, two)
+	}
+}

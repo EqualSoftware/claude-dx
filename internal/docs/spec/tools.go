@@ -192,8 +192,8 @@ func (s Store) getText(in getInput) (string, error) {
 		}
 	}
 	list, err := s.commits(in.Slug)
-	if err != nil {
-		return "", err
+	if err != nil { // a project outside the VCS, or a failure of it, has no commit data (mcp-server#R-2)
+		return text + fmt.Sprintf("\n\nWarning: commits: %v.\n", err), nil
 	}
 	return withCommits(text, full, list), nil
 }

@@ -33,11 +33,34 @@ func (s Store) UpdateSection(id, ref, body string) error {
 	if i < 2 && strings.TrimSpace(body) == "" {
 		return [...]error{errors.New("give the brief"), errors.New("give one or more plan steps")}[i]
 	}
+	if i == 1 {
+		if err := checkPlan(body); err != nil {
+			return err
+		}
+	}
 	return s.edit(id, func(d *doc) error {
 		text, err := markdown.ReplaceSection(d.body, sections[i], strings.TrimSpace(body))
 		d.body = text
 		return err
 	})
+}
+
+// checkPlan refuses a Plan with a line that is not an unchecked step "- [ ] text". Empty lines are fine. A
+// checked step changes only with task_step_check.
+func checkPlan(body string) error {
+	for line := range strings.SplitSeq(strings.ReplaceAll(body, "\r\n", "\n"), "\n") {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		m := checkItem.FindStringSubmatch(line)
+		if m != nil && m[1] == "x" {
+			return errors.New("the Plan has a checked step. Write only steps like \"- [ ] text\". Use task_step_check to check a step")
+		}
+		if m == nil || strings.TrimSpace(m[2]) == "" {
+			return fmt.Errorf("the Plan has the line %q. Write each step as \"- [ ] text\"", line)
+		}
+	}
+	return nil
 }
 
 // Update holds the new frontmatter fields. An empty string or a nil list keeps the field. An empty
@@ -72,7 +95,13 @@ func (s Store) UpdateFields(id string, u Update) error {
 	}
 	return s.edit(id, func(d *doc) error {
 		u.apply(d)
-		return s.checkFront(d.f)
+		if err := s.checkFront(&d.f); err != nil {
+			return err
+		}
+		if u.Covers != nil {
+			d.front = markdown.SetField(d.front, "covers", d.f.Covers)
+		}
+		return nil
 	})
 }
 

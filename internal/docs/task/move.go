@@ -26,12 +26,12 @@ func (s Store) Delete(ids []string) error {
 		return errors.New("give one or more task IDs")
 	}
 	return docfile.Locked(s.Lock, func() error {
-		tasks, err := s.all()
+		tasks, _, err := s.all()
 		if err != nil {
 			return err
 		}
 		for _, id := range ids {
-			if _, ok := tasks[id]; !ok {
+			if _, ok := tasks[id]; !ok && !s.exists(id) { // a bad file of the named task may go
 				return fmt.Errorf("task %s does not exist", id)
 			}
 		}
@@ -141,7 +141,7 @@ func (s Store) planMove(ids []string, from, to string) ([]move, error) {
 			return nil, err
 		}
 	}
-	tasks, err := s.all()
+	tasks, _, err := s.all()
 	if err != nil {
 		return nil, err
 	}
@@ -174,6 +174,10 @@ func (s Store) planOne(id, to, from string, tasks map[string]Front) (move, error
 		return move{}, fmt.Errorf("task %s already exists", target)
 	case moved:
 		return move{slug: slug}, nil
+	}
+	if s.exists(id) {
+		_, err := s.load(id) // the file is bad: say why
+		return move{}, err
 	}
 	return move{}, fmt.Errorf("task %s does not exist", id)
 }

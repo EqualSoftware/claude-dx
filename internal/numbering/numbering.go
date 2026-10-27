@@ -81,20 +81,30 @@ func (a Allocator) read() (file map[string]json.RawMessage, counters map[string]
 		return nil, nil, err
 	}
 	if err := json.Unmarshal(data, &file); err != nil {
-		return nil, nil, err
+		return a.restart()
 	}
 	if file == nil { // the JSON value null
 		file = map[string]json.RawMessage{}
 	}
 	if raw, ok := file["counters"]; ok {
 		if err := json.Unmarshal(raw, &counters); err != nil {
-			return nil, nil, err
+			delete(file, "counters") // the other keys stay
+			return file, map[string]int{}, nil
 		}
 	}
 	if counters == nil {
 		counters = map[string]int{}
 	}
 	return file, counters, nil
+}
+
+// restart keeps a project.json that does not parse (see docfile.MoveAside) and returns empty data. Highest
+// gives the lower bound of the next number.
+func (a Allocator) restart() (map[string]json.RawMessage, map[string]int, error) {
+	if err := docfile.MoveAside(a.path()); err != nil {
+		return nil, nil, err
+	}
+	return map[string]json.RawMessage{}, map[string]int{}, nil
 }
 
 // write replaces project.json atomically, so a crash never leaves a partial file. It changes only

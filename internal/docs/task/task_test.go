@@ -201,8 +201,14 @@ func TestListAndGet(t *testing.T) {
 	must(t, os.WriteFile(path, []byte(strings.Replace(string(data), "id: b-spec/b", "id: b-spec/c", 1)), 0o644))
 	run(t, session, []step{
 		{"task_get", map[string]any{"id": "b-spec/b"}, "ERR Task file b-spec/b.md has the id b-spec/c."},
-		{"task_list", map[string]any{}, "ERR Task file b-spec/b.md has the id b-spec/c."},
+		{"task_list", map[string]any{"spec": "b-spec"}, "No tasks.\nWarning: b-spec/b.md: task file b-spec/b.md has the id b-spec/c."},
+		// The named task is bad: move fails, delete removes the file by its name.
+		{"task_move", map[string]any{"ids": []string{"b-spec/b"}, "to": "a-spec"}, "ERR Task file b-spec/b.md has the id b-spec/c."},
+		{"task_delete", map[string]any{"ids": []string{"b-spec/b"}}, "Deleted 1 task."},
 	})
+	if _, err := os.Stat(path); err == nil {
+		t.Error("the bad task file is not deleted")
+	}
 }
 
 func TestUpdate(t *testing.T) {

@@ -295,6 +295,9 @@ func setRow(d *doc, rid, text, status string) ([]string, error) {
 // AddQuestion adds the next Q-n row with the answer Open and returns its ID. An Approved spec goes
 // to In Review, because Approved needs no Open question. review is true after that status change.
 func (s Store) AddQuestion(slug, question, owner string) (qid string, review bool, err error) {
+	if strings.TrimSpace(question) == "" {
+		return "", false, errors.New("give the question")
+	}
 	if owner == "" {
 		owner = s.authorOr("Maintainer")
 	}
@@ -313,6 +316,12 @@ func (s Store) AddQuestion(slug, question, owner string) (qid string, review boo
 
 // AnswerQuestion writes the answer of one question.
 func (s Store) AnswerQuestion(slug, qid, answer string) error {
+	if strings.TrimSpace(answer) == "" {
+		return errors.New("give the answer")
+	}
+	if strings.EqualFold(strings.TrimSpace(answer), "open") {
+		return errors.New(`the answer "Open" means that the question has no answer. Write the answer`)
+	}
 	return s.edit(slug, func(d *doc) error {
 		section, _ := markdown.Section(d.body, "8")
 		lines := strings.Split(section, "\n")

@@ -164,15 +164,18 @@ func add[In any](server *mcp.Server, name, description string, fn func(In) (stri
 }
 
 func (s Store) listText(in listInput) (string, error) {
-	tasks, err := s.List(in.Spec, in.Status)
-	if err != nil || len(tasks) == 0 {
-		return "No tasks.", err
+	tasks, warnings, err := s.List(in.Spec, in.Status)
+	if err != nil {
+		return "", err
+	}
+	if len(tasks) == 0 {
+		return strings.TrimSpace("No tasks.\n" + warnings), nil
 	}
 	rows := make([][]string, 0, len(tasks))
 	for _, f := range tasks {
 		rows = append(rows, []string{f.ID, f.Status, f.Priority, f.Title})
 	}
-	return result.Table(rows), nil
+	return result.Table(rows) + warnings, nil
 }
 
 // statusText is the result of task_set_status. A Done task with covers names the requirements.

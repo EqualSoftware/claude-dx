@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -20,6 +21,9 @@ const MaxTitle = 40
 // CheckTitle refuses an empty title, a title of more than MaxTitle characters and a title with an empty
 // slug, because the file name must not be "TASK-NNN-.md".
 func CheckTitle(title string) error {
+	if err := CheckLine(title, "title"); err != nil {
+		return err
+	}
 	n := utf8.RuneCountInString(strings.TrimSpace(title))
 	if n == 0 {
 		return errors.New("give a title")
@@ -29,6 +33,14 @@ func CheckTitle(title string) error {
 	}
 	if Slug(title) == "" {
 		return errors.New("give a title with ASCII letters or digits")
+	}
+	return nil
+}
+
+// CheckLine refuses text with a line break, because name must be one line.
+func CheckLine(text, name string) error {
+	if strings.ContainsAny(text, "\r\n") {
+		return fmt.Errorf("the %s has a line break. Write the %s on one line", name, name)
 	}
 	return nil
 }
@@ -136,17 +148,46 @@ func Duplicates(k Kind, files map[int][]string) string {
 	return b.String()
 }
 
+// link makes a hard link. A test replaces it.
+var link = os.Link
+
 // Create makes a new file with data. It fails if the file exists, so two writers never use one number.
+// It writes a temporary file, then links it to path: a crash never leaves a partial file at path.
 func Create(path string, data []byte) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
+	cleanStale(filepath.Dir(path))
+	tmp := filepath.Join(filepath.Dir(path), fmt.Sprintf(".%s.tmp-%d", filepath.Base(path), rand.Uint64()))
+	f, err := os.OpenFile(tmp, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644) // the umask applies
+	if err != nil {
+		return err
+	}
+	defer func() { _ = os.Remove(tmp) }()
+	_, err = f.Write(data)
+	err = errors.Join(err, f.Sync(), f.Close())
+	if err != nil {
+		return err
+	}
+	err = link(tmp, path)
+	if err == nil || errors.Is(err, fs.ErrExist) {
+		return err
+	}
+	return createExclusive(path, data) // the file system has no hard links
+}
+
+// createExclusive makes path with O_EXCL. A write failure removes the partial file.
+func createExclusive(path string, data []byte) error {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
 	_, err = f.Write(data)
-	return errors.Join(err, f.Close())
+	err = errors.Join(err, f.Sync(), f.Close())
+	if err != nil {
+		_ = os.Remove(path)
+	}
+	return err
 }
 
 // NotExist reports whether err means that a file or directory does not exist.
@@ -156,7 +197,7 @@ func NotExist(err error) bool {
 
 // Cell makes text safe for one Markdown table cell: it escapes "|" and puts a space for each line break.
 func Cell(text string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(strings.TrimSpace(text), "\n", " "), "|", `\|`)
+	return strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.TrimSpace(text), "\r", ""), "\n", " "), "|", `\|`)
 }
 
 // Slug makes the file name part from a title: lowercase ASCII words joined by "-", maximum MaxTitle
