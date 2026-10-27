@@ -33,18 +33,18 @@ After a session start, `/clear` or compact, the model has no work state. A hando
 
 | ID | Requirement | Status |
 | :--- | :--- | :--- |
-| R-1 | `claude-dx resume` prints a header line, then the sections Changed, In Progress, Next, Blocked and Unpushed, in this order. It does not print an empty section. Header: "dx: branch <branch>, <N> ahead of <upstream>, <M> changed files"; with no upstream, "no upstream" replaces "<N> ahead of <upstream>"; with a detached HEAD, "dx: detached at <short hash>" and no Unpushed section. | Planned |
-| R-2 | It uses no network and no MCP server. | Planned |
-| R-3 | The plugin has a `SessionStart` hook with the matchers `startup`, `resume`, `clear` and `compact` that runs it. The binary path in the hook command is in double quotes. | Planned |
-| R-4 | With no In Progress, Next or Blocked task, no unpushed commit and a clean tree, it prints only the line "dx: branch <branch>, clean tree, no active tasks." Done tasks do not count. | Planned |
-| R-5 | Changed: one line with the `git status` short codes and paths, separated by commas, max 10 files. | Planned |
-| R-6 | In Progress: all In Progress tasks, newest modification time first. Each task has its ID, priority and title, the first unchecked Plan step, and the last 3 non-empty lines of Notes (sub-items included). | Planned |
-| R-7 | Next: Todo tasks of Approved specs and of `general` with all `depends_on` tasks Done, ordered by priority and then ID, max 3. Blocked: Blocked tasks with ID, priority, title and the last non-empty line of Notes, max 5. | Planned |
-| R-8 | Unpushed: the commits of the current branch after its upstream or, with no upstream, the commits that no remote branch has. Each line has the short hash, the subject and the `Refs:` trailers in brackets, max 10. The command uses the local remote refs and does not fetch. | Planned |
-| R-9 | The output has 40 lines or less. A cut list ends with "+N more". When the output is still more than 40 lines, the command cuts the Notes lines first. | Planned |
-| R-10 | In a directory that is not in a git repository, the header is "dx: no git repository" and the output has only the In Progress, Next and Blocked sections. A project with no data directory has no tasks and gets no error line. For the other errors (git not installed, a data directory that cannot be read, a task file that is not valid), the command skips the part that fails and prints one line "dx: skipped <part>: <error>" for each error. The part is git, tasks or the task ID. | Planned |
-| R-11 | The command always exits with code 0. It only reads: it does not create the data directory, does not change `project.json` and writes no other file. | Planned |
-| R-12 | The help of `claude-dx` has a line for `claude-dx resume`, aligned with the other commands, with the text "Print the work state (tasks and git) for a new session." | Planned |
+| R-1 | `claude-dx resume` prints a header line, then the sections Changed, In Progress, Next, Blocked and Unpushed, in this order. It does not print an empty section. Header: "dx: branch <branch>, <N> ahead of <upstream>, <M> changed files"; with no upstream, "no upstream" replaces "<N> ahead of <upstream>"; with a detached HEAD, "dx: detached at <short hash>" and no Unpushed section. | Done |
+| R-2 | It uses no network and no MCP server. | Done |
+| R-3 | The plugin has a `SessionStart` hook with the matchers `startup`, `resume`, `clear` and `compact` that runs it. The binary path in the hook command is in double quotes. | Done |
+| R-4 | With no In Progress, Next or Blocked task, no unpushed commit and a clean tree, it prints only the line "dx: branch <branch>, clean tree, no active tasks." Done tasks do not count. | Done |
+| R-5 | Changed: one line with the `git status` short codes and paths, separated by commas, max 10 files. | Done |
+| R-6 | In Progress: all In Progress tasks, newest modification time first. Each task has its ID, priority and title, the first unchecked Plan step, and the last 3 non-empty lines of Notes (sub-items included). | Done |
+| R-7 | Next: Todo tasks of Approved specs and of `general` with all `depends_on` tasks Done, ordered by priority and then ID, max 3. Blocked: Blocked tasks with ID, priority, title and the last non-empty line of Notes, max 5. | Done |
+| R-8 | Unpushed: the commits of the current branch after its upstream or, with no upstream, the commits that no remote branch has. Each line has the short hash, the subject and the `Refs:` trailers in brackets, max 10. The command uses the local remote refs and does not fetch. | Done |
+| R-9 | The output has 40 lines or less. A cut list ends with "+N more". When the output is still more than 40 lines, the command cuts the Notes lines first. | Done |
+| R-10 | In a directory that is not in a git repository, the header is "dx: no git repository" and the output has only the In Progress, Next and Blocked sections. A project with no data directory has no tasks and gets no error line. For the other errors (git not installed, a data directory that cannot be read, a task file that is not valid), the command skips the part that fails and prints one line "dx: skipped <part>: <error>" for each error. The part is git, tasks or the task ID. | Done |
+| R-11 | The command always exits with code 0. It only reads: it does not create the data directory, does not change `project.json` and writes no other file. | Done |
+| R-12 | The help of `claude-dx` has a line for `claude-dx resume`, aligned with the other commands, with the text "Print the work state (tasks and git) for a new session." | Done |
 
 ## 6. Design
 
@@ -135,3 +135,4 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-10-27 | Equal | R-12: text changed. |
 | 2026-10-27 | Equal | R-3: text changed. |
 | 2026-10-27 | Equal | Approved again by the user after the changes of R-3, R-4, R-10 and R-12. |
+| 2026-10-27 | Equal | R-1, R-2, R-3, R-4, R-5, R-6, R-7, R-8, R-9, R-10, R-11, R-12: Done. |
