@@ -1,6 +1,6 @@
 ---
 name: grill
-description: Interview the user about a plan, task, ADR or idea until both sides have the same understanding. Use to refine a task, before an ADR, before a plan, or when the user asks to stress-test a decision.
+description: Interview the user about a plan, spec, ADR or idea until both sides have the same understanding. Use to refine a spec, before an ADR, before a plan, or when the user asks to stress-test a decision.
 ---
 
 # Grill a decision
@@ -13,7 +13,6 @@ Ask the questions in the language of the user. Write the answers in documents an
 
 Make a tree of the decisions. Each decision has child decisions that depend on its answer. The caller gives the levels to cover:
 
-- `/dx:task`: the levels in its "Refine a task" section.
 - `/dx:spec`: the levels in its "Refine a spec" section.
 - `/dx:adr`: problem and constraints, options, selected option, consequences, follow-up.
 - A plan: objective, scope, work batches and their order, files, checks, risks.
@@ -36,15 +35,15 @@ The **frontier** is the set of open decisions whose parent decisions have an ans
 5. Wait for the answers. Write each answer where the caller says.
 6. Recompute the frontier. Add the new questions that the answers cause.
 
-For a task:
-- Add each question with `task_question_add` before you ask it. Use the `Q-n` ID that the tool returns.
-- Write each answer with `task_question_answer`. Change the sections that the answer affects with `task_update_section` or `task_update_fields`.
+For a spec:
+- Add each question with `spec_question_add` before you ask it. Use the `Q-n` ID that the tool returns.
+- Write each answer with `spec_question_answer`. Change the sections that the answer affects with `spec_update_section`, `spec_req_add` and `spec_req_set`.
 
-For a spec: the same with `spec_question_add`, `spec_question_answer`, `spec_update_section`, `spec_req_add` and `spec_req_set`.
+A task has no questions: refine its spec.
 
 ## 4. Check for hidden decisions
 
-When the frontier is empty, read the document again, section by section (`task_get`, `spec_get` or `adr_get` with `section`). A line is a hidden decision if it does not come from one of these sources:
+When the frontier is empty, read the document again, section by section (`spec_get` or `adr_get` with `section`). A line is a hidden decision if it does not come from one of these sources:
 - an answer of the user,
 - a fact with a `path:line`, a command output or a doc reference.
 

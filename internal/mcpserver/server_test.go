@@ -3,9 +3,11 @@ package mcpserver
 import (
 	"context"
 	"encoding/json"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -180,5 +182,36 @@ func TestWorktreesShareTasks(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(repo, ".git", "dx", "tasks", "general", "shared.md")); err != nil {
 		t.Fatalf("the task is not in .git/dx/tasks: %v", err)
+	}
+}
+
+// TestPluginTextsNameRegisteredTools checks R-13 of TASK-064: each task tool name in the plugin texts is a registered tool.
+func TestPluginTextsNameRegisteredTools(t *testing.T) {
+	root := filepath.Join("..", "plugin", "assets")
+	session := connect(t)
+	registered := map[string]bool{}
+	for tool, err := range session.Tools(context.Background(), nil) {
+		if err != nil {
+			t.Fatal(err)
+		}
+		registered[tool.Name] = true
+	}
+	name := regexp.MustCompile(`task_[a-z_]*[a-z]`)
+	files := 0
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() || filepath.Ext(path) != ".md" {
+			return err
+		}
+		files++
+		data, err := os.ReadFile(path)
+		for _, m := range name.FindAllString(string(data), -1) {
+			if !registered[m] {
+				t.Errorf("%s names the tool %q, which the server does not register", path, m)
+			}
+		}
+		return err
+	})
+	if err != nil || files == 0 {
+		t.Fatalf("walk %s: %d files, error %v", root, files, err)
 	}
 }
