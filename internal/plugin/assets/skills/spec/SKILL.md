@@ -31,7 +31,7 @@ Run `/dx:grill` on the spec. Use `spec_question_add` and `spec_question_answer` 
 4. Design: link to the ADRs, do not copy them. A new architecture approach needs an ADR (`/dx:adr`).
 5. Acceptance criteria: a test or a check for each requirement.
 
-Change the sections with `spec_update_section`. Write "Not applicable" for a section that does not apply. Use the terms of `docs/GLOSSARY.md`.
+Change the sections with `spec_update_section`. Change the title, milestone, priority, area or related of a spec with `spec_update_fields`. A list replaces the full list. The slug and the status do not change. Write "Not applicable" for a section that does not apply. Use the terms of `docs/GLOSSARY.md`.
 
 ## Protected sections
 

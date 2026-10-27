@@ -34,6 +34,15 @@ type createInput struct {
 	SplitFrom string   `json:"split_from,omitempty" jsonschema:"slug of the old spec when this spec comes from a split. It goes to the Document History"`
 }
 
+type fieldsInput struct {
+	Slug      string   `json:"slug" jsonschema:"spec slug"`
+	Title     string   `json:"title,omitempty" jsonschema:"new title, 40 characters or less, not the title of another spec"`
+	Milestone string   `json:"milestone,omitempty" jsonschema:"vMAJOR.MINOR.PATCH, example v0.1.0"`
+	Priority  string   `json:"priority,omitempty" jsonschema:"P0, P1, P2 or P3"`
+	Area      []string `json:"area,omitempty" jsonschema:"the full new list; an empty list removes all"`
+	Related   []string `json:"related,omitempty" jsonschema:"the full new list of ADR IDs that exist; an empty list removes all"`
+}
+
 type sectionInput struct {
 	Slug    string `json:"slug" jsonschema:"spec slug"`
 	Section string `json:"section" jsonschema:"section number (example 6) or title"`
@@ -89,6 +98,11 @@ func Register(server *mcp.Server, s Store) {
 	add(server, "spec_create", "Create a Draft spec in docs/specs/<slug>/SPEC.md from the template. The tool sets the date and the author.",
 		func(in createInput) (string, error) {
 			return "Created " + in.Slug + ".", s.Create(New(in))
+		})
+	add(server, "spec_update_fields", "Change the title, the milestone, the priority, the area or the related ADRs of a spec, and add a Document History row. A list replaces the full list. The slug and the status do not change.",
+		func(in fieldsInput) (string, error) {
+			u := Update{Title: in.Title, Milestone: in.Milestone, Priority: in.Priority, Area: in.Area, Related: in.Related}
+			return "Updated " + in.Slug + ".", s.UpdateFields(in.Slug, u)
 		})
 	add(server, "spec_update_section", "Replace one section of a spec.",
 		func(in sectionInput) (string, error) {

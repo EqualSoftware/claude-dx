@@ -38,10 +38,17 @@ func (n New) check() error {
 	if n.SplitFrom != "" && !slugPattern.MatchString(n.SplitFrom) {
 		return fmt.Errorf("slug %q is not kebab-case. Example: docs-lock", n.SplitFrom)
 	}
-	if !milestonePattern.MatchString(n.Milestone) {
-		return fmt.Errorf("milestone %q is not valid. Use vMAJOR.MINOR.PATCH, example v0.1.0", n.Milestone)
+	if err := checkMilestone(n.Milestone); err != nil {
+		return err
 	}
 	return oneOf("priority", n.Priority, Priorities)
+}
+
+func checkMilestone(milestone string) error {
+	if !milestonePattern.MatchString(milestone) {
+		return fmt.Errorf("milestone %q is not valid. Use vMAJOR.MINOR.PATCH, example v0.1.0", milestone)
+	}
+	return nil
 }
 
 // checkSlug refuses a slug that is not kebab-case, is longer than the title limit, or is reserved.
@@ -79,18 +86,30 @@ func (s Store) checkNew(n New) error {
 	if _, err := os.Stat(s.path(n.Slug)); err == nil {
 		return fmt.Errorf("spec %q exists", n.Slug)
 	}
+	if err := s.checkTitle(n.Title, ""); err != nil {
+		return err
+	}
+	return s.checkRelated(n.Related)
+}
+
+// checkTitle refuses a title that a spec other than the spec skip has.
+func (s Store) checkTitle(title, skip string) error {
 	specs, _, err := s.List(nil)
 	if err != nil && !errors.Is(err, ErrNoDir) {
 		return err
 	}
 	titles := make(map[string]string, len(specs))
 	for _, sp := range specs {
-		titles[sp.Front.Slug] = sp.Front.Title
+		if sp.Front.Slug != skip {
+			titles[sp.Front.Slug] = sp.Front.Title
+		}
 	}
-	if err := docfile.CheckNewTitle(n.Title, titles); err != nil {
-		return err
-	}
-	for _, id := range n.Related {
+	return docfile.CheckNewTitle(title, titles)
+}
+
+// checkRelated refuses an ADR ID that does not exist.
+func (s Store) checkRelated(ids []string) error {
+	for _, id := range ids {
 		if _, err := adrKind.Find(s.ADRDir, id); err != nil {
 			return fmt.Errorf("related %q: %w", id, err)
 		}

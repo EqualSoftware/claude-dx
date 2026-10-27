@@ -24,7 +24,7 @@ var tools = []string{
 	"glossary_delete", "glossary_list", "glossary_lookup", "glossary_upsert",
 	"learning_create", "learning_delete", "learning_get", "learning_list", "learning_update",
 	"spec_create", "spec_delete", "spec_get", "spec_list", "spec_question_add", "spec_question_answer", "spec_req_add", "spec_req_set",
-	"spec_set_status", "spec_update_section",
+	"spec_set_status", "spec_update_fields", "spec_update_section",
 	"task_create", "task_delete", "task_dod_add", "task_dod_check", "task_dod_remove", "task_dod_uncheck", "task_get", "task_list", "task_move",
 	"task_set_status", "task_step_check", "task_update_fields", "task_update_section",
 }
