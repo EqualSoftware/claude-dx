@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "SessionStart": [
+      { "matcher": "startup", "hooks": [{ "type": "command", "command": "\"{{BINARY}}\" resume" }] },
+      { "matcher": "resume", "hooks": [{ "type": "command", "command": "\"{{BINARY}}\" resume" }] },
+      { "matcher": "clear", "hooks": [{ "type": "command", "command": "\"{{BINARY}}\" resume" }] },
+      { "matcher": "compact", "hooks": [{ "type": "command", "command": "\"{{BINARY}}\" resume" }] }
+    ]
+  }
+}

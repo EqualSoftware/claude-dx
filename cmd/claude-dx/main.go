@@ -16,6 +16,7 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/launcher"
 	"github.com/EqualSoftware/claude-dx/internal/mcpserver"
 	"github.com/EqualSoftware/claude-dx/internal/plugin"
+	"github.com/EqualSoftware/claude-dx/internal/resume"
 	"github.com/EqualSoftware/claude-dx/internal/session"
 	"github.com/EqualSoftware/claude-dx/internal/update"
 )
@@ -32,6 +33,7 @@ Usage:
   claude-dx clean                  Select the data of claude-dx to delete.
   claude-dx clean --list           Show the data of claude-dx and its sizes.
   claude-dx doctor                 Check the setup.
+  claude-dx resume                 Print the work state (tasks and git) for a new session.
   claude-dx --version              Show the claude-dx version.
   claude-dx --help                 Show this help.
 
@@ -62,6 +64,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runClean(cmd.Args, stdout, stderr)
 	case "doctor":
 		return runDoctor(stdout, stderr)
+	case "resume":
+		return runResume(stdout)
 	}
 	fmt.Fprintf(stderr, "claude-dx: %q is not available yet.\n", args[0])
 	return 1
@@ -169,6 +173,19 @@ func runDoctor(stdout, stderr io.Writer) int {
 	if !doctor.Run(stdout, plugin.DirName(version, binary), dir) {
 		return 1
 	}
+	return 0
+}
+
+// runResume prints the work state for a new session. The exit code is always 0, so the hook does not
+// stop the session. A part that fails shows a line in the output.
+func runResume(stdout io.Writer) int {
+	dir, err := os.Getwd()
+	if err != nil {
+		dir = "."
+	}
+	// With no cache directory, cacheDir is empty and the tasks part shows the error.
+	cacheDir, _ := cache.Dir()
+	resume.Run(stdout, dir, cacheDir)
 	return 0
 }
 

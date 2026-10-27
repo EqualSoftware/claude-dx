@@ -20,6 +20,7 @@ var commands = map[string]string{
 	"report":    "report",
 	"mcp":       "mcp",
 	"hook":      "hook",
+	"resume":    "resume",
 }
 
 // Parse selects the command from the first argument only (ADR-001).

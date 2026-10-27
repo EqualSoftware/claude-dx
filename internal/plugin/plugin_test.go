@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -153,5 +154,39 @@ func TestJSONEscapeWindowsPath(t *testing.T) {
 	}
 	if v["command"] != `C:\Users\me\claude-dx.exe` {
 		t.Fatalf("command = %q", v["command"])
+	}
+}
+
+// TestHooksExtracted checks resume-command#R-3: the SessionStart hook has the 4 matchers and runs the
+// absolute binary path.
+func TestHooksExtracted(t *testing.T) {
+	binary := filepath.Join(t.TempDir(), "claude-dx")
+	dir, err := Ensure(t.TempDir(), "v1.2.3", binary)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "hooks", "hooks.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var file struct {
+		Hooks map[string][]struct {
+			Matcher string
+			Hooks   []struct{ Type, Command string }
+		}
+	}
+	if err := json.Unmarshal(data, &file); err != nil {
+		t.Fatalf("hooks.json is not valid JSON: %v", err)
+	}
+	want := `"` + binary + `" resume`
+	var matchers []string
+	for _, entry := range file.Hooks["SessionStart"] {
+		matchers = append(matchers, entry.Matcher)
+		if len(entry.Hooks) != 1 || entry.Hooks[0].Type != "command" || entry.Hooks[0].Command != want {
+			t.Fatalf("hook of %s = %+v, want the command %q", entry.Matcher, entry.Hooks, want)
+		}
+	}
+	if wantMatchers := []string{"startup", "resume", "clear", "compact"}; !slices.Equal(matchers, wantMatchers) {
+		t.Fatalf("matchers = %v, want %v", matchers, wantMatchers)
 	}
 }
