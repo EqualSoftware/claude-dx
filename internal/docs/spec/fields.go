@@ -74,7 +74,7 @@ func (u Update) apply(d *doc) {
 	if u.Title != "" {
 		title := strings.TrimSpace(u.Title)
 		d.front = markdown.SetField(d.front, "title", title)
-		d.body = replaceFirstHeading(d.body, "# "+title)
+		d.body = markdown.ReplaceTitle(d.body, "# "+title)
 	}
 	if u.Milestone != "" {
 		d.front = markdown.SetField(d.front, "milestone", u.Milestone)
@@ -88,14 +88,4 @@ func (u Update) apply(d *doc) {
 	if u.Related != nil {
 		d.front = markdown.SetField(d.front, "related", u.Related)
 	}
-}
-
-// replaceFirstHeading replaces the first "# " line of body, the title heading. Other lines that start
-// with "# ", for example comments in a fenced code block, do not change.
-func replaceFirstHeading(body, heading string) string {
-	loc := headerLine.FindStringIndex(body)
-	if loc == nil {
-		return body
-	}
-	return body[:loc[0]] + heading + body[loc[1]:]
 }

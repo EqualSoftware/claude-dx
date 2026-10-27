@@ -81,7 +81,7 @@ func (u Update) apply(d *doc) {
 	if u.Title != "" {
 		d.f.Title = strings.TrimSpace(u.Title)
 		d.front = markdown.SetField(d.front, "title", d.f.Title)
-		d.body = headerLine.ReplaceAllLiteralString(d.body, "# "+d.f.Title)
+		d.body = markdown.ReplaceTitle(d.body, "# "+d.f.Title)
 	}
 	if u.Priority != "" {
 		d.f.Priority = u.Priority

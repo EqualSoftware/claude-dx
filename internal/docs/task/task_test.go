@@ -392,3 +392,21 @@ func commitAll(t *testing.T, root string) {
 		}
 	}
 }
+
+func TestUpdateTitleKeepsFencedComment(t *testing.T) {
+	s := newStore(t)
+	addSpec(t, s, "a", "Draft", 2)
+	session := connect(t, s)
+	brief := "Run:\n\n```sh\n# install deps\nmake\n```"
+	run(t, session, []step{
+		{"task_create", createArgs("a", "x", map[string]any{"brief": brief}), "Created task a/x."},
+		{"task_update_fields", map[string]any{"id": "a/x", "title": "New title"}, "Updated task a/x."},
+	})
+	got := read(t, s, "a/x")
+	if !strings.Contains(got, "# install deps\nmake") {
+		t.Errorf("fenced comment changed:\n%s", got)
+	}
+	if n := strings.Count(got, "\n# New title"); n != 1 {
+		t.Errorf("title headings = %d, want 1:\n%s", n, got)
+	}
+}
