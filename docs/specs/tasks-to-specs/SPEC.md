@@ -34,8 +34,8 @@ After TASK-063 to TASK-066 (`resume-command`) the project still has 60 or more t
 | :--- | :--- | :--- |
 | R-1 | Group the `Done` tasks into specs by area. Their requirements are `Done`. The sequence diagram of TASK-064 section 7.1 goes to the spec of local tasks. | Planned |
 | R-2 | The open tasks of v0.2.0 and later become `Draft` specs with their milestone. | Planned |
-| R-3 | Change TASK-NNN references in ADRs, learnings and the glossary to `<slug>#R-N` (the one exception of ADR-017). | Planned |
-| R-4 | Change the task, adr and grill skills, `rules.md`, the scout agent, `CLAUDE.md` and `README.md` to the spec and local task model. | Planned |
+| R-3 | Change TASK-NNN references in ADRs, learnings and the glossary to `<slug>#R-N` (the one exception of ADR-021). | Planned |
+| R-4 | Change the task, adr and grill skills, `rules.md`, `CLAUDE.md` and `README.md` to the spec and local task model. | Planned |
 | R-5 | Delete `docs/tasks/` and HANDOFF.md, and remove `/HANDOFF.md` from `.gitignore`. | Planned |
 | R-6 | Set ADR-016 and ADR-017 to `Accepted` with the user approval, then supersede ADR-013 with ADR-016. | Planned |
 
@@ -68,3 +68,5 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-10-26 | Equal | Added R-4. |
 | 2026-10-26 | Equal | Added R-5. |
 | 2026-10-26 | Equal | Added R-6. |
+| 2026-10-26 | Equal | R-4: text changed. |
+| 2026-10-26 | Equal | R-3: text changed. |

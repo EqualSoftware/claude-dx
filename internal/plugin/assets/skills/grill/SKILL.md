@@ -20,7 +20,7 @@ Make a tree of the decisions. Each decision has child decisions that depend on i
 
 ## 2. Facts and decisions
 
-- **Facts** come from the code, the docs and the tools. Do not ask the user for a fact. Give a search of more than 3 files, or of other tasks, ADRs and docs, to the `dx:scout` agent. Use one brief with a closed list of questions. Read only 1 to 3 known files yourself. Each tool call of the main session costs the full context.
+- **Facts** come from the code, the docs and the tools. Do not ask the user for a fact. Read only 1 to 3 known files yourself. Each tool call of the main session costs the full context.
 - **Decisions** belong to the user. Ask the user for each decision. Do not make one silently.
 - If a fact search is not finished, wait only with the questions that depend on it. Ask the other questions.
 

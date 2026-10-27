@@ -17,7 +17,7 @@ Read only what you need: `spec_get` with `section` returns one section. The full
 
 ## Create a spec
 
-1. Collect the inputs: the request of the user, documents, related code, ADRs (`adr_list`) and specs (`spec_list`). Give a search of more than 3 files to the `dx:scout` agent, with a closed list of questions.
+1. Collect the inputs: the request of the user, documents, related code, ADRs (`adr_list`) and specs (`spec_list`).
 2. Run `spec_create` with the slug (kebab-case, 40 characters or less, not `general`), the title, the milestone (`vMAJOR.MINOR.PATCH`), the priority, the areas, the related ADRs and, for a split, `split_from`. The spec starts as `Draft`.
 3. Refine it (next section).
 

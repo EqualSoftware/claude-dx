@@ -26,7 +26,7 @@ Do not add general words (for example "file", "function") or terms with the usua
    - Domain and design terms need the confirmation of the user. Do not infer them from sample or test code.
 3. If the term exists:
    - Same meaning: do nothing. Use the existing term.
-   - Changed meaning: change the row with `glossary_upsert`. Give the search for the old use in `docs/` and `.claude/` to the `dx:scout` agent, and report the places that need an update.
+   - Changed meaning: change the row with `glossary_upsert`. Search the old use in `docs/` and `.claude/`, and report the places that need an update.
 4. If the term is new, run `glossary_upsert`. The tool keeps alphabetical order. `term`, `definition`, `area` and `source` are required.
    - `definition`: one or two sentences. Say what it is, not how to use it.
    - `area`: `project`, `process`, `build` or the name of an area of the project.

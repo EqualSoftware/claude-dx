@@ -25,7 +25,7 @@ Each task has a `milestone` field. The [task index](docs/tasks/) has one table f
 
 | Milestone | Content |
 | :--- | :--- |
-| v0.1.0 | Launcher, `update`, `cache clean`, `doctor`. Tools and skills for ADRs, tasks, learnings and the glossary. `/dx:grill` and the `scout` agent. |
+| v0.1.0 | Launcher, `update`, `cache clean`, `doctor`. Tools and skills for ADRs, tasks, learnings and the glossary. `/dx:grill`. |
 | v0.2.0 | Git tools, the Bash git block, `git_exec`, `report`. `/dx:commit` and `/dx:eureka`. |
 | v0.3.0 | Filesystem tools. |
 | v0.4.0 | LSP servers with a warm cache for Go, TypeScript, JavaScript, Python, C and C++. No install by the user. |

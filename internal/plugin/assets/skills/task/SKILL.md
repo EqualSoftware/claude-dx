@@ -65,7 +65,6 @@ A choice that the task does not decide is a question to the user before you writ
 
 - Write in ASD-STE100.
 - Keep the Brief short and exact. Use `path:line` references, not copies of code.
-- Give a search of more than 3 files to the `dx:scout` agent, with a closed list of questions.
 
 ## Report
 

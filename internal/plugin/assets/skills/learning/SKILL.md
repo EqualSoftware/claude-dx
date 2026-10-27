@@ -13,7 +13,7 @@ Record a lesson only if it is:
 - **Verified**: a command, a test, a build or the code proves it.
 - **Reusable**: it helps later work, not only this task.
 - **Not obvious**: a person cannot easily see it in the code or in the history.
-- **Not documented**: `CLAUDE.md`, `docs/` and the code comments do not have it. Give a search of more than 3 files to the `dx:scout` agent.
+- **Not documented**: `CLAUDE.md`, `docs/` and the code comments do not have it.
 
 If no lesson is valid, report "No new lessons" and stop. This is a correct result.
 

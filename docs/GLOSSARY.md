@@ -16,7 +16,7 @@ Sort the terms in alphabetical order.
 | Cache lock | The read-write OS lock on `<cache>/cache.lock`. Each claude-dx process that uses the cache holds a shared lock, and `cache clean` needs the exclusive lock. No process removes the file. | cli | sessions lock, session lock | ADR-015 |
 | Definition of Done | The checklist in the last section of a task. All items must be checked, with evidence, before the task is `Done`. | process | DoD, done criteria | `docs/tasks/` |
 | Docs lock | The read-write OS lock on `docs.lock` in the project data directory, with a read-write mutex of the dx server. Each docs tool that reads holds a shared lock. Each tool that changes a task, ADR, learning, the glossary or a README index holds the exclusive lock for the full read, change and write. It also protects the number counter. | docs-tools | edit lock | ADR-015 |
-| dx plugin | The Claude Code plugin named `dx` that the binary embeds and the launcher loads with `--plugin-dir`. It holds the skills, the scout agent, the hooks and the MCP server declaration. | plugin | extension, add-on | ADR-001 |
+| dx plugin | The Claude Code plugin named `dx` that the binary embeds and the launcher loads with `--plugin-dir`. It holds the skills, the hooks and the MCP server declaration. | plugin | extension, add-on | ADR-001, ADR-022 |
 | dx server | The MCP server that `claude-dx mcp` starts on stdio. Claude Code starts one for each session. | mcp | daemon, backend | ADR-002 |
 | Elicitation | An MCP request from the dx server to the user, through Claude Code, for a direct yes or no answer. The model does not answer it. | mcp | confirmation prompt | ADR-008 |
 | Launcher | The part of `claude-dx` that prepares the dx plugin and starts `claude` with the dx flags and the user arguments. | cli | wrapper, shim | ADR-003 |
@@ -32,7 +32,6 @@ Sort the terms in alphabetical order.
 | Project root | The git top level of the current directory, or the current directory outside git. Tools refuse paths outside it. | mcp | workspace, base dir | ADR-005 |
 | Ready task | An open task that is not `Blocked` and has all dependencies `Done`. `task_list(status: ready)` gives these tasks. | process | next task, unblocked task | ADR-013 |
 | Requirement | One behavior that a spec requires. Its ID R-N does not change. Its status is Planned or Done. | process | — | ADR-016 |
-| Scout | The read-only agent `dx:scout` on Haiku. Skills give it fact searches of more than 3 files. | plugin | explorer, searcher | ADR-009 |
 | Shared rules | The short dx rules text (`rules.md` in the dx plugin) that the launcher gives to Claude Code with `--append-system-prompt-file`. | plugin | RULES.md | ADR-009 |
 | Spec | The current definition of one feature or scope, in docs/specs/<slug>/SPEC.md. Its ID is the slug. It has requirements and no task IDs. | process | — | ADR-016, `docs/specs/` |
 | Task | A spec file in `docs/tasks/` for one unit of work. | process | ticket, issue | `docs/tasks/` |
