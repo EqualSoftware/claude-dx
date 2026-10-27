@@ -47,3 +47,18 @@ func TestStartExitCode(t *testing.T) {
 		t.Fatalf("start = %d, %v; want 3", code, err)
 	}
 }
+
+// TestCatchEmptyList checks that catch with no signal does not call Notify: Notify with no signal catches
+// all signals, and Windows has no forwarded signal.
+func TestCatchEmptyList(t *testing.T) {
+	c, stop := catch(nil)
+	defer stop()
+	if c != nil {
+		t.Fatal("catch(nil) made a channel")
+	}
+	c, stop = catch([]os.Signal{syscall.SIGTERM})
+	defer stop()
+	if c == nil || cap(c) != 1 {
+		t.Fatalf("catch with one signal = %v", c)
+	}
+}

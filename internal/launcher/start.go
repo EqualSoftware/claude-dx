@@ -23,28 +23,44 @@ func start(claude string, args []string) (int, error) {
 	// signal does not. cmd/go does the same for "go run".
 	signal.Notify(drop, ignored...)
 	defer signal.Stop(drop)
+	// Catch the forwarded signals before the start, so a signal that comes during the start is not lost.
+	// The channel has space for one signal of each kind, so the package drops a signal only when the same
+	// signal is not sent yet, as the OS does with a pending signal.
+	fwd, stop := catch(forwarded)
+	defer stop()
 	if err := cmd.Start(); err != nil {
 		return 1, err
 	}
-	for _, s := range forwarded {
-		defer forward(cmd.Process, s)()
+	if fwd != nil {
+		done := make(chan struct{})
+		defer close(done)
+		go forward(cmd.Process, fwd, done)
 	}
 	return exitCode(cmd.Wait())
 }
 
-// forward sends each s that this process gets to p, and returns the function that stops it.
-// Each signal has its own channel with space for one signal, so the package drops a signal only when
-// the same signal is not sent yet, as the OS does with a pending signal.
-func forward(p *os.Process, s os.Signal) func() {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, s)
-	go func() {
-		for range c {
+// catch makes the channel for the signals of list and starts to catch them. With an empty list it does
+// nothing and returns a nil channel: Notify with no signal would catch all signals (Windows has no
+// forwarded signal).
+func catch(list []os.Signal) (chan os.Signal, func()) {
+	if len(list) == 0 {
+		return nil, func() {}
+	}
+	c := make(chan os.Signal, len(list))
+	signal.Notify(c, list...)
+	return c, func() { signal.Stop(c) }
+}
+
+// forward sends each signal of c to p until done is closed.
+func forward(p *os.Process, c <-chan os.Signal, done <-chan struct{}) {
+	for {
+		select {
+		case s := <-c:
 			_ = p.Signal(s)
+		case <-done:
+			return
 		}
-	}()
-	// Stop sends no more signals when it returns, so the close is safe.
-	return func() { signal.Stop(c); close(c) }
+	}
 }
 
 // exitCode returns the exit code of a finished command error. A command that a signal ended gives

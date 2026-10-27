@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 )
 
@@ -188,5 +190,73 @@ func TestHooksExtracted(t *testing.T) {
 	}
 	if wantMatchers := []string{"startup", "resume", "clear", "compact"}; !slices.Equal(matchers, wantMatchers) {
 		t.Fatalf("matchers = %v, want %v", matchers, wantMatchers)
+	}
+}
+
+func TestEnsureRefusesUnsafeBinary(t *testing.T) {
+	for _, binary := range []string{`/a"b/claude-dx`, "/a\rb/claude-dx", `\\\\host\\share\\claude-dx`, "/a$b/claude-dx", "/a`b/claude-dx", "/a\nb/claude-dx"} {
+		cache := t.TempDir()
+		if _, err := Ensure(cache, "v1.0.0", binary); err == nil {
+			t.Errorf("Ensure accepted %q", binary)
+		}
+		if exists(filepath.Join(cache, "plugin")) {
+			t.Errorf("Ensure wrote files for %q", binary)
+		}
+	}
+}
+
+func TestEnsureRepairsIncompleteDir(t *testing.T) {
+	for _, missing := range required {
+		cache := t.TempDir()
+		dir, err := Ensure(cache, "v1.0.0", "/bin/claude-dx")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Remove(filepath.Join(dir, filepath.FromSlash(missing))); err != nil {
+			t.Fatal(err)
+		}
+		again, err := Ensure(cache, "v1.0.0", "/bin/claude-dx")
+		if err != nil || again != dir {
+			t.Fatalf("Ensure = %q, %v; want %q", again, err, dir)
+		}
+		if !exists(filepath.Join(dir, filepath.FromSlash(missing))) {
+			t.Errorf("%s is not extracted again", missing)
+		}
+	}
+}
+
+func TestEnsureConcurrentRepair(t *testing.T) {
+	cache := t.TempDir()
+	dir, err := Ensure(cache, "v1.0.0", "/bin/claude-dx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(filepath.Join(dir, "rules.md")); err != nil {
+		t.Fatal(err)
+	}
+	var wg sync.WaitGroup
+	var returned atomic.Int32
+	for range 8 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			got, err := Ensure(cache, "v1.0.0", "/bin/claude-dx")
+			if err != nil || got != dir || !complete(got) {
+				t.Errorf("Ensure = %q, %v", got, err)
+			}
+			returned.Add(1)
+			// After Ensure returned, the directory must stay complete while the other callers repair.
+			for returned.Load() < 8 {
+				if !complete(dir) {
+					t.Error("the directory was missing after Ensure returned")
+					return
+				}
+				runtime.Gosched()
+			}
+		}()
+	}
+	wg.Wait()
+	if !complete(dir) {
+		t.Fatal("the directory is not complete")
 	}
 }

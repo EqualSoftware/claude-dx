@@ -67,6 +67,7 @@ main() {
         version="$(latest_version "$tmp")"
         [ -n "$version" ] || fail "cannot find the latest release"
     fi
+    case $version in v*) ;; *) version=v$version ;; esac
 
     archive="claude-dx_${version#v}_${os}_${arch}.tar.gz"
     base="${CLAUDE_DX_BASE_URL:-https://github.com/$REPO/releases/download/$version}"

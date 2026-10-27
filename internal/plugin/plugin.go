@@ -12,6 +12,9 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
+
+	"github.com/EqualSoftware/claude-dx/internal/filelock"
 )
 
 // The "all:" prefix includes files that start with "." (example: .claude-plugin).
@@ -23,9 +26,12 @@ var assets embed.FS
 // A directory that is already extracted is used again.
 // binary is the absolute path of claude-dx. It replaces {{BINARY}} in the plugin files.
 func Ensure(cacheDir, version, binary string) (string, error) {
+	if err := checkBinary(binary); err != nil {
+		return "", err
+	}
 	root := filepath.Join(cacheDir, "plugin")
 	dir := filepath.Join(root, DirName(version, binary))
-	if exists(dir) {
+	if complete(dir) {
 		return dir, nil
 	}
 	if err := os.MkdirAll(root, 0o755); err != nil {
@@ -40,7 +46,7 @@ func Ensure(cacheDir, version, binary string) (string, error) {
 	if err := write(tmp, version, binary); err != nil {
 		return "", err
 	}
-	return dir, install(tmp, dir)
+	return dir, install(tmp, dir, filepath.Join(cacheDir, "plugin.repair.lock"))
 }
 
 // DirName returns the name of the plugin directory in <cache>/plugin: <version>-<key>, with a key of the
@@ -64,14 +70,45 @@ func DirName(version, binary string) string {
 	return "dev-" + hex.EncodeToString(h.Sum(nil)[:8])
 }
 
+// checkBinary refuses a path that the shell of the hook command reads in a different way inside double
+// quotes: ", $, a backtick, a line break and, for a UNC path, a start with two backslashes.
+func checkBinary(binary string) error {
+	if strings.ContainsAny(binary, "\"$`\r\n") || strings.HasPrefix(binary, `\\`) {
+		return fmt.Errorf("the path of claude-dx has a character that the hook shell does not accept (double quote, $, backtick, line break or a start with two backslashes): %q", binary)
+	}
+	return nil
+}
+
 // install moves the extracted tmp directory to dir.
 // Another process can extract the same directory at the same time. Its result is equal, so it is used.
-func install(tmp, dir string) error {
+// If the rename fails and dir is not complete, it comes from a stop during a write or from a user change.
+// Then install takes the lock, so only one process repairs, and moves dir aside, not deleted. The session
+// cleanup removes the moved directory. The lock file is outside the plugin directory, so the cleanup does
+// not remove it.
+func install(tmp, dir, lockPath string) error {
 	err := os.Rename(tmp, dir)
-	if err != nil && exists(dir) {
+	if err == nil || complete(dir) {
 		return nil
 	}
-	return err
+	unlock, err := filelock.Lock(lockPath)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = unlock() }()
+	if complete(dir) {
+		return nil
+	}
+	if exists(dir) {
+		aside := fmt.Sprintf("%s.old-%d-%d", dir, os.Getpid(), time.Now().UnixNano())
+		if err := os.Rename(dir, aside); err != nil {
+			return err
+		}
+	}
+	// A process that does not take the lock can put its directory here after the move.
+	if err := os.Rename(tmp, dir); err != nil && !complete(dir) {
+		return err
+	}
+	return nil
 }
 
 // write copies the embedded files to dir and fills the placeholders.
@@ -100,6 +137,19 @@ func write(dir, version, binary string) error {
 func jsonEscape(s string) string {
 	quoted, _ := json.Marshal(s)
 	return string(quoted[1 : len(quoted)-1])
+}
+
+// required lists the files that a plugin directory must have.
+var required = []string{".claude-plugin/plugin.json", ".mcp.json", "hooks/hooks.json", "rules.md"}
+
+// complete reports whether dir has all the required files.
+func complete(dir string) bool {
+	for _, name := range required {
+		if !exists(filepath.Join(dir, filepath.FromSlash(name))) {
+			return false
+		}
+	}
+	return true
 }
 
 func exists(path string) bool {
