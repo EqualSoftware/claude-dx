@@ -16,7 +16,7 @@ The filesystem tools replace the shell file operations (mv, cp, rm, mkdir) in th
 
 ## 2. Problem
 
-The shell file operations have no check of the project boundary and no record. Some operations need many tool calls (for example to read several files or line ranges). A move of a file also needs its imports to change.
+The shell file operations have no check of the project boundary and no record. Some operations need many tool calls (for example to read several files or line ranges).
 
 ## 3. Goals
 
