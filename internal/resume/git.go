@@ -1,11 +1,17 @@
 package resume
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 )
+
+// gitTimeout is the longest time of one git command. A hook must not hang.
+// It is a variable for the tests.
+var gitTimeout = 5 * time.Second
 
 // errNoRepo means that the directory is not in a git repository (R-10).
 var errNoRepo = errors.New("no git repository")
@@ -31,8 +37,10 @@ type commit struct {
 
 // git runs a read-only git command in dir and returns its output with no final line break.
 func git(dir string, args ...string) (string, error) {
-	full := append([]string{"-C", dir, "-c", "core.quotePath=false"}, args...)
-	out, err := exec.Command("git", full...).Output()
+	full := append([]string{"--no-optional-locks", "-C", dir, "-c", "core.quotePath=false"}, args...)
+	ctx, cancel := context.WithTimeout(context.Background(), gitTimeout)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "git", full...).Output()
 	return strings.TrimRight(string(out), "\r\n"), err
 }
 

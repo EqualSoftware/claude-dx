@@ -1,3 +1,5 @@
 /dist/
 /claude-dx
 /claude-dx.exe
+/.claude/worktrees/
+/.claude/settings.local.json

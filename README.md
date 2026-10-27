@@ -37,7 +37,7 @@ claude-dx works on macOS, Linux and Windows, on amd64 and arm64. It is one binar
 | Tool | Version | Why |
 | :--- | :--- | :--- |
 | Claude Code | 2.1.308 or later | claude-dx starts it with the dx plugin |
-| git | 2.30 or later | claude-dx keeps the project data in the git directory. The git tools use git |
+| git | 2.30 or later | claude-dx keeps the project data in the git directory |
 
 ## Install
 
@@ -53,9 +53,9 @@ Windows (PowerShell):
 irm https://raw.githubusercontent.com/EqualSoftware/claude-dx/main/scripts/install.ps1 | iex
 ```
 
-The scripts verify the SHA-256 checksum of the release. They install to `~/.local/bin` on macOS and Linux, and to `%LocalAppData%\Programs\claude-dx` on Windows. To change the install directory, set `CLAUDE_DX_INSTALL_DIR`.
+The scripts verify the SHA-256 checksum of the release. The checksum comes from the same release as the file, so it detects a corrupt download but does not prove where the file came from. The same is true for `claude-dx update`. To prove the origin, verify the attestation as described below. The scripts install to `~/.local/bin` on macOS and Linux, and to `%LocalAppData%\Programs\claude-dx` on Windows. To change the install directory, set `CLAUDE_DX_INSTALL_DIR`.
 
-Each release file has a GitHub build provenance attestation. It proves that the release workflow of this repository made the file. To verify a file that you downloaded, use the [GitHub CLI](https://cli.github.com/). The version has no `v` (for example `0.1.0`). On Windows, the file is a `.zip`:
+Each release file has a GitHub build provenance attestation. It proves that the release workflow of this repository made the file. To verify a file that you downloaded, use the [GitHub CLI](https://cli.github.com/). The file name has the version without `v` (for example `0.1.0`). The install scripts accept the version with or without `v`. On Windows, the file is a `.zip`:
 
 ```sh
 gh attestation verify claude-dx_<version>_<os>_<arch>.tar.gz --repo EqualSoftware/claude-dx
@@ -66,6 +66,7 @@ gh attestation verify claude-dx_<version>_<os>_<arch>.tar.gz --repo EqualSoftwar
 ```sh
 claude-dx [claude arguments]     # Start Claude Code with dx.
 claude-dx -- [claude arguments]  # Pass all arguments to Claude Code.
+claude-dx resume                 # Print the work state (tasks and git) for a new session.
 claude-dx update                 # Install the latest release.
 claude-dx clean                  # Select the data of claude-dx to delete.
 claude-dx clean --list           # Show the data of claude-dx and its sizes.

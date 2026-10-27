@@ -8,7 +8,7 @@ By contributing, you agree to obey the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 - Bug: open an issue with the **Bug report** form.
 - Idea: open an issue with the **Feature request** form.
-- A git operation that no dx tool covers: run `claude-dx report`, or open an issue with the **Unmapped git operation** form.
+- A git operation that no dx tool covers: open an issue and paste the output of `claude-dx doctor`.
 - Security problem: do not open an issue. Read [SECURITY.md](SECURITY.md).
 
 ## Set up

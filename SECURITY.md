@@ -23,12 +23,12 @@ The maintainers reply as soon as possible. When a fix is available, the maintain
 These parts are important for security:
 
 - `claude-dx update` and the install scripts: download and checksum verification of binaries.
-- The `PreToolUse` hook that checks Bash commands.
-- The git tools and the path checks that keep file operations inside the project.
+- The MCP doc tools: input checks that keep file operations inside the `docs/` folders of the project.
+- The `SessionStart` hook and the launch of the `claude` process.
 
 ## Verify a release
 
-The checksum in `checksums.txt` comes from the same release as the binaries. Each release file, and `checksums.txt`, also has a GitHub build provenance attestation from the release workflow. To verify a file, run:
+The checksum in `checksums.txt` comes from the same release as the binaries. `claude-dx update` and the install scripts check only this SHA-256 checksum. It detects a corrupt download but does not prove the origin of the file. To prove the origin, run `gh attestation verify`. Each release file, and `checksums.txt`, also has a GitHub build provenance attestation from the release workflow. To verify a file, run:
 
 ```sh
 gh attestation verify <file> --repo EqualSoftware/claude-dx
