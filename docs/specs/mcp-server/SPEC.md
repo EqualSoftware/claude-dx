@@ -49,7 +49,7 @@ The dx tools must run in a session with no change to the project. Each tool must
 | R-9 | The MCP server adds less than 100 ms to the start of the `claude-dx` process, and it has no data race. | Done |
 | R-10 | While it runs, the server holds the shared cache lock. | Done |
 | R-11 | At start, the server writes the project file of the cache (see project-data). | Done |
-| R-12 | The update check writes cache update.json at most once in 24 hours. Network errors are ignored and the file does not change. | Done |
+| R-12 | The update check writes cache update.json at most once in 24 hours. After a network error, it writes the check time and keeps the last known release, so the next check waits 24 hours. A check that is cancelled at server stop writes nothing. | Done |
 
 ## 6. Design
 
@@ -148,3 +148,6 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-10-27 | Equal | Status: In Review. The scope changed in section 5. |
 | 2026-10-27 | Equal | Approved by the user: R-9 start time subtracts the process cost. |
 | 2026-10-27 | Equal | R-9: Done. |
+| 2026-10-27 | Equal | R-12: text changed. |
+| 2026-10-27 | Equal | Status: In Review. The scope changed in section 5. |
+| 2026-10-27 | Equal | The user approved the new R-12 text: a network error writes the check time. |
