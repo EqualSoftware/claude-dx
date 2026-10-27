@@ -1,0 +1,7 @@
+{
+  "name": "dx",
+  "version": "{{VERSION}}",
+  "description": "dx tools for Claude Code: specs, ADRs, tasks, learnings and glossary.",
+  "homepage": "https://github.com/EqualSoftware/claude-dx",
+  "license": "MIT"
+}
