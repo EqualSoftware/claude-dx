@@ -1,6 +1,6 @@
 # ADR-004: LSP servers on demand
 
-- Status: Accepted
+- Status: Superseded by ADR-013
 - Date: 2026-10-27
 - Owners: Maintainer
 
