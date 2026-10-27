@@ -1,32 +1,51 @@
 package task
 
 import (
-	"errors"
-	"fmt"
+	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
-	"slices"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"github.com/EqualSoftware/claude-dx/internal/docs/spec"
 	"github.com/EqualSoftware/claude-dx/internal/markdown"
-	"github.com/EqualSoftware/claude-dx/internal/numbering"
+	"github.com/EqualSoftware/claude-dx/internal/project"
 )
 
+// newStore returns a task store and its spec store in a new git repository and data directory, as the
+// MCP server makes them.
 func newStore(t *testing.T) Store {
 	t.Helper()
-	return Store{
-		Dir:    filepath.Join(t.TempDir(), "docs", "tasks"),
-		Alloc:  numbering.Allocator{Dir: t.TempDir()},
-		Now:    func() time.Time { return time.Date(2026, 10, 25, 0, 0, 0, 0, time.UTC) },
-		Author: func() string { return "Tester" },
-		Lock:   filepath.Join(t.TempDir(), "docs.lock"),
-	}
+	return storeAt(t.TempDir(), t.TempDir())
 }
 
-// must stops the test if err is not nil.
+// storeAt returns the stores of the repository root and the data directory data.
+func storeAt(root, data string) Store {
+	lock := filepath.Join(data, project.DocsLock)
+	specs := spec.Store{Dir: filepath.Join(root, "docs", "specs"), ADRDir: filepath.Join(root, "docs", "decisions"),
+		Root: root, Author: func() string { return "Tester" }, Lock: lock}
+	return Store{Dir: filepath.Join(data, project.Tasks), Specs: specs, Lock: lock}
+}
+
+// addSpec makes the spec slug with n requirements and the status.
+func addSpec(t *testing.T, s Store, slug, status string, n int) {
+	t.Helper()
+	must(t, s.Specs.Create(spec.New{Slug: slug, Title: "Spec " + slug, Milestone: "v0.1.0", Priority: "P1", Area: []string{"docs"}}))
+	for range n {
+		if _, _, err := s.Specs.AddRequirement(slug, "A behavior."); err != nil {
+			t.Fatal(err)
+		}
+	}
+	path := filepath.Join(s.Specs.Dir, slug, "SPEC.md")
+	data, err := os.ReadFile(path)
+	must(t, err)
+	front, body := markdown.Split(string(data))
+	must(t, os.WriteFile(path, []byte(markdown.Join(markdown.SetField(front, "status", status), body)), 0o644))
+}
+
 func must(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
@@ -34,841 +53,342 @@ func must(t *testing.T, err error) {
 	}
 }
 
-func create(t *testing.T, s Store, title string) {
+func connect(t *testing.T, s Store) *mcp.ClientSession {
 	t.Helper()
-	if _, _, err := s.Create(New{Title: title, Priority: "P1", Milestone: "v0.1.0", Type: "feat", Area: []string{"cli"}}); err != nil {
+	server := mcp.NewServer(&mcp.Implementation{Name: "dx", Version: "test"}, nil)
+	Register(server, s)
+	spec.Register(server, s.Specs)
+	serverTransport, clientTransport := mcp.NewInMemoryTransports()
+	ctx := context.Background()
+	if _, err := server.Connect(ctx, serverTransport, nil); err != nil {
 		t.Fatal(err)
+	}
+	session, err := mcp.NewClient(&mcp.Implementation{Name: "test", Version: "test"}, nil).Connect(ctx, clientTransport, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = session.Close() })
+	return session
+}
+
+type step struct {
+	name string
+	args map[string]any
+	want string
+}
+
+// run calls each tool and compares the text. "ERR " starts the text of a tool error.
+func run(t *testing.T, session *mcp.ClientSession, steps []step) {
+	t.Helper()
+	for i, st := range steps {
+		res, err := session.CallTool(context.Background(), &mcp.CallToolParams{Name: st.name, Arguments: st.args})
+		if err != nil {
+			t.Fatalf("step %d %s: %v", i, st.name, err)
+		}
+		got := res.Content[0].(*mcp.TextContent).Text
+		if res.IsError {
+			got = "ERR " + got
+		}
+		if got != st.want {
+			t.Errorf("step %d %s = %q, want %q", i, st.name, got, st.want)
+		}
 	}
 }
 
-// setStatus calls SetStatus and drops the warnings.
-func setStatus(s Store, id, status, note string) error {
-	_, err := s.SetStatus(id, status, note)
-	return err
-}
-
-func update(t *testing.T, s Store, id string, u Update) {
-	t.Helper()
-	if _, _, err := s.UpdateFields(id, u); err != nil {
-		t.Fatal(err)
+// createArgs are the arguments of task_create for the task slug of the spec sp.
+func createArgs(sp, slug string, extra map[string]any) map[string]any {
+	args := map[string]any{"spec": sp, "slug": slug, "title": "Task " + slug, "priority": "P1",
+		"brief": "Do the work.", "plan": []string{"Step one. Check: go test ./..."}}
+	for k, v := range extra {
+		args[k] = v
 	}
+	return args
 }
 
 func read(t *testing.T, s Store, id string) string {
 	t.Helper()
 	text, err := s.Get(id, "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	must(t, err)
 	return text
 }
 
 func TestCreate(t *testing.T) {
 	s := newStore(t)
-	path, _, err := s.Create(New{
-		Title: "Add cache: fast", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Area: []string{"cli", "docs"},
-		Size: "S", Platforms: []string{"macOS", "Windows (amd64, arm64)"}, Related: []string{"ADR-013"},
-		Sections: map[string]string{"1": "The summary.", "Goals": "- G-1: Fast."},
+	addSpec(t, s, "docs-lock", "Draft", 3)
+	session := connect(t, s)
+	long := strings.Repeat("a", 41)
+	run(t, session, []step{
+		{"task_list", map[string]any{}, "No tasks."},
+		{"task_create", createArgs("nope", "x", nil), "ERR No spec has the slug nope."},
+		{"task_create", createArgs("docs-lock", "Bad_Slug", nil), "ERR The slug must be kebab-case, 40 characters or less."},
+		{"task_create", createArgs("docs-lock", long, nil), "ERR The slug must be kebab-case, 40 characters or less."},
+		{"task_create", createArgs("docs-lock", "x", map[string]any{"brief": " "}), "ERR Give the brief."},
+		{"task_create", createArgs("docs-lock", "x", map[string]any{"plan": []string{" "}}), "ERR Give one or more plan steps."},
+		{"task_create", createArgs("docs-lock", "x", map[string]any{"priority": "P9"}), `ERR Priority "P9" is not valid. Use one of: P0, P1, P2, P3.`},
+		{"task_create", createArgs("docs-lock", "x", map[string]any{"covers": []string{"R-9"}}), "ERR Spec docs-lock has no requirement R-9."},
+		{"task_create", createArgs("general", "x", map[string]any{"covers": []string{"R-1"}}), "ERR A general task does not cover requirements."},
+		{"task_create", createArgs("docs-lock", "x", map[string]any{"depends_on": []string{"docs-lock/x"}}), "ERR A task does not depend on itself."},
+		{"task_create", createArgs("docs-lock", "x", map[string]any{"depends_on": []string{"docs-lock/y"}}), "ERR Task docs-lock/y does not exist."},
+		{"task_create", createArgs("docs-lock", "x", map[string]any{"depends_on": []string{"general/y"}}), "ERR Task general/y is in another spec. A task depends only on tasks of its spec."},
+		{"task_create", createArgs("docs-lock", "lock-path", map[string]any{"covers": []string{"R-1"}}), "Created task docs-lock/lock-path."},
+		{"task_create", createArgs("docs-lock", "lock-path", nil), "ERR Task docs-lock/lock-path already exists."},
+		{"task_create", createArgs("docs-lock", "shared-reads", map[string]any{"covers": []string{"R-2", "R-3"}, "depends_on": []string{"docs-lock/lock-path"},
+			"plan": []string{"Add SetDoneLocked. Check: go test ./internal/docs/spec", "Call it. Check: go test ./internal/docs/task"}}), "Created task docs-lock/shared-reads."},
+		{"task_create", createArgs("general", "notes", nil), "Created task general/notes."},
 	})
-	if err != nil {
-		t.Fatal(err)
+	want := `---
+id: docs-lock/shared-reads
+title: Task shared-reads
+status: Todo
+priority: P1
+covers: [R-2, R-3]
+depends_on: [docs-lock/lock-path]
+---
+# Task shared-reads
+
+## Brief
+
+Do the work.
+
+## Plan
+
+- [ ] Add SetDoneLocked. Check: go test ./internal/docs/spec
+- [ ] Call it. Check: go test ./internal/docs/task
+
+## Notes
+
+## Definition of Done
+
+- [ ] The covered requirements pass their acceptance criteria, with evidence.
+- [ ] Project checks (build, tests, lint) pass.
+`
+	if got := read(t, s, "docs-lock/shared-reads"); got != want {
+		t.Errorf("task file =\n%s\nwant\n%s", got, want)
 	}
-	if filepath.Base(path) != "TASK-001-add-cache-fast.md" {
-		t.Fatalf("path = %q", path)
-	}
-	doc := read(t, s, "TASK-001")
-	for _, want := range []string{
-		"id: TASK-001\ntitle: 'Add cache: fast'\nstatus: Draft\npriority: P1\nmilestone: v0.1.0\ntype: feat\nsize: S\nowner: Tester\n" +
-			"platforms: [macOS, 'Windows (amd64, arm64)']\narea: [cli, docs]\ndepends_on: []\nrelated: [ADR-013]\n---\n",
-		"# TASK-001: Add cache: fast\n\n## Document History\n",
-		"| 2026-10-25 | Tester | Initial draft specification |",
-		"## 1. Summary\n\nThe summary.\n", "## 3. Goals\n\n- G-1: Fast.\n",
-	} {
-		if !strings.Contains(doc, want) {
-			t.Errorf("task does not contain %q", want)
-		}
-	}
-	if strings.Contains(doc, "eureka") {
-		t.Error("AC-1 of TASK-026: the Definition of Done has the /dx:eureka item")
-	}
-	if strings.Contains(doc, " # ") || strings.Contains(doc, "| Field | Value |") {
-		t.Error("task has a frontmatter comment or the Field/Value table")
-	}
-	if _, err := os.Stat(filepath.Join(s.Dir, "README.md")); err != nil {
-		t.Error("README.md was not made")
+	if got := read(t, s, "general/notes"); !strings.Contains(got, generalItem) {
+		t.Errorf("general task has no %q:\n%s", generalItem, got)
 	}
 }
 
-func TestCreateRefusesBadInput(t *testing.T) {
+func TestListAndGet(t *testing.T) {
 	s := newStore(t)
-	bad := []New{
-		{Title: "", Priority: "P1", Milestone: "v0.1.0", Type: "feat"},
-		{Title: "X", Priority: "P9", Milestone: "v0.1.0", Type: "feat"},
-		{Title: "X", Priority: "P1", Milestone: "v0.1.0"},
-		{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feature"},
-		{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Size: "L"},
-		{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Sections: map[string]string{"99": "x"}},
-		// AC-1 of TASK-030: no milestone, or a milestone that is not vMAJOR.MINOR.PATCH.
-		{Title: "X", Priority: "P1", Type: "feat"},
-		{Title: "X", Priority: "P1", Milestone: "0.1", Type: "feat"},
-		// AC-4 of TASK-053: a section and its child section, or two refs of one section.
-		{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Sections: map[string]string{"7": "x", "7.1": "y"}},
-		{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Sections: map[string]string{"7": "x", "Design": "y"}},
-	}
-	for _, in := range bad {
-		if _, _, err := s.Create(in); err == nil {
-			t.Errorf("Create(%+v) did not fail", in)
-		}
-	}
-	if _, err := os.Stat(s.Dir); err == nil {
-		t.Error("a refused Create made docs/tasks")
-	}
-}
-
-func TestMissingDir(t *testing.T) {
-	s := newStore(t)
-	if _, _, err := s.List(Filter{}); !errors.Is(err, ErrNoDir) {
-		t.Fatalf("List = %v, want ErrNoDir", err)
-	}
-	if err := setStatus(s, "TASK-001", "Done", ""); !errors.Is(err, ErrNoDir) {
-		t.Fatalf("SetStatus = %v, want ErrNoDir", err)
-	}
-	if _, err := os.Stat(s.Dir); err == nil {
-		t.Fatal("a read or update made docs/tasks")
-	}
-}
-
-func TestListFilter(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	create(t, s, "Two")
-	if err := setStatus(s, "TASK-002", "Cancelled", "Not necessary."); err != nil {
-		t.Fatal(err)
-	}
-	open, _, _ := s.List(Filter{"status": "open"})
-	all, _, _ := s.List(Filter{"status": "all"})
-	cancelled, _, _ := s.List(Filter{"status": "cancelled", "area": "cli"})
-	if len(open) != 1 || len(all) != 2 || len(cancelled) != 1 || cancelled[0].Closed != "2026-10-25" {
-		t.Fatalf("open %d, all %d, cancelled %+v", len(open), len(all), cancelled)
-	}
-}
-
-func TestListFilterAnyField(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	create(t, s, "Two")
-	update(t, s, "TASK-002", Update{DependsOn: []string{"TASK-001"}, Platforms: []string{"Windows"}})
-	tests := []struct {
-		filter Filter
-		want   int
-	}{
-		{Filter{"depends_on": "TASK-001"}, 1},
-		{Filter{"platforms": "windows"}, 1},
-		{Filter{"owner": "tester", "type": "feat"}, 2},
-		{Filter{"size": "M"}, 0},
-		{Filter{"status": "all", "priority": ""}, 2},
-	}
-	for _, tt := range tests {
-		got, _, err := s.List(tt.filter)
-		if err != nil || len(got) != tt.want {
-			t.Errorf("List(%v) = %d tasks, %v; want %d", tt.filter, len(got), err, tt.want)
-		}
-	}
-}
-
-func TestSetStatusRules(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	tests := []struct {
-		from, status, want string
-	}{
-		{"Draft", "In Review", "section 1 has the template text"},
-		{"Draft", "In Review", "give a size"},
-		{"Draft", "In Review", "give the platforms"},
-		{"Approved", "Blocked", "give a note"},
-		{"In Development", "Done", "Definition of Done items 1, 2, 3, 4, 5 are not checked"},
-		{"Draft", "Finished", "is not valid"},
-	}
-	for _, tt := range tests {
-		force(t, s, "TASK-001", tt.from)
-		err := setStatus(s, "TASK-001", tt.status, "")
-		if err == nil || !strings.Contains(err.Error(), tt.want) {
-			t.Errorf("SetStatus(%s) = %v, want %q", tt.status, err, tt.want)
-		}
-	}
-	force(t, s, "TASK-001", "Approved")
-	if err := setStatus(s, "TASK-001", "In Development", ""); err != nil {
-		t.Fatal(err)
-	}
-	doc := read(t, s, "TASK-001")
-	if !strings.Contains(doc, "status: In Development\n") || !strings.Contains(doc, "| 2026-10-25 | Tester | Status: In Development. |") {
-		t.Fatalf("status change not written:\n%s", doc)
-	}
-}
-
-// TestInReviewWhenComplete is also AC-8 of TASK-037: sections 13 and 14 keep the template text.
-func TestInReviewWhenComplete(t *testing.T) {
-	s := newStore(t)
-	sections := map[string]string{}
-	for _, ref := range leafSections {
-		sections[ref] = "Filled " + ref + "."
-	}
-	if _, _, err := s.Create(New{Title: "Full", Priority: "P1", Milestone: "v0.1.0", Type: "feat", Area: []string{"cli"}, Size: "M", Platforms: []string{"Linux"}, Sections: sections}); err != nil {
-		t.Fatal(err)
-	}
-	if err := setStatus(s, "TASK-001", "In Review", ""); err != nil {
-		t.Fatalf("SetStatus(In Review) = %v", err)
-	}
-}
-
-func TestQuestions(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	for _, want := range []string{"Q-1", "Q-2"} {
-		qid, err := s.AddQuestion("TASK-001", "Which | cache?", "")
-		if err != nil || qid != want {
-			t.Fatalf("AddQuestion = %q, %v; want %s", qid, err, want)
-		}
-	}
-	force(t, s, "TASK-001", "In Review")
-	if err := setStatus(s, "TASK-001", "Approved", ""); err == nil || !strings.Contains(err.Error(), "Q-1 is Open; Q-2 is Open") {
-		t.Fatalf("Approved with open questions = %v", err)
-	}
-	must(t, s.AnswerQuestion("TASK-001", "Q-1", "SQLite."))
-	must(t, s.AnswerQuestion("TASK-001", "q-2", "SQLite."))
-	must(t, setStatus(s, "TASK-001", "Approved", ""))
-	table, _ := s.Get("TASK-001", "13")
-	if strings.Contains(table, "None.") || !strings.Contains(table, `| Q-1 | Which \| cache? | Maintainer | SQLite. |`) {
-		t.Fatalf("questions table =\n%s", table)
-	}
-	if err := s.AnswerQuestion("TASK-001", "Q-9", "x"); err == nil {
-		t.Error("answer to a missing question did not fail")
-	}
-}
-
-func TestKeepRealQuestions(t *testing.T) {
-	for _, first := range []string{"[CLI] keep the -p flag?", "None."} {
-		s := newStore(t)
-		create(t, s, "One")
-		if _, err := s.AddQuestion("TASK-001", first, ""); err != nil {
-			t.Fatal(err)
-		}
-		qid, err := s.AddQuestion("TASK-001", "Second?", "")
-		if err != nil || qid != "Q-2" {
-			t.Fatalf("second AddQuestion = %q, %v; want Q-2", qid, err)
-		}
-		table, _ := s.Get("TASK-001", "13")
-		if !strings.Contains(table, "| Q-1 | "+first+" |") || !strings.Contains(table, "| Q-2 | Second? |") {
-			t.Errorf("questions table =\n%s", table)
-		}
-	}
-}
-
-func TestWithoutPlaceholders(t *testing.T) {
-	lines := []string{noQuestions, "| Q-1 | [Question] | Maintainer | Open |", "| Q-2 | [CLI] real? | Maintainer | Open |"}
-	got, next := withoutPlaceholders(lines)
-	if !slices.Equal(got, lines[2:]) || next != 3 {
-		t.Errorf("withoutPlaceholders = %q, %d", got, next)
-	}
-}
-
-func TestCheckDoD(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	for item := 1; item <= 5; item++ {
-		if err := s.CheckDoD("TASK-001", item, "CI run 1."); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.CheckDoD("TASK-001", 1, "again"); err == nil {
-		t.Error("checking an item two times did not fail")
-	}
-	if err := s.CheckDoD("TASK-001", 6, "x"); err == nil {
-		t.Error("checking a missing item did not fail")
-	}
-	force(t, s, "TASK-001", "In Development")
-	if err := setStatus(s, "TASK-001", "Done", ""); err != nil {
-		t.Fatalf("Done with all items checked = %v", err)
-	}
-}
-
-// TestListMilestone is AC-2 of TASK-030.
-func TestListMilestone(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	create(t, s, "Two")
-	update(t, s, "TASK-002", Update{Milestone: "v0.2.0"})
-	got, _, _ := s.List(Filter{"milestone": "v0.1.0"})
-	if len(got) != 1 || got[0].Front.ID != "TASK-001" {
-		t.Fatalf("List(milestone: v0.1.0) = %+v", got)
-	}
-}
-
-// TestListReady is AC-3 and AC-4 of TASK-030.
-func TestListReady(t *testing.T) {
-	s := newStore(t)
-	for _, title := range []string{"Dep", "A", "B", "C", "Later", "Done dep"} {
-		create(t, s, title)
-	}
-	for _, id := range []string{"TASK-002", "TASK-003", "TASK-005"} {
-		force(t, s, id, "Approved")
-	}
-	update(t, s, "TASK-002", Update{DependsOn: []string{"TASK-001"}})
-	update(t, s, "TASK-006", Update{Milestone: "v0.10.0"})
-	update(t, s, "TASK-003", Update{Milestone: "v0.10.0", DependsOn: []string{"TASK-006"}})
-	update(t, s, "TASK-005", Update{Milestone: "v0.2.0", Priority: "P3"})
-	force(t, s, "TASK-006", "Done")
-	got, _, err := s.List(Filter{"status": "ready"})
+	addSpec(t, s, "b-spec", "Approved", 1)
+	addSpec(t, s, "a-spec", "Approved", 1)
+	session := connect(t, s)
+	run(t, session, []step{
+		{"task_create", createArgs("general", "g", nil), "Created task general/g."},
+		{"task_create", createArgs("b-spec", "b", nil), "Created task b-spec/b."},
+		{"task_create", createArgs("a-spec", "low", map[string]any{"priority": "P3"}), "Created task a-spec/low."},
+		{"task_create", createArgs("a-spec", "high", map[string]any{"priority": "P0"}), "Created task a-spec/high."},
+		{"task_create", createArgs("a-spec", "started", map[string]any{"priority": "P3"}), "Created task a-spec/started."},
+		{"task_set_status", map[string]any{"id": "a-spec/started", "status": "In Progress"}, "Task a-spec/started is In Progress."},
+		{"task_list", map[string]any{}, "a-spec/started  In Progress  P3  Task started\n" +
+			"a-spec/high     Todo         P0  Task high\n" +
+			"a-spec/low      Todo         P3  Task low\n" +
+			"b-spec/b        Todo         P1  Task b\n" +
+			"general/g       Todo         P1  Task g\n"},
+		{"task_list", map[string]any{"spec": "b-spec"}, "b-spec/b  Todo  P1  Task b\n"},
+		{"task_list", map[string]any{"status": "In Progress"}, "a-spec/started  In Progress  P3  Task started\n"},
+		{"task_list", map[string]any{"status": "Open"}, `ERR Status "Open" is not valid. Use one of: In Progress, Blocked, Todo, Done.`},
+		{"task_get", map[string]any{"id": "b-spec/b", "section": "Brief"}, "Do the work."},
+		{"task_get", map[string]any{"id": "b-spec/b", "section": "Goals"}, "ERR Section Goals does not exist. Use Brief, Plan, Notes or Definition of Done."},
+		{"task_get", map[string]any{"id": "TASK-001"}, "ERR Task TASK-001 does not exist."},
+		{"task_get", map[string]any{"id": "b-spec/nope"}, "ERR Task b-spec/nope does not exist."},
+	})
+	path := filepath.Join(s.Dir, "b-spec", "b.md")
+	data, err := os.ReadFile(path)
 	must(t, err)
-	var ids []string
-	for _, task := range got {
-		ids = append(ids, task.Front.ID)
-	}
-	if strings.Join(ids, " ") != "TASK-005 TASK-003" {
-		t.Fatalf("ready = %v, want TASK-005 TASK-003", ids)
-	}
+	must(t, os.WriteFile(path, []byte(strings.Replace(string(data), "id: b-spec/b", "id: b-spec/c", 1)), 0o644))
+	run(t, session, []step{
+		{"task_get", map[string]any{"id": "b-spec/b"}, "ERR Task file b-spec/b.md has the id b-spec/c."},
+		{"task_list", map[string]any{}, "ERR Task file b-spec/b.md has the id b-spec/c."},
+	})
 }
 
-// TestListDepsStatus is AC-1 to AC-3 of TASK-048.
-func TestListDepsStatus(t *testing.T) {
+func TestUpdate(t *testing.T) {
 	s := newStore(t)
-	for _, title := range []string{"Done dep", "Open dep", "Gone dep", "Main"} {
-		create(t, s, title)
-	}
-	update(t, s, "TASK-004", Update{DependsOn: []string{"TASK-001", "TASK-002", "TASK-003"}})
-	force(t, s, "TASK-001", "Done")
-	gone, _ := filepath.Glob(filepath.Join(s.Dir, "TASK-003-*.md"))
-	must(t, os.Remove(gone[0]))
-	got, err := s.listText(listInput{ID: "TASK-004"})
-	must(t, err)
-	if want := "deps:TASK-001, TASK-002 (Draft), TASK-003 (missing)"; !strings.Contains(got, want) {
-		t.Fatalf("task_list = %q, want %q", got, want)
+	addSpec(t, s, "a", "Draft", 2)
+	session := connect(t, s)
+	id := "a/x"
+	run(t, session, []step{
+		{"task_create", createArgs("a", "y", nil), "Created task a/y."},
+		{"task_create", createArgs("a", "x", nil), "Created task a/x."},
+		{"task_update_section", map[string]any{"id": id, "section": "notes", "body": "- A note."}, "Updated section notes of a/x."},
+		{"task_update_section", map[string]any{"id": id, "section": "Brief", "body": " "}, "ERR Give the brief."},
+		{"task_update_section", map[string]any{"id": id, "section": "Plan", "body": ""}, "ERR Give one or more plan steps."},
+		{"task_update_section", map[string]any{"id": id, "section": "Definition of Done", "body": "x"},
+			"ERR Section Definition of Done changes only with task_dod_add, task_dod_remove, task_dod_check and task_dod_uncheck."},
+		{"task_update_section", map[string]any{"id": id, "section": "Goals", "body": "x"}, "ERR Section Goals does not exist. Use Brief, Plan or Notes."},
+		{"task_update_fields", map[string]any{"id": id}, "ERR Give a field to change."},
+		{"task_update_fields", map[string]any{"id": id, "title": "New title", "priority": "P0", "covers": []string{"R-2"}, "depends_on": []string{"a/y"}}, "Updated task a/x."},
+		{"task_update_fields", map[string]any{"id": "a/y", "depends_on": []string{"a/x"}}, "ERR The dependency makes a cycle: a/y -> a/x -> a/y."},
+		{"task_update_fields", map[string]any{"id": id, "covers": []string{"R-7"}}, "ERR Spec a has no requirement R-7."},
+		{"task_update_fields", map[string]any{"id": id, "depends_on": []string{}}, "Updated task a/x."},
+	})
+	got := read(t, s, id)
+	for _, want := range []string{"title: New title", "priority: P0", "covers: [R-2]", "depends_on: []", "# New title", "## Notes\n\n- A note."} {
+		if !strings.Contains(got, want) {
+			t.Errorf("task has no %q:\n%s", want, got)
+		}
 	}
 }
 
-// force sets the status with no status rules.
-func force(t *testing.T, s Store, id, status string) {
+func TestStatus(t *testing.T) {
+	s := newStore(t)
+	addSpec(t, s, "draft", "Draft", 1)
+	addSpec(t, s, "a", "Approved", 3)
+	session := connect(t, s)
+	run(t, session, []step{
+		{"task_create", createArgs("draft", "d", nil), "Created task draft/d."},
+		{"task_set_status", map[string]any{"id": "draft/d", "status": "In Progress"}, "ERR Spec draft is Draft. A task starts only when its spec is Approved."},
+		{"task_create", createArgs("a", "first", nil), "Created task a/first."},
+		{"task_create", createArgs("a", "second", map[string]any{"covers": []string{"R-1", "R-3"}, "depends_on": []string{"a/first"},
+			"plan": []string{"One.", "Two."}}), "Created task a/second."},
+		{"task_set_status", map[string]any{"id": "a/second", "status": "Done"}, "ERR A task does not go from Todo to Done. Allowed: In Progress, Blocked."},
+		{"task_set_status", map[string]any{"id": "a/second", "status": "Open"}, `ERR Status "Open" is not valid. Use one of: In Progress, Blocked, Todo, Done.`},
+		{"task_set_status", map[string]any{"id": "a/second", "status": "In Progress"}, "ERR Task a/first is not Done."},
+		{"task_set_status", map[string]any{"id": "a/second", "status": "Blocked"}, "ERR Give the blocker in note."},
+		{"task_set_status", map[string]any{"id": "a/second", "status": "Blocked", "note": "Waits for a/first."}, "Task a/second is Blocked."},
+		{"task_set_status", map[string]any{"id": "a/first", "status": "In Progress", "note": "Start."}, "Task a/first is In Progress."},
+		{"task_set_status", map[string]any{"id": "a/first", "status": "Done"},
+			"ERR Plan step 1 and Definition of Done items 1, 2 are not checked."},
+		{"task_step_check", map[string]any{"id": "a/first", "step": 2}, "ERR Step 2 does not exist. The Plan has 1 steps."},
+		{"task_step_check", map[string]any{"id": "a/first", "step": 1}, "Checked step 1 of a/first."},
+		{"task_step_check", map[string]any{"id": "a/first", "step": 1}, "ERR Step 1 is already checked."},
+		{"task_dod_check", map[string]any{"id": "a/first", "item": 1, "evidence": "Test."}, "Checked item 1 of a/first."},
+		{"task_set_status", map[string]any{"id": "a/first", "status": "Done"}, "ERR Definition of Done item 2 is not checked."},
+		{"task_dod_check", map[string]any{"id": "a/first", "item": 2, "evidence": "CI."}, "Checked item 2 of a/first."},
+		{"task_set_status", map[string]any{"id": "a/first", "status": "Done"}, "Task a/first is Done."},
+		{"task_set_status", map[string]any{"id": "a/first", "status": "Todo"}, "ERR Task a/first is Done and does not change."},
+		{"task_update_section", map[string]any{"id": "a/first", "section": "Notes", "body": "x"}, "ERR Task a/first is Done and does not change."},
+		{"task_set_status", map[string]any{"id": "a/second", "status": "In Progress"}, "Task a/second is In Progress."},
+		{"task_step_check", map[string]any{"id": "a/second", "step": 1}, "Checked step 1 of a/second."},
+		{"task_set_status", map[string]any{"id": "a/second", "status": "Done"}, "ERR Plan step 2 and Definition of Done items 1, 2 are not checked."},
+		{"task_step_check", map[string]any{"id": "a/second", "step": 2}, "Checked step 2 of a/second."},
+		{"task_dod_check", map[string]any{"id": "a/second", "item": 1, "evidence": "Test."}, "Checked item 1 of a/second."},
+		{"task_dod_check", map[string]any{"id": "a/second", "item": 2, "evidence": "CI."}, "Checked item 2 of a/second."},
+		{"task_set_status", map[string]any{"id": "a/second", "status": "Done"}, "Task a/second is Done. Spec a: R-1, R-3: Done."},
+	})
+	if got := read(t, s, "a/second"); !strings.Contains(got, "## Notes\n\n- Blocked: Waits for a/first.") {
+		t.Errorf("Notes have no Blocked line:\n%s", got)
+	}
+	if got := read(t, s, "a/first"); !strings.Contains(got, "- In Progress: Start.") {
+		t.Errorf("Notes have no In Progress line:\n%s", got)
+	}
+	sp, err := s.Specs.Get("a", "")
+	must(t, err)
+	for _, want := range []string{"| R-1 | A behavior. | Done |", "| R-2 | A behavior. | Planned |", "| R-3 | A behavior. | Done |", "| Tester | R-1, R-3: Done. |"} {
+		if !strings.Contains(sp, want) {
+			t.Errorf("spec has no %q:\n%s", want, sp)
+		}
+	}
+}
+
+func TestDoD(t *testing.T) {
+	s := newStore(t)
+	session := connect(t, s)
+	id := "general/x"
+	run(t, session, []step{
+		{"task_create", createArgs("general", "x", nil), "Created task general/x."},
+		{"task_dod_check", map[string]any{"id": id, "item": 1, "evidence": " "}, "ERR Give the evidence."},
+		{"task_dod_check", map[string]any{"id": id, "item": 3, "evidence": "x"}, "ERR Item 3 does not exist. The Definition of Done has 2 items."},
+		{"task_dod_check", map[string]any{"id": id, "item": 1, "evidence": "Test."}, "Checked item 1 of general/x."},
+		{"task_dod_check", map[string]any{"id": id, "item": 1, "evidence": "Test."}, "ERR Item 1 is already checked."},
+		{"task_dod_uncheck", map[string]any{"id": id, "item": 2}, "ERR Item 2 is not checked."},
+		{"task_dod_uncheck", map[string]any{"id": id, "item": 1}, "Unchecked item 1 of general/x."},
+		{"task_dod_add", map[string]any{"id": id, "text": "Docs are updated."}, "Added item 3 to general/x."},
+		{"task_dod_remove", map[string]any{"id": id, "item": 3, "reason": " "}, "ERR Give the reason."},
+		{"task_dod_remove", map[string]any{"id": id, "item": 3, "reason": "No docs change."}, "Removed item 3 of general/x."},
+	})
+	got := read(t, s, id)
+	want := "## Notes\n\n- Definition of Done item 3 removed (Docs are updated.): No docs change.\n\n## Definition of Done\n\n" +
+		generalItem + "\n- [ ] Project checks (build, tests, lint) pass.\n"
+	if !strings.HasSuffix(got, want) {
+		t.Errorf("task =\n%s\nwant suffix\n%s", got, want)
+	}
+}
+
+func TestMoveAndDelete(t *testing.T) {
+	s := newStore(t)
+	addSpec(t, s, "old", "Approved", 2)
+	addSpec(t, s, "new", "Draft", 0)
+	session := connect(t, s)
+	run(t, session, []step{
+		{"task_create", createArgs("old", "a", map[string]any{"covers": []string{"R-1", "R-2"}}), "Created task old/a."},
+		{"task_create", createArgs("old", "b", map[string]any{"depends_on": []string{"old/a"}}), "Created task old/b."},
+		{"task_create", createArgs("old", "c", nil), "Created task old/c."},
+		{"task_create", createArgs("new", "c", nil), "Created task new/c."},
+		{"task_move", map[string]any{"ids": []string{}, "to": "new"}, "ERR Give one or more task IDs."},
+		{"task_move", map[string]any{"ids": []string{"old/a", "new/c"}, "to": "general"}, "ERR The tasks must be of one spec."},
+		{"task_move", map[string]any{"ids": []string{"old/a"}, "to": "old"}, "ERR The tasks are in old already."},
+		{"task_move", map[string]any{"ids": []string{"old/a"}, "to": "nope"}, "ERR No spec has the slug nope."},
+		{"task_move", map[string]any{"ids": []string{"old/zzz"}, "to": "new"}, "ERR Task old/zzz does not exist."},
+		{"task_move", map[string]any{"ids": []string{"old/c"}, "to": "new"}, "ERR Task new/c already exists."},
+		{"task_move", map[string]any{"ids": []string{"old/a"}, "to": "new"}, "ERR Task old/b depends on task old/a, which goes to new."},
+		{"task_move", map[string]any{"ids": []string{"old/b"}, "to": "new"}, "ERR Task old/b depends on task old/a, which stays in old."},
+		{"spec_delete", map[string]any{"slug": "old", "reason": "Split."}, "ERR Spec old has 3 tasks. Move or delete the tasks first, with task_move or task_delete."},
+		{"task_move", map[string]any{"ids": []string{"old/a", "old/b"}, "to": "new"}, "Moved 2 tasks to new."},
+		// A retry after the work finds the moved tasks and changes nothing.
+		{"task_move", map[string]any{"ids": []string{"old/a", "old/b"}, "to": "new"}, "Moved 2 tasks to new."},
+		{"task_delete", map[string]any{"ids": []string{}}, "ERR Give one or more task IDs."},
+		{"task_delete", map[string]any{"ids": []string{"new/a"}}, "ERR Task new/b depends on task new/a."},
+		{"task_delete", map[string]any{"ids": []string{"old/zzz"}}, "ERR Task old/zzz does not exist."},
+		{"task_delete", map[string]any{"ids": []string{"old/c"}}, "Deleted 1 task."},
+		{"task_list", map[string]any{"spec": "new"}, "new/a  Todo  P1  Task a\nnew/b  Todo  P1  Task b\nnew/c  Todo  P1  Task c\n"},
+	})
+	got := read(t, s, "new/a")
+	for _, want := range []string{"id: new/a", "covers: []", "## Notes\n\n- Moved from old. Old covers: R-1, R-2."} {
+		if !strings.Contains(got, want) {
+			t.Errorf("moved task has no %q:\n%s", want, got)
+		}
+	}
+	if got := read(t, s, "new/b"); !strings.Contains(got, "depends_on: [new/a]") || !strings.Contains(got, "- Moved from old.\n") {
+		t.Errorf("moved task b:\n%s", got)
+	}
+	if _, err := os.Stat(filepath.Join(s.Dir, "old")); !os.IsNotExist(err) {
+		t.Errorf("the empty folder of old exists: %v", err)
+	}
+	commitAll(t, s.Specs.Root)
+	run(t, session, []step{
+		{"spec_delete", map[string]any{"slug": "old", "reason": "Split."}, "Deleted old. Give this reason in the commit message: Split."},
+		{"task_delete", map[string]any{"ids": []string{"new/a", "new/b", "new/c"}}, "Deleted 3 tasks."},
+		{"task_list", map[string]any{}, "No tasks."},
+	})
+}
+
+// TestMoveRetry is Q-43: a crash after the write of the new file and before the remove of the old file
+// leaves both files. A retry removes the old file.
+func TestMoveRetry(t *testing.T) {
+	s := newStore(t)
+	addSpec(t, s, "new", "Draft", 0)
+	session := connect(t, s)
+	run(t, session, []step{
+		{"task_create", createArgs("general", "a", nil), "Created task general/a."},
+	})
+	old := filepath.Join(s.Dir, "general", "a.md")
+	data, err := os.ReadFile(old)
+	must(t, err)
+	run(t, session, []step{
+		{"task_move", map[string]any{"ids": []string{"general/a"}, "to": "new"}, "Moved 1 task to new."},
+	})
+	must(t, os.MkdirAll(filepath.Dir(old), 0o755))
+	must(t, os.WriteFile(old, data, 0o644))
+	run(t, session, []step{
+		{"task_move", map[string]any{"ids": []string{"general/a"}, "to": "new"}, "Moved 1 task to new."},
+		{"task_list", map[string]any{}, "new/a  Todo  P1  Task a\n"},
+	})
+	if got := read(t, s, "new/a"); strings.Count(got, "Moved from general.") != 1 {
+		t.Errorf("task =\n%s", got)
+	}
+}
+
+// commitAll commits all files of the repository root, so spec_delete accepts the folder.
+func commitAll(t *testing.T, root string) {
 	t.Helper()
-	must(t, s.edit(id, func(d *doc) error {
-		d.front = markdown.SetField(d.front, "status", status)
-		return nil
-	}))
-}
-
-func TestUpdateFields(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	u := Update{Title: "New title", Priority: "P0", Milestone: "v0.2.0", Type: "fix", Size: "M", Owner: "Equal", DependsOn: []string{}, Related: []string{"ADR-001"}}
-	if _, _, err := s.UpdateFields("TASK-001", u); err != nil {
-		t.Fatal(err)
-	}
-	doc := read(t, s, "TASK-001")
-	for _, want := range []string{
-		"title: New title\nstatus: Draft\npriority: P0\nmilestone: v0.2.0\ntype: fix\nsize: M\nowner: Equal\nplatforms: []\narea: [cli]\ndepends_on: []\nrelated: [ADR-001]\n",
-		"# TASK-001: New title\n",
-	} {
-		if !strings.Contains(doc, want) {
-			t.Errorf("task does not contain %q", want)
-		}
-	}
-	for _, bad := range []Update{{Priority: "P5"}, {Milestone: "v1"}, {Type: "feature"}, {Size: "L"}} {
-		if _, _, err := s.UpdateFields("TASK-001", bad); err == nil {
-			t.Errorf("UpdateFields(%+v) did not fail", bad)
-		}
-	}
-}
-
-func TestRenumber(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	create(t, s, "Two")
-	// A teammate's branch used number 1 too.
-	dup := strings.ReplaceAll(read(t, s, "TASK-002"), "TASK-002", "TASK-001")
-	must(t, os.WriteFile(filepath.Join(s.Dir, "TASK-001-dup.md"), []byte(dup), 0o644))
-	update(t, s, "TASK-002", Update{DependsOn: []string{"TASK-001"}})
-	newID, refs, err := s.Renumber("TASK-001-dup.md")
-	if err != nil || newID != "TASK-003" {
-		t.Fatalf("Renumber = %q, %v", newID, err)
-	}
-	if len(refs) != 2 || refs[0] != "TASK-001-one.md" || refs[1] != "TASK-002-two.md" {
-		t.Fatalf("refs = %v", refs)
-	}
-	doc := read(t, s, "TASK-003")
-	if !strings.Contains(doc, "id: TASK-003") || !strings.Contains(doc, "# TASK-003: Two") {
-		t.Fatalf("renumbered task =\n%s", doc)
-	}
-	_, err = s.Get("TASK-001", "")
-	must(t, err)
-	// AC-4 of TASK-049: the file moved, so one file has each number.
-	if _, err := os.Stat(filepath.Join(s.Dir, "TASK-001-dup.md")); !os.IsNotExist(err) {
-		t.Fatalf("the old file exists: %v", err)
-	}
-	if _, err := os.Stat(filepath.Join(s.Dir, "TASK-003-dup.md")); err != nil {
-		t.Fatalf("the new file does not exist: %v", err)
-	}
-}
-
-// TestRenumberMoveFails is AC-1 of TASK-054.
-func TestRenumberMoveFails(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	path := filepath.Join(s.Dir, "TASK-001-one.md")
-	before, err := os.ReadFile(path)
-	must(t, err)
-	move = func(string, string) error { return os.ErrExist }
-	t.Cleanup(func() { move = docfile.Move })
-	if _, _, err := s.Renumber("TASK-001-one.md"); !errors.Is(err, os.ErrExist) {
-		t.Fatalf("Renumber = %v; want the error of Move", err)
-	}
-	after, err := os.ReadFile(path)
-	must(t, err)
-	if string(after) != string(before) {
-		t.Fatalf("the old file changed:\n%s", after)
-	}
-}
-
-// TestRenumberBadFrontmatter is AC-2 of TASK-054.
-func TestRenumberBadFrontmatter(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	path := filepath.Join(s.Dir, "TASK-001-one.md")
-	bad := []byte("---\nid: TASK-001\ntitle: [One\n---\n\n# TASK-001: One\n")
-	must(t, os.WriteFile(path, bad, 0o644))
-	if _, _, err := s.Renumber("TASK-001-one.md"); err == nil || !strings.Contains(err.Error(), "bad frontmatter") {
-		t.Fatalf("Renumber = %v; want a bad frontmatter error", err)
-	}
-	after, err := os.ReadFile(path)
-	must(t, err)
-	if string(after) != string(bad) {
-		t.Fatalf("the file changed:\n%s", after)
-	}
-}
-
-// TestIndexMatchesRepository makes README.md for the tasks of this repository and compares it with
-// the committed README.md. The committed file came from the equal-tasks-index script, so the format is the same.
-func TestIndexMatchesRepository(t *testing.T) {
-	repo := filepath.Join("..", "..", "..", "docs", "tasks")
-	want, err := os.ReadFile(filepath.Join(repo, "README.md"))
-	if err != nil {
-		t.Skip("no repository tasks")
-	}
-	s := Store{Dir: t.TempDir()}
-	files, _ := filepath.Glob(filepath.Join(repo, "TASK-*.md"))
-	for _, f := range files {
-		data, _ := os.ReadFile(f)
-		if err := os.WriteFile(filepath.Join(s.Dir, filepath.Base(f)), data, 0o644); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := s.WriteIndex(); err != nil {
-		t.Fatal(err)
-	}
-	got, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
-	if string(got) != string(want) {
-		t.Fatalf("README.md differs from the committed file.\ngot:\n%s", got)
-	}
-}
-
-// BenchmarkList200 measures NFR-1: task_list on 200 tasks takes less than 50 ms.
-func BenchmarkList200(b *testing.B) {
-	data, err := os.ReadFile(filepath.Join("..", "..", "..", "docs", "tasks", "TASK-006-task-tools-index-and-skill.md"))
-	if err != nil {
-		b.Skip("no repository tasks")
-	}
-	s := Store{Dir: b.TempDir()}
-	for i := 1; i <= 200; i++ {
-		name := fmt.Sprintf("TASK-%03d-task.md", i)
-		text := strings.Replace(string(data), "id: TASK-006", fmt.Sprintf("id: TASK-%03d", i), 1)
-		if err := os.WriteFile(filepath.Join(s.Dir, name), []byte(text), 0o644); err != nil {
-			b.Fatal(err)
-		}
-	}
-	for b.Loop() {
-		if _, err := s.listText(listInput{Status: "all"}); err != nil {
-			b.Fatal(err)
-		}
-	}
-}
-
-// TestIndexMilestones is AC-5 of TASK-030: one open table for each milestone, then one closed table.
-func TestIndexMilestones(t *testing.T) {
-	s := newStore(t)
-	for _, title := range []string{"One", "Two", "Three"} {
-		create(t, s, title)
-	}
-	update(t, s, "TASK-001", Update{Milestone: "v0.2.0"})
-	must(t, setStatus(s, "TASK-003", "Cancelled", "Not necessary."))
-	data, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
-	text := string(data)
-	v1, v2, closed := strings.Index(text, "## v0.1.0\n"), strings.Index(text, "## v0.2.0\n"), strings.Index(text, "## Closed\n")
-	if v1 < 0 || v1 > v2 || v2 > closed || !strings.Contains(text[v1:v2], "TASK-002") || !strings.Contains(text[closed:], "TASK-003") {
-		t.Fatalf("README.md =\n%s", text)
-	}
-}
-
-// TestDependsOnRules is AC-1 to AC-6 of TASK-023.
-func TestDependsOnRules(t *testing.T) {
-	s := newStore(t)
-	refused := func(err error, want string) {
-		t.Helper()
-		if err == nil || !strings.Contains(err.Error(), want) {
-			t.Fatalf("error = %v, want %q", err, want)
-		}
-	}
-	_, _, err := s.Create(New{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feat", DependsOn: []string{"TASK-099"}})
-	refused(err, "TASK-099 does not exist")
-	if _, err := os.Stat(s.Dir); err == nil {
-		t.Fatal("AC-1: a refused Create made docs/tasks")
-	}
-	for _, title := range []string{"One", "Two", "Three", "Four"} {
-		create(t, s, title)
-	}
-	update(t, s, "TASK-001", Update{DependsOn: []string{"TASK-002"}})
-	before := read(t, s, "TASK-002")
-	_, _, err = s.UpdateFields("TASK-002", Update{DependsOn: []string{"TASK-001"}})
-	refused(err, "TASK-002 -> TASK-001 -> TASK-002")
-	if read(t, s, "TASK-002") != before {
-		t.Fatal("AC-2: a refused change changed the file")
-	}
-	_, _, err = s.UpdateFields("TASK-002", Update{DependsOn: []string{"TASK-002"}})
-	refused(err, "itself")
-	force(t, s, "TASK-003", "Done")
-	force(t, s, "TASK-004", "Cancelled")
-	for _, id := range []string{"TASK-003", "TASK-004"} {
-		_, _, err = s.Create(New{Title: "X", Priority: "P1", Milestone: "v0.1.0", Type: "feat", DependsOn: []string{id}})
-		refused(err, "Put it in related")
-	}
-	update(t, s, "TASK-001", Update{DependsOn: []string{}})
-	update(t, s, "TASK-002", Update{Milestone: "v0.2.0"})
-	_, _, err = s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002"}})
-	refused(err, "later milestone v0.2.0")
-	update(t, s, "TASK-002", Update{Milestone: "v0.1.0", Priority: "P3"})
-	_, warnings, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002"}})
-	if err != nil || !strings.Contains(warnings, "TASK-002 has the lower priority P3") {
-		t.Fatalf("AC-6: warnings = %q, %v", warnings, err)
-	}
-}
-
-// TestRetitleUsedTitle is AC-1 and AC-2 of TASK-056.
-func TestRetitleUsedTitle(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	create(t, s, "Two")
-	before := read(t, s, "TASK-002")
-	if _, _, err := s.UpdateFields("TASK-002", Update{Title: "one"}); err == nil || !strings.Contains(err.Error(), "TASK-001 has the same title") {
-		t.Fatalf("AC-1: UpdateFields = %v", err)
-	}
-	if read(t, s, "TASK-002") != before {
-		t.Fatal("AC-1: a refused title change changed the file")
-	}
-	if _, _, err := s.UpdateFields("TASK-001", Update{Title: "ONE"}); err != nil {
-		t.Fatalf("AC-2: UpdateFields = %v", err)
-	}
-}
-
-// TestIndexEscapesPipes is AC-1 of TASK-057 for tasks: the open and the closed rows.
-func TestIndexEscapesPipes(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "Fix a|b parse")
-	create(t, s, "Fix c|d parse")
-	force(t, s, "TASK-002", "Done")
-	data, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
-	for _, want := range []string{"| Fix a\\|b parse | `Draft` |", "| Fix c\\|d parse | `Done` |"} {
-		if !strings.Contains(string(data), want) {
-			t.Errorf("README.md has no %q:\n%s", want, data)
-		}
-	}
-}
-
-// TestOldDoneDependency is AC-1 to AC-3 of TASK-040.
-func TestOldDoneDependency(t *testing.T) {
-	s := newStore(t)
-	for _, title := range []string{"Main", "Old", "New", "Done"} {
-		create(t, s, title)
-	}
-	update(t, s, "TASK-001", Update{DependsOn: []string{"TASK-002"}})
-	force(t, s, "TASK-002", "Done")
-	force(t, s, "TASK-004", "Done")
-	if _, _, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002", "TASK-003"}}); err != nil {
-		t.Fatalf("AC-1: UpdateFields = %v", err)
-	}
-	_, _, err := s.UpdateFields("TASK-001", Update{DependsOn: []string{"TASK-002", "TASK-003", "TASK-004"}})
-	if err == nil || !strings.Contains(err.Error(), "TASK-004 is Done") {
-		t.Fatalf("AC-2: UpdateFields = %v", err)
-	}
-	_, _, err = s.UpdateFields("TASK-003", Update{DependsOn: []string{"TASK-001"}})
-	if err == nil || !strings.Contains(err.Error(), "TASK-003 -> TASK-001 -> TASK-003") {
-		t.Fatalf("AC-3: UpdateFields = %v", err)
-	}
-}
-
-// TestRenameOnTitle is AC-1 to AC-3 of TASK-042.
-func TestRenameOnTitle(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "Old")
-	file, _, err := s.UpdateFields("TASK-001", Update{Title: "New name"})
-	if err != nil || file != "TASK-001-new-name.md" {
-		t.Fatalf("AC-1: UpdateFields = %q, %v", file, err)
-	}
-	if _, err := os.Stat(filepath.Join(s.Dir, "TASK-001-old.md")); !os.IsNotExist(err) {
-		t.Fatalf("AC-1: the old file exists: %v", err)
-	}
-	index, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
-	if !strings.Contains(string(index), "TASK-001-new-name.md") {
-		t.Fatalf("AC-1: README.md =\n%s", index)
-	}
-	file, _, err = s.UpdateFields("TASK-001", Update{Title: "New Name"})
-	if err != nil || file != "" {
-		t.Fatalf("AC-2: UpdateFields = %q, %v", file, err)
-	}
-	must(t, os.WriteFile(filepath.Join(s.Dir, "TASK-001-taken.md"), nil, 0o644))
-	before, _ := os.ReadFile(filepath.Join(s.Dir, "TASK-001-new-name.md"))
-	if _, _, err := s.UpdateFields("TASK-001", Update{Title: "Taken"}); err == nil {
-		t.Fatal("AC-3: UpdateFields to an existing file name did not fail")
-	}
-	after, _ := os.ReadFile(filepath.Join(s.Dir, "TASK-001-new-name.md"))
-	if string(after) != string(before) {
-		t.Fatal("AC-3: a refused change changed the file")
-	}
-}
-
-// TestRenameExists is FR-2 of TASK-042 in edit: a new path that exists is refused.
-func TestRenameExists(t *testing.T) {
-	dir := t.TempDir()
-	old, path := filepath.Join(dir, "a.md"), filepath.Join(dir, "b.md")
-	must(t, os.WriteFile(old, []byte("a"), 0o644))
-	must(t, os.WriteFile(path, []byte("b"), 0o644))
-	if err := rename(old, path, []byte("c")); err == nil || !strings.Contains(err.Error(), "b.md exists") {
-		t.Fatalf("rename = %v", err)
-	}
-	if data, _ := os.ReadFile(path); string(data) != "b" {
-		t.Fatalf("rename changed the existing file: %q", data)
-	}
-	if _, err := os.Stat(old); err != nil {
-		t.Fatalf("rename removed the old file: %v", err)
-	}
-}
-
-// TestParallelEdits is AC-1 of TASK-047: the docs lock keeps all edits of parallel writers.
-func TestParallelEdits(t *testing.T) {
-	s := newStore(t)
-	s.Lock = filepath.Join(t.TempDir(), "docs.lock")
-	create(t, s, "One")
-	errs := make(chan error, 20)
-	for i := range 20 {
-		go func() {
-			_, err := s.AddQuestion("TASK-001", fmt.Sprintf("Question %d?", i), "")
-			errs <- err
-		}()
-	}
-	for range 20 {
-		must(t, <-errs)
-	}
-	text := read(t, s, "TASK-001")
-	for i := range 20 {
-		if !strings.Contains(text, fmt.Sprintf("Question %d?", i)) {
-			t.Fatalf("question %d is lost:\n%s", i, text)
-		}
-	}
-}
-
-// TestUncheckedDoDMessage is AC-7 of TASK-023.
-func TestUncheckedDoDMessage(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	must(t, s.CheckDoD("TASK-001", 1, "Evidence."))
-	force(t, s, "TASK-001", "In Development")
-	err := setStatus(s, "TASK-001", "Done", "")
-	if err == nil || !strings.HasSuffix(err.Error(), ": Definition of Done items 2, 3, 4, 5 are not checked") {
-		t.Fatalf("SetStatus(Done) = %v", err)
-	}
-}
-
-// TestTitleRules is AC-1 and AC-3 of TASK-028, and the duplicate title check.
-func TestTitleRules(t *testing.T) {
-	s := newStore(t)
-	_, _, err := s.Create(New{Title: strings.Repeat("x", 41), Priority: "P1", Milestone: "v0.1.0", Type: "feat"})
-	if err == nil || !strings.Contains(err.Error(), "41 characters") {
-		t.Fatalf("41 characters = %v", err)
-	}
-	if _, err := os.Stat(s.Dir); err == nil {
-		t.Fatal("AC-1: a refused Create made docs/tasks")
-	}
-	create(t, s, "One")
-	update(t, s, "TASK-001", Update{Title: strings.Repeat("y", 40)})
-	_, _, err = s.Create(New{Title: strings.Repeat("Y", 40), Priority: "P1", Milestone: "v0.1.0", Type: "feat"})
-	if err == nil || !strings.Contains(err.Error(), "TASK-001") {
-		t.Fatalf("duplicate title = %v", err)
-	}
-}
-
-// TestOverlapWarning is AC-1 to AC-3 of TASK-031.
-func TestOverlapWarning(t *testing.T) {
-	s := newStore(t)
-	plan := func(path string) map[string]string {
-		return map[string]string{"8": "| Work batch | Files | Steps | Check |\n| :--- | :--- | :--- | :--- |\n| 1 | `" + path + "` | X. | Y. |"}
-	}
-	for i, p := range []string{"internal/x.go", "internal/x.go", "internal/"} {
-		_, _, err := s.Create(New{Title: fmt.Sprint("Task ", i), Priority: "P1", Milestone: "v0.1.0", Type: "feat", Sections: plan(p)})
-		must(t, err)
-	}
-	force(t, s, "TASK-001", "In Review")
-	warnings, err := s.SetStatus("TASK-001", "Approved", "")
-	if err != nil || !strings.Contains(warnings, "Warning: TASK-002 also changes internal/x.go.") {
-		t.Fatalf("AC-1: warnings = %q, %v", warnings, err)
-	}
-	update(t, s, "TASK-002", Update{DependsOn: []string{"TASK-001"}})
-	force(t, s, "TASK-002", "In Review")
-	warnings, err = s.SetStatus("TASK-002", "Approved", "")
-	if err != nil || strings.Contains(warnings, "TASK-001") {
-		t.Fatalf("AC-2: warnings = %q, %v", warnings, err)
-	}
-	if !strings.Contains(warnings, "Warning: TASK-003 also changes internal/x.go.") {
-		t.Fatalf("AC-3: a directory does not overlap its file: %q", warnings)
-	}
-}
-
-// TestScopeChangeNeedsReview is AC-1 to AC-3 of TASK-032.
-func TestScopeChangeNeedsReview(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	force(t, s, "TASK-001", "Approved")
-	review, err := s.UpdateSection("TASK-001", "5.1", "The current state.")
-	if err != nil || review || !strings.Contains(read(t, s, "TASK-001"), "status: Approved\n") {
-		t.Fatalf("AC-2: section 5.1 = %v, %v", review, err)
-	}
-	update(t, s, "TASK-001", Update{Priority: "P0"})
-	if !strings.Contains(read(t, s, "TASK-001"), "status: Approved\n") {
-		t.Fatal("AC-3: task_update_fields changed the status")
-	}
-	review, err = s.UpdateSection("TASK-001", "6.1", "- FR-1: New.")
-	doc := read(t, s, "TASK-001")
-	if err != nil || !review || !strings.Contains(doc, "status: In Review\n") || !strings.Contains(doc, "Status: In Review. The scope changed in section 6.1.") {
-		t.Fatalf("AC-1: section 6.1 = %v, %v\n%s", review, err, doc)
-	}
-}
-
-// TestStatusChanges is the table of FR-1 of TASK-034, and AC-1 to AC-3.
-func TestStatusChanges(t *testing.T) {
-	allowed := map[string]string{
-		"Draft":          "In Review, Cancelled",
-		"In Review":      "Approved, Draft, Cancelled",
-		"Approved":       "In Development, In Review, Blocked, Cancelled",
-		"In Development": "Done, Blocked, Cancelled",
-		"Blocked":        "Approved, In Development, Cancelled",
-		"Cancelled":      "Draft",
-		"Done":           "",
-	}
-	for from, list := range allowed {
-		for _, to := range Statuses {
-			err := allowedChange(from, to)
-			if want := slices.Contains(strings.Split(list, ", "), to); (err == nil) != want {
-				t.Errorf("%s -> %s: %v, want allowed %v", from, to, err, want)
-			}
-		}
-	}
-	s := newStore(t)
-	create(t, s, "One")
-	err := setStatus(s, "TASK-001", "Approved", "")
-	if err == nil || !strings.Contains(err.Error(), "cannot set Approved from Draft. Allowed: In Review, Cancelled") {
-		t.Fatalf("AC-1: Draft -> Approved = %v", err)
-	}
-	force(t, s, "TASK-001", "Done")
-	if err := setStatus(s, "TASK-001", "In Development", ""); err == nil {
-		t.Fatal("AC-2: Done -> In Development passed")
-	}
-}
-
-// TestProtectedSections is AC-1 and AC-2 of TASK-037.
-func TestProtectedSections(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	for _, ref := range []string{"Document History", "13", "Open Questions", "14", "definition of done"} {
-		if _, err := s.UpdateSection("TASK-001", ref, "- [x] Done."); err == nil || !strings.Contains(err.Error(), "changes only with task_") {
-			t.Errorf("AC-1: UpdateSection(%s) = %v", ref, err)
-		}
-	}
-	for _, ref := range []string{"13", "14"} {
-		_, _, err := s.Create(New{Title: "Two " + ref, Priority: "P1", Milestone: "v0.1.0", Type: "feat", Sections: map[string]string{ref: "- [x] Done."}})
-		if err == nil {
-			t.Errorf("AC-2: Create with section %s passed", ref)
-		}
-	}
-}
-
-// TestSectionBodyHeadings is AC-1 to AC-3 of TASK-053.
-func TestSectionBodyHeadings(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	before := read(t, s, "TASK-001")
-	if _, err := s.UpdateSection("TASK-001", "12", "Revert.\n\n## 14. Definition of Done\n- [x] Done."); err == nil {
-		t.Error("AC-1: UpdateSection with a section 14 heading passed")
-	}
-	if after := read(t, s, "TASK-001"); after != before {
-		t.Error("AC-1: the refused UpdateSection changed the file")
-	}
-	if _, err := s.UpdateSection("TASK-001", "7", "### 7.1 Architecture\n\nFlow."); err != nil {
-		t.Errorf("AC-2: UpdateSection(7) = %v", err)
-	}
-	if _, err := s.UpdateSection("TASK-001", "7.1", "### 6.1 Functional"); err == nil {
-		t.Error("AC-3: UpdateSection(7.1) with a level 3 heading passed")
-	}
-}
-
-// section14 returns the Definition of Done and the Document History of TASK-001.
-func section14(s Store) (dod, history string) {
-	dod, _ = s.Get("TASK-001", "14")
-	history, _ = s.Get("TASK-001", "Document History")
-	return dod, history
-}
-
-// TestDoDCheckUncheck is AC-3 and AC-7 of TASK-037.
-func TestDoDCheckUncheck(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	must(t, s.CheckDoD("TASK-001", 1, "line one\nline two"))
-	if dod, _ := section14(s); !strings.HasPrefix(dod, "- [x] All acceptance criteria pass, with evidence.\n  - Evidence: line one line two\n- [ ] ") {
-		t.Fatalf("AC-7: section 14 =\n%s", dod)
-	}
-	if err := s.UncheckDoD("TASK-001", 1, ""); err == nil {
-		t.Error("uncheck with no reason passed")
-	}
-	must(t, s.UncheckDoD("TASK-001", 1, "Wrong run."))
-	dod, history := section14(s)
-	if strings.Contains(dod, "Evidence") || !strings.HasPrefix(dod, "- [ ] All acceptance") || !strings.Contains(history, "Definition of Done item 1 unchecked: Wrong run.") {
-		t.Fatalf("AC-3: section 14 =\n%s\nhistory =\n%s", dod, history)
-	}
-	if err := s.UncheckDoD("TASK-001", 1, "Again."); err == nil {
-		t.Error("uncheck of an unchecked item passed")
-	}
-}
-
-// TestDoDAddRemove is AC-4 and AC-5 of TASK-037.
-func TestDoDAddRemove(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	must(t, s.CheckDoD("TASK-001", 5, "ok"))
-	n, err := s.AddDoD("TASK-001", "Benchmark\npasses.")
-	if dod, _ := section14(s); err != nil || n != 6 || !strings.HasSuffix(dod, "  - Evidence: ok\n- [ ] Benchmark passes.") {
-		t.Fatalf("AC-4: AddDoD = %d, %v\n%s", n, err, dod)
-	}
-	must(t, s.RemoveDoD("TASK-001", 5, "Not needed."))
-	dod, history := section14(s)
-	if strings.Contains(dod, "ADRs are recorded") || strings.Contains(dod, "Evidence: ok") || !strings.Contains(history, "item 5 removed (ADRs are recorded for architectural decisions.): Not needed.") {
-		t.Fatalf("AC-5: section 14 =\n%s\nhistory =\n%s", dod, history)
-	}
-}
-
-// TestDoDDoneTask is AC-6 of TASK-037.
-func TestDoDDoneTask(t *testing.T) {
-	s := newStore(t)
-	create(t, s, "One")
-	force(t, s, "TASK-001", "Done")
-	_, addErr := s.AddDoD("TASK-001", "x")
-	errs := []error{s.CheckDoD("TASK-001", 1, "x"), s.UncheckDoD("TASK-001", 1, "x"), s.RemoveDoD("TASK-001", 1, "x"), addErr}
-	for i, err := range errs {
-		if err == nil || !strings.Contains(err.Error(), "TASK-001 is Done") {
-			t.Errorf("tool %d on a Done task = %v", i, err)
+	for _, args := range [][]string{{"init", "-q"}, {"add", "-A"}, {"-c", "commit.gpgsign=false", "-c", "user.name=Tester", "-c", "user.email=t@example.com",
+		"commit", "-q", "--allow-empty", "-m", "docs: specs"}} {
+		if out, err := exec.Command("git", append([]string{"-C", root}, args...)...).CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v\n%s", args, err, out)
 		}
 	}
 }

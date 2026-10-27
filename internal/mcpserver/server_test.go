@@ -23,8 +23,8 @@ var tools = []string{
 	"learning_create", "learning_delete", "learning_get", "learning_list", "learning_update",
 	"spec_create", "spec_delete", "spec_get", "spec_list", "spec_question_add", "spec_question_answer", "spec_req_add", "spec_req_set",
 	"spec_set_status", "spec_update_section",
-	"task_create", "task_dod_add", "task_dod_check", "task_dod_remove", "task_dod_uncheck", "task_get", "task_list", "task_question_add", "task_question_answer",
-	"task_renumber", "task_set_status", "task_update_fields", "task_update_section",
+	"task_create", "task_delete", "task_dod_add", "task_dod_check", "task_dod_remove", "task_dod_uncheck", "task_get", "task_list", "task_move",
+	"task_set_status", "task_step_check", "task_update_fields", "task_update_section",
 }
 
 // connect starts the dx server in a new git repository with a temporary cache directory,
@@ -45,7 +45,13 @@ func connect(t *testing.T) *mcp.ClientSession {
 			t.Fatalf("git %v: %v\n%s", args, err, out)
 		}
 	}
-	server, err := New("test", repo)
+	return serve(t, repo)
+}
+
+// serve starts the dx server for the project that contains dir and returns a client session over memory.
+func serve(t *testing.T, dir string) *mcp.ClientSession {
+	t.Helper()
+	server, err := New("test", dir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,9 +91,9 @@ func TestToolsFlow(t *testing.T) {
 		args map[string]any
 		want string
 	}{
-		{"task_create", map[string]any{"title": "Add a cache", "priority": "P1", "milestone": "v0.1.0", "type": "feat", "area": []string{"cli"}},
-			"Created docs/tasks/TASK-001-add-a-cache.md (Draft)."},
-		{"task_list", map[string]any{}, "TASK-001  Draft  P1  v0.1.0  Add a cache  [cli]  deps:None\n"},
+		{"task_create", map[string]any{"spec": "general", "slug": "add-a-cache", "title": "Add a cache", "priority": "P1",
+			"brief": "Add a cache.", "plan": []string{"Add it. Check: go test ./..."}}, "Created task general/add-a-cache."},
+		{"task_list", map[string]any{}, "general/add-a-cache  Todo  P1  Add a cache\n"},
 		{"adr_create", map[string]any{
 			"title": "Use stdio", "context": "C.", "decision": "D.", "evidence": "E.",
 			"alternatives": []map[string]any{{"option": "HTTP", "reason": "more work"}},
@@ -143,5 +149,36 @@ func TestDataDirAndProjectFile(t *testing.T) {
 	root, _ := filepath.EvalSymlinks(repo)
 	if _, err := time.Parse(time.RFC3339, f.LastUsed); err != nil || f.Path != root || !strings.HasSuffix(f.LastUsed, "Z") {
 		t.Fatalf("Project file (cache) = %+v, %v; want path %q and an RFC 3339 UTC date", f, err, root)
+	}
+}
+
+// TestWorktreesShareTasks is G-1 and R-1 of TASK-064: two worktrees of one repository see the same tasks.
+func TestWorktreesShareTasks(t *testing.T) {
+	main := connect(t)
+	repo := filepath.Join(os.Getenv("HOME"), "repo") // connect sets HOME to its temporary directory
+	other := filepath.Join(os.Getenv("HOME"), "other")
+	for _, args := range [][]string{
+		{"-C", repo, "-c", "commit.gpgsign=false", "-c", "user.email=t@example.com", "commit", "-q", "--allow-empty", "-m", "first"},
+		{"-C", repo, "worktree", "add", "-q", other},
+	} {
+		if out, err := exec.Command("git", args...).CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v\n%s", args, err, out)
+		}
+	}
+	res, err := main.CallTool(context.Background(), &mcp.CallToolParams{Name: "task_create", Arguments: map[string]any{
+		"spec": "general", "slug": "shared", "title": "Shared", "priority": "P1", "brief": "B.", "plan": []string{"S."},
+	}})
+	if err != nil || res.IsError {
+		t.Fatalf("task_create = %v, %+v", err, res)
+	}
+	res, err = serve(t, other).CallTool(context.Background(), &mcp.CallToolParams{Name: "task_list", Arguments: map[string]any{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if text := res.Content[0].(*mcp.TextContent).Text; text != "general/shared  Todo  P1  Shared\n" {
+		t.Fatalf("task_list in the other worktree = %q", text)
+	}
+	if _, err := os.Stat(filepath.Join(repo, ".git", "dx", "tasks", "general", "shared.md")); err != nil {
+		t.Fatalf("the task is not in .git/dx/tasks: %v", err)
 	}
 }

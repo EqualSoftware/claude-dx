@@ -3,75 +3,48 @@ package task
 import (
 	"errors"
 	"fmt"
-	"slices"
 	"strings"
 )
 
-// checkDeps checks the dependencies of the task f before a write (ADR-013, step 1). f.ID is empty
-// for a new task. It refuses an ID with no task file, the same task, a Done or Cancelled task, a later
-// milestone and a cycle. It returns one warning line for each dependency with a lower priority. It checks
-// only the IDs that are not in old, because an old dependency that became Done must not stop a change.
-// The cycle check uses all IDs.
-func (s Store) checkDeps(f Front, old []string) (string, error) {
+// checkDeps refuses a dependency on a task of another spec, a task that does not exist, the same task and
+// a cycle (R-4). The caller holds the docs lock.
+func (s Store) checkDeps(f Front) error {
 	if len(f.DependsOn) == 0 {
-		return "", nil
+		return nil
 	}
-	tasks, _, err := s.List(Filter{"status": "all"})
-	if err != nil && !errors.Is(err, ErrNoDir) {
-		return "", err
+	tasks, err := s.all()
+	if err != nil {
+		return err
 	}
-	byID := map[string]Front{}
-	for _, t := range tasks {
-		byID[t.Front.ID] = t.Front
-	}
-	var warnings string
-	for _, id := range f.DependsOn {
-		if slices.Contains(old, id) {
-			continue
+	for _, dep := range f.DependsOn {
+		if err := checkDep(f, dep, tasks); err != nil {
+			return err
 		}
-		warning, err := checkDep(f, id, byID)
-		if err != nil {
-			return "", err
-		}
-		warnings += warning
 	}
-	if f.ID == "" {
-		return warnings, nil
+	tasks[f.ID] = f
+	if path := depPath(f.ID, f.ID, tasks, map[string]bool{}); path != nil {
+		return fmt.Errorf("the dependency makes a cycle: %s", strings.Join(path, " -> "))
 	}
-	byID[f.ID] = f
-	if path := depPath(f.ID, f.ID, byID, nil); path != nil {
-		return "", fmt.Errorf("depends_on makes a cycle: %s", strings.Join(path, " -> "))
-	}
-	return warnings, nil
+	return nil
 }
 
-// checkDep checks one dependency id of the task f.
-func checkDep(f Front, id string, byID map[string]Front) (string, error) {
-	if strings.EqualFold(id, f.ID) {
-		return "", fmt.Errorf("%s cannot depend on itself", f.ID)
+// checkDep checks one dependency dep of the task f.
+func checkDep(f Front, dep string, tasks map[string]Front) error {
+	if dep == f.ID {
+		return errors.New("a task does not depend on itself")
 	}
-	dep, ok := byID[id]
-	if !ok {
-		return "", fmt.Errorf("dependency %s does not exist. Use task_list", id)
+	if slug, _, _ := strings.Cut(dep, "/"); slug != f.Spec() {
+		return fmt.Errorf("task %s is in another spec. A task depends only on tasks of its spec", dep)
 	}
-	if dep.Status == "Done" || dep.Status == "Cancelled" {
-		return "", fmt.Errorf("dependency %s is %s, so it sets no order. Put it in related", id, dep.Status)
+	if _, ok := tasks[dep]; !ok {
+		return fmt.Errorf("task %s does not exist", dep)
 	}
-	if slices.Compare(version(dep.Milestone), version(f.Milestone)) > 0 {
-		return "", fmt.Errorf("dependency %s has the later milestone %s. Change the milestone of one task", id, dep.Milestone)
-	}
-	if dep.Priority > f.Priority {
-		return fmt.Sprintf("Warning: dependency %s has the lower priority %s. This task waits for it.\n", id, dep.Priority), nil
-	}
-	return "", nil
+	return nil
 }
 
 // depPath returns the depends_on path from start to target, or nil.
-func depPath(start, target string, byID map[string]Front, seen map[string]bool) []string {
-	if seen == nil {
-		seen = map[string]bool{}
-	}
-	for _, dep := range byID[start].DependsOn {
+func depPath(start, target string, tasks map[string]Front, seen map[string]bool) []string {
+	for _, dep := range tasks[start].DependsOn {
 		if dep == target {
 			return []string{start, dep}
 		}
@@ -79,7 +52,7 @@ func depPath(start, target string, byID map[string]Front, seen map[string]bool) 
 			continue
 		}
 		seen[dep] = true
-		if path := depPath(dep, target, byID, seen); path != nil {
+		if path := depPath(dep, target, tasks, seen); path != nil {
 			return append([]string{start}, path...)
 		}
 	}

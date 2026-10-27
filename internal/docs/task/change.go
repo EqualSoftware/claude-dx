@@ -3,8 +3,6 @@ package task
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
 	"slices"
 	"strconv"
@@ -14,416 +12,229 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/markdown"
 )
 
-var (
-	questionRow = regexp.MustCompile(`^\| (Q-(\d+)) \| (.*?) \| (.*?) \| (.*?) \|$`)
-	dodItem     = regexp.MustCompile(`^- \[([ x])\] (.*)$`)
-)
+// checkItem matches one line of a checklist: a Plan step or a Definition of Done item.
+var checkItem = regexp.MustCompile(`^- \[([ x])\] (.*)$`)
 
-// leafSections are the sections with no subsections. In Review needs all of them filled.
-// Sections 13 and 14 are not in the list, because their template text is valid and only their tools change them.
-var leafSections = []string{"1", "2", "3", "4", "5.1", "5.2", "5.3", "6.1", "6.2", "7.1", "7.2", "7.3", "7.4", "7.5", "8", "9", "10", "11", "12"}
+// dod is the title of the Definition of Done section.
+const dod = "Definition of Done"
 
-// noQuestions is the template row of section 13. task_question_add removes it.
-const noQuestions = "| — | None. | — | — |"
+// sections are the sections that task_update_section changes.
+var sections = []string{"Brief", "Plan", "Notes"}
 
-// protected are the sections that only their own tools change, so the flow checks of ADR-013 stay true.
-var protected = []struct{ number, title, tools string }{
-	{"", "Document History", "task_set_status"},
-	{"13", "Open Questions", "task_question_add and task_question_answer"},
-	{"14", "Definition of Done", "task_dod_add, task_dod_remove, task_dod_check and task_dod_uncheck"},
-}
-
-// checkSection refuses a protected section.
-func checkSection(ref string) error {
-	for _, p := range protected {
-		if ref == p.number || strings.EqualFold(ref, p.title) {
-			return fmt.Errorf("section %q changes only with %s", ref, p.tools)
-		}
+// UpdateSection replaces the Brief, the Plan or the Notes. The Brief and the Plan must not be empty (Q-32).
+func (s Store) UpdateSection(id, ref, body string) error {
+	i := slices.IndexFunc(sections, func(name string) bool { return strings.EqualFold(name, ref) })
+	if strings.EqualFold(ref, dod) {
+		return errors.New("section Definition of Done changes only with task_dod_add, task_dod_remove, task_dod_check and task_dod_uncheck")
 	}
-	return nil
-}
-
-// pristine holds the template text of each leaf section.
-var pristine = func() map[string]string {
-	_, body := markdown.Split(templateText)
-	m := map[string]string{}
-	for _, ref := range leafSections {
-		m[ref], _ = markdown.Section(body, ref)
+	if i < 0 {
+		return fmt.Errorf("section %s does not exist. Use Brief, Plan or Notes", ref)
 	}
-	return m
-}()
-
-// scopeSections define the scope of a task: Goals, Out of Scope, Requirements, Design and
-// Acceptance Criteria (ADR-013, step 3).
-var scopeSections = []string{"3", "4", "6", "7", "9"}
-
-// UpdateSection replaces one section. A scope change of an Approved task sets it to In Review,
-// because the user must approve the new scope. review is true after that status change.
-func (s Store) UpdateSection(id, section, content string) (review bool, err error) {
-	if err := checkSection(section); err != nil {
-		return false, err
+	if i < 2 && strings.TrimSpace(body) == "" {
+		return [...]error{errors.New("give the brief"), errors.New("give one or more plan steps")}[i]
 	}
-	err = s.edit(id, func(d *doc) error {
-		body, err := markdown.ReplaceSection(d.body, section, content)
-		if err != nil {
-			return err
-		}
-		var f Front
-		if err := markdown.Decode(d.front, &f); err != nil {
-			return fmt.Errorf("bad frontmatter: %w", err)
-		}
-		old := d.body
-		d.body = body
-		if f.Status != "Approved" || !scopeChanged(old, body) {
-			return nil
-		}
-		review = true
-		d.front = markdown.SetField(d.front, "status", "In Review")
-		return s.addHistory(d, "Status: In Review. The scope changed in section "+section+".")
-	})
-	return review, err
-}
-
-func scopeChanged(old, body string) bool {
-	return slices.ContainsFunc(scopeSections, func(ref string) bool {
-		a, _ := markdown.Section(old, ref)
-		b, _ := markdown.Section(body, ref)
-		return a != b
+	return s.edit(id, func(d *doc) error {
+		text, err := markdown.ReplaceSection(d.body, sections[i], strings.TrimSpace(body))
+		d.body = text
+		return err
 	})
 }
 
-// Update holds the frontmatter changes of UpdateFields. Nil or empty fields do not change.
+// Update holds the new frontmatter fields. An empty string or a nil list keeps the field. An empty
+// list removes all items.
 type Update struct {
 	Title     string
 	Priority  string
-	Milestone string
-	Type      string
-	Size      string
-	Owner     string
-	Platforms []string
-	Area      []string
+	Covers    []string
 	DependsOn []string
-	Related   []string
 }
 
-// check returns an error for an invalid field.
+// check returns an error for an invalid field, or for an Update with no field.
 func (u Update) check() error {
+	if u.Title == "" && u.Priority == "" && u.Covers == nil && u.DependsOn == nil {
+		return errors.New("give a field to change")
+	}
 	if u.Title != "" {
 		if err := docfile.CheckTitle(u.Title); err != nil {
 			return err
 		}
 	}
-	if u.Milestone != "" {
-		if err := checkMilestone(u.Milestone); err != nil {
-			return err
-		}
-	}
-	for _, c := range []struct {
-		name, value string
-		valid       []string
-	}{{"priority", u.Priority, Priorities}, {"type", u.Type, Types}, {"size", u.Size, Sizes}} {
-		if c.value == "" {
-			continue
-		}
-		if err := oneOf(c.name, c.value, c.valid); err != nil {
-			return err
-		}
+	if u.Priority != "" {
+		return oneOf("priority", u.Priority, Priorities)
 	}
 	return nil
 }
 
-// field is one frontmatter change. set is false for a field that does not change.
-type field struct {
-	key   string
-	value any
-	set   bool
+// UpdateFields changes the frontmatter fields of the task id.
+func (s Store) UpdateFields(id string, u Update) error {
+	if err := u.check(); err != nil {
+		return err
+	}
+	return s.edit(id, func(d *doc) error {
+		u.apply(d)
+		return s.checkFront(d.f)
+	})
 }
 
-// fields returns the frontmatter changes in frontmatter order.
-func (u Update) fields() []field {
-	return []field{
-		{"title", u.Title, u.Title != ""},
-		{"priority", u.Priority, u.Priority != ""},
-		{"milestone", u.Milestone, u.Milestone != ""},
-		{"type", u.Type, u.Type != ""},
-		{"size", u.Size, u.Size != ""},
-		{"owner", u.Owner, u.Owner != ""},
-		{"platforms", u.Platforms, u.Platforms != nil},
-		{"area", u.Area, u.Area != nil},
-		{"depends_on", u.DependsOn, u.DependsOn != nil},
-		{"related", u.Related, u.Related != nil},
+// apply sets the fields of u in d.
+func (u Update) apply(d *doc) {
+	if u.Title != "" {
+		d.f.Title = strings.TrimSpace(u.Title)
+		d.front = markdown.SetField(d.front, "title", d.f.Title)
+		d.body = headerLine.ReplaceAllLiteralString(d.body, "# "+d.f.Title)
+	}
+	if u.Priority != "" {
+		d.f.Priority = u.Priority
+		d.front = markdown.SetField(d.front, "priority", u.Priority)
+	}
+	if u.Covers != nil {
+		d.f.Covers = u.Covers
+		d.front = markdown.SetField(d.front, "covers", u.Covers)
+	}
+	if u.DependsOn != nil {
+		d.f.DependsOn = u.DependsOn
+		d.front = markdown.SetField(d.front, "depends_on", u.DependsOn)
 	}
 }
 
-// UpdateFields changes the frontmatter fields and returns the new file name and the warnings. A new depends_on
-// list is checked against the milestone and the priority after the change. A new title renames the file to
-// the slug of the title, so the file name and the title agree. file is empty if the name does not change.
-func (s Store) UpdateFields(id string, u Update) (file, warnings string, err error) {
-	if err := u.check(); err != nil {
-		return "", "", err
+// transitions are the allowed status changes (R-3). Done is final.
+var transitions = map[string][]string{
+	"Todo":        {"In Progress", "Blocked"},
+	"In Progress": {"Todo", "Blocked", "Done"},
+	"Blocked":     {"Todo", "In Progress"},
+}
+
+// SetStatus changes the status of the task id and adds the note to Notes (R-3, R-7). For Done, it sets the
+// covers requirements to Done in the spec first, so a retry after a failure is safe (R-6). It returns
+// the covers of a Done task.
+func (s Store) SetStatus(id, status, note string) (covers []string, err error) {
+	if err := oneOf("status", status, Statuses); err != nil {
+		return nil, err
+	}
+	note = oneLine(note)
+	if status == "Blocked" && note == "" {
+		return nil, errors.New("give the blocker in note")
 	}
 	err = s.edit(id, func(d *doc) error {
-		var old Front
-		if u.DependsOn != nil {
-			_ = markdown.Decode(d.front, &old) // a bad frontmatter fails after the change
-		}
-		for _, f := range u.fields() {
-			if f.set {
-				d.front = markdown.SetField(d.front, f.key, f.value)
-			}
-		}
-		if u.Title != "" {
-			if err := s.checkNewTitle(u.Title, kind.ID(mustNumber(d.path))); err != nil {
-				return err
-			}
-			file = retitle(d, u.Title)
-		}
-		if u.DependsOn == nil {
-			return nil
-		}
-		var f Front
-		if err := markdown.Decode(d.front, &f); err != nil {
-			return fmt.Errorf("bad frontmatter: %w", err)
-		}
-		f.ID = kind.ID(mustNumber(d.path))
-		var err error
-		warnings, err = s.checkDeps(f, old.DependsOn)
-		return err
-	})
-	if err != nil {
-		return "", "", err
-	}
-	return file, warnings, nil
-}
-
-// retitle sets the header of d to title and the path of d to the file name of title. It returns the new
-// file name, or "" if the name does not change.
-func retitle(d *doc, title string) string {
-	n := mustNumber(d.path)
-	d.body = setHeader(d.body, kind.ID(n), title)
-	name := kind.FileName(n, title)
-	if name == filepath.Base(d.path) {
-		return ""
-	}
-	d.path = filepath.Join(filepath.Dir(d.path), name)
-	return name
-}
-
-// SetStatus changes the status, adds a Document History row and enforces the status rules.
-// For In Review and Approved, it returns a warning for each open task with an overlap of plan files.
-func (s Store) SetStatus(id, status, note string) (string, error) {
-	if !slices.Contains(Statuses, status) {
-		return "", fmt.Errorf("status %q is not valid. Use one of: %s", status, strings.Join(Statuses, ", "))
-	}
-	var warnings string
-	err := s.edit(id, func(d *doc) error {
-		var f Front
-		if err := markdown.Decode(d.front, &f); err != nil {
-			return fmt.Errorf("bad frontmatter: %w", err)
-		}
-		if err := allowedChange(f.Status, status); err != nil {
+		if err := s.checkStatus(d, status); err != nil {
 			return err
 		}
-		if problems := rules[status](f, d.body, note); len(problems) > 0 {
-			return fmt.Errorf("cannot set %s: %s", status, strings.Join(problems, "; "))
-		}
-		if status == "In Review" || status == "Approved" {
-			var err error
-			if warnings, err = s.overlapWarnings(f, d.body); err != nil {
+		if note != "" {
+			if err := d.addNote(status + ": " + note); err != nil {
 				return err
 			}
 		}
 		d.front = markdown.SetField(d.front, "status", status)
-		if note == "" {
-			note = "Status: " + status + "."
+		if status != "Done" {
+			return nil
 		}
-		return s.addHistory(d, note)
+		covers = d.f.Covers
+		return s.Specs.SetDoneLocked(d.f.Spec(), covers)
 	})
-	return warnings, err
+	return covers, err
 }
 
-// transitions gives the allowed new statuses for each current status (ADR-013). Done is final,
-// because a new finding is a new task.
-var transitions = map[string][]string{
-	"Draft":          {"In Review", "Cancelled"},
-	"In Review":      {"Approved", "Draft", "Cancelled"},
-	"Approved":       {"In Development", "In Review", "Blocked", "Cancelled"},
-	"In Development": {"Done", "Blocked", "Cancelled"},
-	"Blocked":        {"Approved", "In Development", "Cancelled"},
-	"Cancelled":      {"Draft"},
-	"Done":           {},
-}
-
-// allowedChange refuses a status change that skips a step of the flow.
-func allowedChange(from, to string) error {
-	allowed, ok := transitions[from]
-	if !ok || slices.Contains(allowed, to) {
-		return nil // A task with an unknown status can get any valid status.
+// checkStatus refuses a status change that R-3, R-6 or R-7 does not allow.
+func (s Store) checkStatus(d *doc, to string) error {
+	if allowed := transitions[d.f.Status]; !slices.Contains(allowed, to) {
+		return fmt.Errorf("a task does not go from %s to %s. Allowed: %s", d.f.Status, to, strings.Join(allowed, ", "))
 	}
-	if len(allowed) == 0 {
-		return fmt.Errorf("cannot set %s from %s. %s is final: make a new task", to, from, from)
-	}
-	return fmt.Errorf("cannot set %s from %s. Allowed: %s", to, from, strings.Join(allowed, ", "))
-}
-
-// rules returns the problems that stop a change to each status.
-var rules = map[string]func(f Front, body, note string) []string{
-	"Draft":          none,
-	"In Review":      inReview,
-	"Approved":       func(_ Front, body, _ string) []string { return openQuestions(body) },
-	"In Development": none,
-	"Blocked":        needNote,
-	"Done":           func(_ Front, body, _ string) []string { return uncheckedDoD(body) },
-	"Cancelled":      needNote,
-}
-
-func none(Front, string, string) []string { return nil }
-
-func needNote(_ Front, _, note string) []string {
-	if strings.TrimSpace(note) == "" {
-		return []string{"give a note with the reason"}
+	switch to {
+	case "In Progress":
+		return s.checkStart(d.f)
+	case "Done":
+		return checkDone(d)
 	}
 	return nil
 }
 
-func inReview(f Front, body, _ string) []string {
-	problems := openQuestions(body)
-	for _, ref := range leafSections {
-		if text, _ := markdown.Section(body, ref); text == pristine[ref] {
-			problems = append(problems, "section "+ref+" has the template text. Fill it or write Not applicable")
-		}
-	}
-	if f.Size == "" {
-		problems = append(problems, "give a size: S or M. Split a larger task into smaller tasks")
-	}
-	if len(f.Platforms) == 0 {
-		problems = append(problems, "give the platforms, or [Not applicable]")
-	}
-	return problems
-}
-
-func openQuestions(body string) []string {
-	var problems []string
-	for _, q := range questions(body) {
-		if q[5] == "Open" {
-			problems = append(problems, q[1]+" is Open")
-		}
-	}
-	return problems
-}
-
-// uncheckedDoD returns one problem with the numbers of the unchecked Definition of Done items.
-func uncheckedDoD(body string) []string {
-	var numbers []string
-	for i, item := range dodItems(body) {
-		if item[1] == " " {
-			numbers = append(numbers, strconv.Itoa(i+1))
-		}
-	}
-	switch len(numbers) {
-	case 0:
-		return nil
-	case 1:
-		return []string{"Definition of Done item " + numbers[0] + " is not checked"}
-	}
-	return []string{"Definition of Done items " + strings.Join(numbers, ", ") + " are not checked"}
-}
-
-// questions returns the rows of the Open Questions table.
-func questions(body string) [][]string {
-	section, _ := markdown.Section(body, "13")
-	var rows [][]string
-	for line := range strings.SplitSeq(section, "\n") {
-		if m := questionRow.FindStringSubmatch(line); m != nil {
-			rows = append(rows, m)
-		}
-	}
-	return rows
-}
-
-func dodItems(body string) [][]string {
-	section, _ := markdown.Section(body, "14")
-	var items [][]string
-	for line := range strings.SplitSeq(section, "\n") {
-		if m := dodItem.FindStringSubmatch(line); m != nil {
-			items = append(items, m)
-		}
-	}
-	return items
-}
-
-// AddQuestion adds the next Q-n row with the answer Open and returns its ID.
-func (s Store) AddQuestion(id, question, owner string) (string, error) {
-	if owner == "" {
-		owner = "Maintainer"
-	}
-	var qid string
-	err := s.edit(id, func(d *doc) error {
-		section, _ := markdown.Section(d.body, "13")
-		lines, next := withoutPlaceholders(strings.Split(section, "\n"))
-		qid = fmt.Sprintf("Q-%d", next)
-		row := fmt.Sprintf("| %s | %s | %s | Open |", qid, docfile.Cell(question), docfile.Cell(owner))
-		body, err := markdown.ReplaceSection(d.body, "13", strings.Join(insertRow(lines, row), "\n"))
-		d.body = body
-		return err
-	})
-	return qid, err
-}
-
-// withoutPlaceholders removes the template rows (noQuestions and the old "[Question]" row) and returns the next question number.
-// It keeps all other rows, because a real question can start with "[" or be "None.".
-func withoutPlaceholders(lines []string) ([]string, int) {
-	var out []string
-	next := 1
-	for _, line := range lines {
-		if line == noQuestions {
-			continue
-		}
-		m := questionRow.FindStringSubmatch(line)
-		if m != nil && m[3] == "[Question]" {
-			continue
-		}
-		if m != nil {
-			n, _ := strconv.Atoi(m[2]) // The pattern allows only digits.
-			next = max(next, n+1)
-		}
-		out = append(out, line)
-	}
-	return out, next
-}
-
-// insertRow puts row after the last row of the first table in lines.
-func insertRow(lines []string, row string) []string {
-	at := -1
-	for i, line := range lines {
-		if strings.HasPrefix(line, "|") {
-			at = i
-		}
-	}
-	return slices.Insert(lines, at+1, row)
-}
-
-// AnswerQuestion writes the answer of one question.
-func (s Store) AnswerQuestion(id, qid, answer string) error {
-	return s.edit(id, func(d *doc) error {
-		section, _ := markdown.Section(d.body, "13")
-		lines := strings.Split(section, "\n")
-		for i, line := range lines {
-			m := questionRow.FindStringSubmatch(line)
-			if m == nil || !strings.EqualFold(m[1], qid) {
-				continue
-			}
-			lines[i] = fmt.Sprintf("| %s | %s | %s | %s |", m[1], m[3], m[4], docfile.Cell(answer))
-			body, err := markdown.ReplaceSection(d.body, "13", strings.Join(lines, "\n"))
-			d.body = body
+// checkStart refuses a dependency that is not Done and a spec that is not Approved (R-7).
+func (s Store) checkStart(f Front) error {
+	for _, dep := range f.DependsOn {
+		d, err := s.load(dep)
+		if err != nil {
 			return err
 		}
-		return fmt.Errorf("question %s does not exist", qid)
+		if d.f.Status != "Done" {
+			return fmt.Errorf("task %s is not Done", dep)
+		}
+	}
+	if f.Spec() == general {
+		return nil
+	}
+	status, _, err := s.specLocked(f.Spec())
+	if err != nil || status == "Approved" {
+		return err
+	}
+	return fmt.Errorf("spec %s is %s. A task starts only when its spec is Approved", f.Spec(), status)
+}
+
+// checkDone refuses a task with a Plan step or a Definition of Done item that is not checked (R-6).
+func checkDone(d *doc) error {
+	var parts []string
+	if open := unchecked(d.body, "Plan"); len(open) > 0 {
+		parts = append(parts, plural("Plan step", open))
+	}
+	if open := unchecked(d.body, dod); len(open) > 0 {
+		parts = append(parts, plural(dod+" item", open))
+	}
+	if len(parts) == 0 {
+		return nil
+	}
+	verb := "are"
+	if len(parts) == 1 && !strings.Contains(parts[0], ",") && !strings.Contains(parts[0], " and ") {
+		verb = "is"
+	}
+	return fmt.Errorf("%s %s not checked", strings.Join(parts, " and "), verb)
+}
+
+// plural returns "Plan step 2" or "Plan steps 2, 4".
+func plural(noun string, numbers []string) string {
+	if len(numbers) == 1 {
+		return noun + " " + numbers[0]
+	}
+	return noun + "s " + strings.Join(numbers, ", ")
+}
+
+// unchecked returns the numbers of the unchecked items of the checklist in the section ref.
+func unchecked(body, ref string) []string {
+	section, _ := markdown.Section(body, ref)
+	var open []string
+	n := 0
+	for line := range strings.SplitSeq(section, "\n") {
+		m := checkItem.FindStringSubmatch(line)
+		if m == nil {
+			continue
+		}
+		n++
+		if m[1] == " " {
+			open = append(open, strconv.Itoa(n))
+		}
+	}
+	return open
+}
+
+// CheckStep checks one Plan step (1 is the first step).
+func (s Store) CheckStep(id string, step int) error {
+	return s.editList(id, "Plan", func(_ *doc, lines []string) ([]string, error) {
+		start, _, err := findItem(lines, step, "step %d does not exist. The Plan has %d steps")
+		if err != nil {
+			return nil, err
+		}
+		m := checkItem.FindStringSubmatch(lines[start])
+		if m[1] == "x" {
+			return nil, fmt.Errorf("step %d is already checked", step)
+		}
+		lines[start] = "- [x] " + m[2]
+		return lines, nil
 	})
 }
 
 // evidencePrefix starts the sub-item that holds the evidence of a checked Definition of Done item.
 const evidencePrefix = "  - Evidence: "
+
+// noItem is the error text for a Definition of Done item that does not exist.
+const noItem = "item %d does not exist. The Definition of Done has %d items"
 
 // CheckDoD checks one Definition of Done item (1 is the first item) and adds the evidence as a sub-item.
 func (s Store) CheckDoD(id string, item int, evidence string) error {
@@ -431,12 +242,12 @@ func (s Store) CheckDoD(id string, item int, evidence string) error {
 	if evidence == "" {
 		return errors.New("give the evidence")
 	}
-	return s.editDoD(id, func(_ *doc, lines []string) ([]string, error) {
-		start, end, err := findItem(lines, item)
+	return s.editList(id, dod, func(_ *doc, lines []string) ([]string, error) {
+		start, end, err := findItem(lines, item, noItem)
 		if err != nil {
 			return nil, err
 		}
-		m := dodItem.FindStringSubmatch(lines[start])
+		m := checkItem.FindStringSubmatch(lines[start])
 		if m[1] == "x" {
 			return nil, fmt.Errorf("item %d is already checked", item)
 		}
@@ -444,27 +255,21 @@ func (s Store) CheckDoD(id string, item int, evidence string) error {
 	})
 }
 
-// UncheckDoD unchecks one Definition of Done item, removes its evidence and adds the reason to the Document History.
-// An item that was checked before the evidence sub-item keeps its full text.
-func (s Store) UncheckDoD(id string, item int, reason string) error {
-	if strings.TrimSpace(reason) == "" {
-		return errors.New("give the reason")
-	}
-	return s.editDoD(id, func(d *doc, lines []string) ([]string, error) {
-		start, end, err := findItem(lines, item)
+// UncheckDoD unchecks one Definition of Done item and removes its evidence. It needs no reason, because an
+// uncheck hides nothing (Q-38).
+func (s Store) UncheckDoD(id string, item int) error {
+	return s.editList(id, dod, func(_ *doc, lines []string) ([]string, error) {
+		start, end, err := findItem(lines, item, noItem)
 		if err != nil {
 			return nil, err
 		}
-		m := dodItem.FindStringSubmatch(lines[start])
+		m := checkItem.FindStringSubmatch(lines[start])
 		if m[1] != "x" {
 			return nil, fmt.Errorf("item %d is not checked", item)
 		}
 		subItems := slices.DeleteFunc(slices.Clone(lines[start+1:end]), func(line string) bool {
 			return strings.HasPrefix(line, evidencePrefix)
 		})
-		if err := s.addHistory(d, fmt.Sprintf("Definition of Done item %d unchecked: %s", item, reason)); err != nil {
-			return nil, err
-		}
 		return slices.Concat(lines[:start], []string{"- [ ] " + m[2]}, subItems, lines[end:]), nil
 	})
 }
@@ -476,10 +281,10 @@ func (s Store) AddDoD(id, text string) (int, error) {
 		return 0, errors.New("give the text of the item")
 	}
 	var n int
-	err := s.editDoD(id, func(_ *doc, lines []string) ([]string, error) {
+	err := s.editList(id, dod, func(_ *doc, lines []string) ([]string, error) {
 		at := 0
 		for i, line := range lines {
-			if dodItem.MatchString(line) {
+			if checkItem.MatchString(line) {
 				n++
 				at = i + 1
 			} else if n > 0 && at == i && strings.HasPrefix(line, " ") {
@@ -492,52 +297,46 @@ func (s Store) AddDoD(id, text string) (int, error) {
 	return n, err
 }
 
-// RemoveDoD removes one Definition of Done item with its sub-items, and adds its text and the reason to the Document History.
+// RemoveDoD removes one Definition of Done item with its sub-items, and adds its text and the reason to
+// Notes, because a removal makes the Definition of Done weaker (Q-38).
 func (s Store) RemoveDoD(id string, item int, reason string) error {
-	if strings.TrimSpace(reason) == "" {
+	reason = oneLine(reason)
+	if reason == "" {
 		return errors.New("give the reason")
 	}
-	return s.editDoD(id, func(d *doc, lines []string) ([]string, error) {
-		start, end, err := findItem(lines, item)
+	return s.editList(id, dod, func(d *doc, lines []string) ([]string, error) {
+		start, end, err := findItem(lines, item, noItem)
 		if err != nil {
 			return nil, err
 		}
-		text := dodItem.FindStringSubmatch(lines[start])[2]
-		if err := s.addHistory(d, fmt.Sprintf("Definition of Done item %d removed (%s): %s", item, text, reason)); err != nil {
+		text := checkItem.FindStringSubmatch(lines[start])[2]
+		if err := d.addNote(fmt.Sprintf("Definition of Done item %d removed (%s): %s", item, text, reason)); err != nil {
 			return nil, err
 		}
 		return slices.Delete(lines, start, end), nil
 	})
 }
 
-// editDoD changes the lines of the Definition of Done with fn and writes the task.
-// It refuses a Done task, because Done is final (ADR-013).
-func (s Store) editDoD(id string, fn func(d *doc, lines []string) ([]string, error)) error {
+// editList changes the lines of the section ref with fn and writes the task.
+func (s Store) editList(id, ref string, fn func(d *doc, lines []string) ([]string, error)) error {
 	return s.edit(id, func(d *doc) error {
-		var f Front
-		if err := markdown.Decode(d.front, &f); err != nil {
-			return fmt.Errorf("bad frontmatter: %w", err)
-		}
-		if f.Status == "Done" {
-			return fmt.Errorf("%s is Done. Done is final: make a new task", kind.ID(mustNumber(d.path)))
-		}
-		section, _ := markdown.Section(d.body, "14")
+		section, _ := markdown.Section(d.body, ref)
 		lines, err := fn(d, strings.Split(section, "\n"))
 		if err != nil {
 			return err
 		}
-		body, err := markdown.ReplaceSection(d.body, "14", strings.Join(lines, "\n"))
+		body, err := markdown.ReplaceSection(d.body, ref, strings.Join(lines, "\n"))
 		d.body = body
 		return err
 	})
 }
 
-// findItem returns the lines [start, end) of Definition of Done item n (1 is the first item):
-// the item line and its indented sub-items.
-func findItem(lines []string, n int) (start, end int, err error) {
+// findItem returns the lines [start, end) of checklist item n (1 is the first item): the item line and
+// its indented sub-items. missing is the error format for an item that does not exist: n, count.
+func findItem(lines []string, n int, missing string) (start, end int, err error) {
 	count := 0
 	for i, line := range lines {
-		if !dodItem.MatchString(line) {
+		if !checkItem.MatchString(line) {
 			continue
 		}
 		if count++; count != n {
@@ -549,94 +348,5 @@ func findItem(lines []string, n int) (start, end int, err error) {
 		}
 		return i, end, nil
 	}
-	return 0, 0, fmt.Errorf("item %d does not exist. The Definition of Done has %d items", n, count)
-}
-
-// oneLine joins the lines of text with one space, because a Definition of Done line is one line.
-func oneLine(text string) string {
-	return strings.Join(strings.Fields(text), " ")
-}
-
-// move is docfile.Move. A test replaces it, because a target that exists also raises the next number.
-var move = docfile.Move
-
-// Renumber gives the task in file the next free number. It returns the new ID and the tasks
-// that refer to the old ID. It does not change them, because the old ID can name more than one file.
-// It holds the docs lock.
-func (s Store) Renumber(file string) (newID string, refs []string, err error) {
-	err = docfile.Locked(s.Lock, func() error {
-		newID, refs, err = s.renumber(file)
-		return err
-	})
-	return newID, refs, err
-}
-
-func (s Store) renumber(file string) (string, []string, error) {
-	file = filepath.Base(file)
-	if !kind.Pattern.MatchString(file) {
-		return "", nil, fmt.Errorf("%s is not a task file name", file)
-	}
-	data, err := os.ReadFile(filepath.Join(s.Dir, file))
-	if err != nil {
-		return "", nil, err
-	}
-	oldID := kind.ID(mustNumber(file))
-	front, body := markdown.Split(string(data))
-	var f Front
-	if err := markdown.Decode(front, &f); err != nil {
-		return "", nil, fmt.Errorf("%s: bad frontmatter: %w", file, err)
-	}
-	var newID string
-	// The file moves with one rename, so a failure never leaves a third file (TASK-049).
-	_, err = s.Alloc.Next("task", s.Dir, kind.Pattern, func(n int) error {
-		newID = kind.ID(n)
-		doc := markdown.Join(markdown.SetField(front, "id", newID), setHeader(body, newID, f.Title))
-		old := filepath.Join(s.Dir, file)
-		if err := docfile.Write(old, []byte(doc)); err != nil {
-			return err
-		}
-		err := move(old, filepath.Join(s.Dir, newID+strings.TrimPrefix(file, oldID)))
-		if err != nil {
-			// Write the old content back, so the name and the content have one ID (TASK-054).
-			return errors.Join(err, docfile.Write(old, data))
-		}
-		return nil
-	})
-	if err != nil {
-		return "", nil, err
-	}
-	refs, err := s.references(oldID)
-	if err != nil {
-		return "", nil, err
-	}
-	return newID, refs, s.WriteIndex()
-}
-
-// references returns the task files that contain id.
-func (s Store) references(id string) ([]string, error) {
-	files, err := kind.Files(s.Dir)
-	if err != nil {
-		return nil, err
-	}
-	var refs []string
-	for _, name := range sortedNames(files) {
-		data, err := os.ReadFile(filepath.Join(s.Dir, name))
-		if err != nil {
-			return nil, err
-		}
-		if strings.Contains(string(data), id) {
-			refs = append(refs, name)
-		}
-	}
-	return refs, nil
-}
-
-// mustNumber returns the number in a task file name or path that matches the pattern.
-func mustNumber(path string) int {
-	m := kind.Pattern.FindStringSubmatch(filepath.Base(path))
-	if m == nil {
-		return 0
-	}
-	n, _ := strconv.Atoi(m[1]) // The pattern allows only digits.
-	return n
+	return 0, 0, fmt.Errorf(missing, n, count)
 }

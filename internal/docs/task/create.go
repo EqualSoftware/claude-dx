@@ -3,156 +3,140 @@ package task
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/markdown"
 )
 
+// generalItem is the first Definition of Done item of a general task, which covers no requirement (Q-42).
+const generalItem = "- [ ] The work of the Brief is done, with evidence."
+
 // New holds the content of a new task.
 type New struct {
+	Spec      string
+	Slug      string
 	Title     string
 	Priority  string
-	Milestone string
-	Type      string
-	Area      []string
+	Brief     string
+	Plan      []string
+	Covers    []string
 	DependsOn []string
-	Size      string
-	Platforms []string
-	Related   []string
-	Sections  map[string]string // section number or title -> body
 }
 
 // check returns an error for a missing or invalid field.
-func (t New) check() error {
-	if err := docfile.CheckTitle(t.Title); err != nil {
+func (n New) check() error {
+	if !validSlug(n.Spec) {
+		return fmt.Errorf("no spec has the slug %s", n.Spec)
+	}
+	if !validSlug(n.Slug) {
+		return errors.New("the slug must be kebab-case, 40 characters or less")
+	}
+	if err := docfile.CheckTitle(n.Title); err != nil {
 		return err
 	}
-	if err := oneOf("priority", t.Priority, Priorities); err != nil {
+	if err := oneOf("priority", n.Priority, Priorities); err != nil {
 		return err
 	}
-	if err := checkMilestone(t.Milestone); err != nil {
+	if strings.TrimSpace(n.Brief) == "" {
+		return errors.New("give the brief")
+	}
+	if planText(n.Plan) == "" {
+		return errors.New("give one or more plan steps")
+	}
+	return nil
+}
+
+// Create writes a new Todo task and returns its ID. It holds the docs lock, so the checks of the spec,
+// the covers and the dependencies stay true until the write.
+func (s Store) Create(n New) (string, error) {
+	if err := n.check(); err != nil {
+		return "", err
+	}
+	f := Front{ID: n.Spec + "/" + n.Slug, Title: strings.TrimSpace(n.Title), Status: "Todo", Priority: n.Priority,
+		Covers: nonNil(n.Covers), DependsOn: nonNil(n.DependsOn)}
+	return f.ID, docfile.Locked(s.Lock, func() error {
+		if s.exists(f.ID) {
+			return fmt.Errorf("task %s already exists", f.ID)
+		}
+		if err := s.checkFront(f); err != nil {
+			return err
+		}
+		path, _ := s.path(f.ID)
+		data, err := fill(f, n)
+		if err != nil {
+			return err
+		}
+		return writeNew(path, data)
+	})
+}
+
+// checkFront checks the spec, the covers and the dependencies of f. The caller holds the docs lock.
+func (s Store) checkFront(f Front) error {
+	if err := s.checkCovers(f); err != nil {
 		return err
 	}
-	if err := oneOf("type", t.Type, Types); err != nil {
-		return err
-	}
-	if t.Size == "" {
+	return s.checkDeps(f)
+}
+
+// checkCovers refuses a spec that does not exist, a requirement that the spec does not have, and covers
+// in a general task (R-5).
+func (s Store) checkCovers(f Front) error {
+	if f.Spec() == general {
+		if len(f.Covers) > 0 {
+			return errors.New("a general task does not cover requirements")
+		}
 		return nil
 	}
-	return oneOf("size", t.Size, Sizes)
-}
-
-// Create writes a new Draft task with the next number and returns its path and the warnings. It holds the
-// docs lock, so the title and dependency checks stay true until the write.
-func (s Store) Create(t New) (path, warnings string, err error) {
-	err = docfile.Locked(s.Lock, func() error {
-		path, warnings, err = s.create(t)
+	_, rids, err := s.specLocked(f.Spec())
+	if err != nil {
 		return err
-	})
-	return path, warnings, err
-}
-
-func (s Store) create(t New) (path, warnings string, err error) {
-	if err := t.check(); err != nil {
-		return "", "", err
 	}
-	if err := s.checkNewTitle(t.Title, ""); err != nil {
-		return "", "", err
-	}
-	warnings, err = s.checkDeps(Front{Milestone: t.Milestone, Priority: t.Priority, DependsOn: t.DependsOn}, nil)
-	if err != nil {
-		return "", "", err
-	}
-	front, body, err := s.fill(t)
-	if err != nil {
-		return "", "", err
-	}
-	_, err = s.Alloc.Next("task", s.Dir, kind.Pattern, func(n int) error {
-		id := kind.ID(n)
-		path = filepath.Join(s.Dir, kind.FileName(n, t.Title))
-		doc := markdown.Join(markdown.SetField(front, "id", id), setHeader(body, id, t.Title))
-		return docfile.Create(path, []byte(doc))
-	})
-	if err != nil {
-		return "", "", err
-	}
-	return path, warnings, s.WriteIndex()
-}
-
-// fill makes the frontmatter and the body of a new task from the template. The number comes later.
-func (s Store) fill(t New) (front, body string, err error) {
-	front, body = markdown.Split(templateText)
-	front = markdown.SetField(front, "title", t.Title)
-	front = markdown.SetField(front, "status", "Draft")
-	front = markdown.SetField(front, "priority", t.Priority)
-	front = markdown.SetField(front, "milestone", t.Milestone)
-	front = markdown.SetField(front, "type", t.Type)
-	front = markdown.SetField(front, "size", t.Size)
-	front = markdown.SetField(front, "owner", s.author())
-	front = markdown.SetField(front, "platforms", nonNil(t.Platforms))
-	front = markdown.SetField(front, "area", nonNil(t.Area))
-	front = markdown.SetField(front, "depends_on", nonNil(t.DependsOn))
-	front = markdown.SetField(front, "related", nonNil(t.Related))
-	body = strings.Replace(body, "| YYYY-MM-DD | [Name] | Initial draft specification |",
-		fmt.Sprintf("| %s | %s | Initial draft specification |", s.today(), s.author()), 1)
-	if err := checkNesting(body, t.Sections); err != nil {
-		return "", "", err
-	}
-	for ref, content := range t.Sections {
-		if err := checkSection(ref); err != nil {
-			return "", "", err
-		}
-		if body, err = markdown.ReplaceSection(body, ref, content); err != nil {
-			return "", "", err
-		}
-	}
-	return front, body, nil
-}
-
-// checkNesting refuses two refs of one section, or of a section and one of its child sections,
-// because the order of a map is random and one body replaces the other.
-func checkNesting(body string, sections map[string]string) error {
-	numbers := map[string]string{}
-	for ref := range sections {
-		if n, ok := markdown.SectionNumber(body, ref); ok {
-			numbers[ref] = n
-		}
-	}
-	for a, na := range numbers {
-		for b, nb := range numbers {
-			if a != b && (na == nb || strings.HasPrefix(nb, na+".")) {
-				return fmt.Errorf("sections %q and %q overlap; give only one of them", a, b)
-			}
+	for _, rid := range f.Covers {
+		if !contains(rids, rid) {
+			return fmt.Errorf("spec %s has no requirement %s", f.Spec(), rid)
 		}
 	}
 	return nil
 }
 
-// checkNewTitle refuses a title that another task has, in all statuses. It ignores the task self,
-// so a change of only the case passes.
-func (s Store) checkNewTitle(title, self string) error {
-	tasks, _, err := s.List(Filter{"status": "all"})
-	if err != nil && !errors.Is(err, ErrNoDir) {
-		return err
+// fill makes a new task file from the template.
+func fill(f Front, n New) (string, error) {
+	front, body := markdown.Split(templateText)
+	front = markdown.SetField(front, "id", f.ID)
+	front = markdown.SetField(front, "title", f.Title)
+	front = markdown.SetField(front, "priority", f.Priority)
+	front = markdown.SetField(front, "covers", f.Covers)
+	front = markdown.SetField(front, "depends_on", f.DependsOn)
+	body = headerLine.ReplaceAllLiteralString(body, "# "+f.Title)
+	if f.Spec() == general {
+		body = strings.Replace(body, "- [ ] The covered requirements pass their acceptance criteria, with evidence.", generalItem, 1)
 	}
-	titles := make(map[string]string, len(tasks))
-	for _, t := range tasks {
-		if t.Front.ID != self {
-			titles[t.Front.ID] = t.Front.Title
+	body, err := markdown.ReplaceSection(body, "Brief", strings.TrimSpace(n.Brief))
+	if err != nil {
+		return "", err
+	}
+	body, err = markdown.ReplaceSection(body, "Plan", planText(n.Plan))
+	return markdown.Join(front, body), err
+}
+
+// planText makes the Plan checklist of steps. It drops empty steps.
+func planText(steps []string) string {
+	var lines []string
+	for _, step := range steps {
+		if step = oneLine(step); step != "" {
+			lines = append(lines, "- [ ] "+step)
 		}
 	}
-	return docfile.CheckNewTitle(title, titles)
+	return strings.Join(lines, "\n")
 }
 
-func setHeader(body, id, title string) string {
-	return headerLine.ReplaceAllLiteralString(body, "# "+id+": "+title)
-}
-
-func nonNil(list []string) []string {
-	if list == nil {
-		return []string{}
+// contains reports whether list has id, with no case difference.
+func contains(list []string, id string) bool {
+	for _, item := range list {
+		if strings.EqualFold(item, id) {
+			return true
+		}
 	}
-	return list
+	return false
 }

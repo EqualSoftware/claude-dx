@@ -1,55 +1,46 @@
-// Package task manages the task specs in docs/tasks and the generated README.md (ADR-006).
+// Package task manages the local tasks in tasks/<spec>/<task-slug>.md of the project data directory
+// (ADR-016). A task points to one spec, or to "general" for work that has no spec. Git does not track the
+// tasks, so a task has no number and no Document History.
 package task
 
 import (
+	"cmp"
 	_ "embed"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"slices"
-	"sort"
 	"strings"
-	"time"
 
 	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
+	"github.com/EqualSoftware/claude-dx/internal/docs/spec"
 	"github.com/EqualSoftware/claude-dx/internal/markdown"
-	"github.com/EqualSoftware/claude-dx/internal/numbering"
 )
 
 //go:embed template.md
 var templateText string
 
-// ErrNoDir means that docs/tasks does not exist. It is a normal state, not a failure.
-var ErrNoDir = errors.New("no tasks. docs/tasks does not exist")
+// general is the spec slug of the tasks that have no spec (ADR-016).
+const general = "general"
 
-var (
-	kind       = docfile.NewKind("TASK")
-	headerLine = regexp.MustCompile(`(?m)^# TASK-\S+: .*$`)
-	dateRow    = regexp.MustCompile(`(?m)^\| (\d{4}-\d{2}-\d{2}) \|`)
-)
-
-// Statuses are the valid task statuses, in workflow order.
-var Statuses = []string{"Draft", "In Review", "Approved", "In Development", "Blocked", "Done", "Cancelled"}
+// Statuses are the valid task statuses, in the order of task_list.
+var Statuses = []string{"In Progress", "Blocked", "Todo", "Done"}
 
 // Priorities are the valid priorities.
 var Priorities = []string{"P0", "P1", "P2", "P3"}
 
-// Types are the valid task types. They are the Conventional Commits types, because the type sets the commit type (ADR-012).
-var Types = []string{"feat", "fix", "refactor", "perf", "test", "docs", "build", "ci", "chore"}
+var (
+	slugPattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
+	headerLine  = regexp.MustCompile(`(?m)^# .*$`)
+)
 
-// Sizes are the valid sizes. An L task must be split.
-var Sizes = []string{"S", "M"}
-
-// Store reads and writes the task files of one project.
+// Store reads and writes the local tasks of one project.
 type Store struct {
-	Dir    string              // absolute path of docs/tasks
-	Alloc  numbering.Allocator // number allocation (ADR-019)
-	Now    func() time.Time    // clock; nil means time.Now
-	Author func() string       // author of Document History rows; nil means "Agent"
-	Lock   string              // path of the docs lock (TASK-047); required
+	Dir   string     // <data dir>/tasks
+	Specs spec.Store // the specs of the project; Specs.Author gives the author of a spec row
+	Lock  string     // path of the docs lock; required
 }
 
 // Front is the YAML frontmatter of a task. It is the only source of these fields.
@@ -58,156 +49,14 @@ type Front struct {
 	Title     string   `yaml:"title"`
 	Status    string   `yaml:"status"`
 	Priority  string   `yaml:"priority"`
-	Milestone string   `yaml:"milestone"`
-	Type      string   `yaml:"type"`
-	Size      string   `yaml:"size"`
-	Owner     string   `yaml:"owner"`
-	Platforms []string `yaml:"platforms"`
-	Area      []string `yaml:"area"`
+	Covers    []string `yaml:"covers"`
 	DependsOn []string `yaml:"depends_on"`
-	Related   []string `yaml:"related"`
 }
 
-// has reports if the field with the YAML key has the value, with no case difference.
-// A list field has the value if one item is equal to it.
-func (f Front) has(key, value string) bool {
-	v := reflect.ValueOf(f)
-	for i := range v.NumField() {
-		if v.Type().Field(i).Tag.Get("yaml") != key {
-			continue
-		}
-		switch field := v.Field(i).Interface().(type) {
-		case string:
-			return strings.EqualFold(field, value)
-		case []string:
-			return slices.ContainsFunc(field, func(item string) bool { return strings.EqualFold(item, value) })
-		}
-	}
-	return false
-}
-
-// Task is one task in a list.
-type Task struct {
-	File   string
-	Front  Front
-	Closed string // date of the last Document History row
-	Deps   string // dependency IDs, with the status of each dependency that is not Done
-}
-
-// Filter selects tasks in List: a frontmatter key and the value to find. Empty values select all.
-// Status "open" selects all but Done and Cancelled, "all" selects all, and "ready" selects the Approved
-// tasks that have all dependencies Done, in milestone order.
-type Filter map[string]string
-
-func (f Filter) match(t Task) bool {
-	for key, value := range f {
-		if !matchField(t.Front, key, value) {
-			return false
-		}
-	}
-	return true
-}
-
-func matchField(f Front, key, value string) bool {
-	switch {
-	case value == "", key == "status" && (value == "all" || value == "ready"):
-		return true
-	case key == "status" && value == "open":
-		return f.Status != "Done" && f.Status != "Cancelled"
-	}
-	return f.has(key, value)
-}
-
-// List returns the tasks that match f, sorted by ID, and one warning line for each file that it cannot read
-// or each number with many files.
-func (s Store) List(f Filter) ([]Task, string, error) {
-	files, err := kind.Files(s.Dir)
-	if docfile.NotExist(err) {
-		return nil, "", ErrNoDir
-	}
-	if err != nil {
-		return nil, "", err
-	}
-	var tasks []Task
-	status := map[string]string{}
-	warnings := docfile.Duplicates(kind, files)
-	for _, name := range sortedNames(files) {
-		t, err := s.read(name)
-		if err != nil {
-			warnings += fmt.Sprintf("Warning: %s: %v.\n", name, err)
-			continue
-		}
-		status[t.Front.ID] = t.Front.Status
-		if f.match(t) {
-			tasks = append(tasks, t)
-		}
-	}
-	if f["status"] == "ready" {
-		tasks = ready(tasks, status)
-	}
-	for i := range tasks {
-		tasks[i].Deps = deps(tasks[i].Front.DependsOn, status)
-	}
-	return tasks, warnings, nil
-}
-
-// deps returns the dependency IDs. A dependency that is not Done gets its status, or "missing" if it has no
-// task file, because the agent must see the blocked tasks in one list.
-func deps(ids []string, status map[string]string) string {
-	if len(ids) == 0 {
-		return "None"
-	}
-	out := make([]string, len(ids))
-	for i, id := range ids {
-		out[i] = id
-		switch s := status[id]; s {
-		case "Done":
-		case "":
-			out[i] += " (missing)"
-		default:
-			out[i] += " (" + s + ")"
-		}
-	}
-	return strings.Join(out, ", ")
-}
-
-func (s Store) read(name string) (Task, error) {
-	data, err := os.ReadFile(filepath.Join(s.Dir, name))
-	if err != nil {
-		return Task{}, err
-	}
-	front, body := markdown.Split(string(data))
-	var f Front
-	if err := markdown.Decode(front, &f); err != nil {
-		return Task{}, fmt.Errorf("bad frontmatter: %w", err)
-	}
-	history, _ := markdown.Section(body, "Document History")
-	return Task{File: name, Front: f, Closed: lastDate(history)}, nil
-}
-
-// Get returns the task file, or one of its sections.
-func (s Store) Get(id, section string) (string, error) {
-	path, err := s.find(id)
-	if err != nil {
-		return "", err
-	}
-	data, err := os.ReadFile(path)
-	if err != nil || section == "" {
-		return string(data), err
-	}
-	_, body := markdown.Split(string(data))
-	text, ok := markdown.Section(body, section)
-	if !ok {
-		return "", fmt.Errorf("section %q does not exist. Use a number (example: 7.1) or a title", section)
-	}
-	return text, nil
-}
-
-func (s Store) find(id string) (string, error) {
-	if _, err := os.Stat(s.Dir); docfile.NotExist(err) {
-		return "", ErrNoDir
-	}
-	return kind.Find(s.Dir, id)
+// Spec returns the spec slug of the task.
+func (f Front) Spec() string {
+	slug, _, _ := strings.Cut(f.ID, "/")
+	return slug
 }
 
 // doc is a task file in memory.
@@ -215,95 +64,207 @@ type doc struct {
 	path  string
 	front string
 	body  string
+	f     Front
 }
 
-// edit reads the task, changes it with fn, writes it and makes README.md again, with the docs lock. If fn
-// changes d.path, edit moves the file to the new path. It refuses a new path that exists.
-func (s Store) edit(id string, fn func(*doc) error) error {
-	return docfile.Locked(s.Lock, func() error { return s.editLocked(id, fn) })
+// validSlug reports whether slug is kebab-case and not longer than a title.
+func validSlug(slug string) bool {
+	return slugPattern.MatchString(slug) && len(slug) <= docfile.MaxTitle
 }
 
-func (s Store) editLocked(id string, fn func(*doc) error) error {
-	path, err := s.find(id)
+// path returns the file of the task id, or an error if id is not <spec>/<task-slug>.
+func (s Store) path(id string) (string, error) {
+	sp, slug, ok := strings.Cut(id, "/")
+	if !ok || !validSlug(sp) || !validSlug(slug) {
+		return "", fmt.Errorf("task %s does not exist", id)
+	}
+	return filepath.Join(s.Dir, sp, slug+".md"), nil
+}
+
+// load reads the task id.
+func (s Store) load(id string) (*doc, error) {
+	path, err := s.path(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	data, err := os.ReadFile(path)
-	if err != nil {
-		return err
+	if docfile.NotExist(err) {
+		return nil, fmt.Errorf("task %s does not exist", id)
 	}
+	if err != nil {
+		return nil, err
+	}
+	return parse(id, path, data)
+}
+
+// parse reads the task file data of id. It refuses a frontmatter id that is not the path.
+func parse(id, path string, data []byte) (*doc, error) {
 	d := &doc{path: path}
 	d.front, d.body = markdown.Split(string(data))
-	if err := fn(d); err != nil {
-		return err
+	if err := markdown.Decode(d.front, &d.f); err != nil {
+		return nil, fmt.Errorf("task file %s.md has a bad frontmatter: %w", id, err)
 	}
-	data = []byte(markdown.Join(d.front, d.body))
-	if d.path == path {
-		err = docfile.Write(path, data)
-	} else {
-		err = rename(path, d.path, data)
+	if d.f.ID != id {
+		return nil, fmt.Errorf("task file %s.md has the id %s", id, d.f.ID)
 	}
+	return d, nil
+}
+
+// exists reports whether the file of the task id exists.
+func (s Store) exists(id string) bool {
+	path, err := s.path(id)
+	if err != nil {
+		return false
+	}
+	_, err = os.Stat(path)
+	return err == nil
+}
+
+// all returns the frontmatter of all tasks, by ID.
+func (s Store) all() (map[string]Front, error) {
+	tasks := map[string]Front{}
+	specs, err := os.ReadDir(s.Dir)
+	if docfile.NotExist(err) {
+		return tasks, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range specs {
+		if !e.IsDir() {
+			continue
+		}
+		if err := s.readSpec(e.Name(), tasks); err != nil {
+			return nil, err
+		}
+	}
+	return tasks, nil
+}
+
+// readSpec adds the tasks of the spec slug to tasks.
+func (s Store) readSpec(slug string, tasks map[string]Front) error {
+	dir := filepath.Join(s.Dir, slug)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		return err
 	}
-	return s.WriteIndex()
+	for _, e := range files {
+		name, ok := strings.CutSuffix(e.Name(), ".md")
+		if e.IsDir() || !ok {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(dir, e.Name()))
+		if err != nil {
+			return err
+		}
+		d, err := parse(slug+"/"+name, filepath.Join(dir, e.Name()), data)
+		if err != nil {
+			return err
+		}
+		tasks[d.f.ID] = d.f
+	}
+	return nil
 }
 
-// rename writes data to the old path, then moves the file to the new path, so a failure never leaves
-// two files with one number (TASK-049). It refuses a new path that exists before it changes a file.
-func rename(old, path string, data []byte) error {
-	if _, err := os.Lstat(path); err == nil {
-		return fmt.Errorf("%s exists. Give a different title", filepath.Base(path))
-	}
-	if err := docfile.Write(old, data); err != nil {
-		return err
-	}
-	return docfile.Move(old, path)
-}
-
-func (s Store) today() string {
-	if s.Now != nil {
-		return s.Now().Format(time.DateOnly)
-	}
-	return time.Now().Format(time.DateOnly)
-}
-
-func (s Store) author() string {
-	if s.Author != nil {
-		if name := s.Author(); name != "" {
-			return name
+// List returns the tasks of the spec slug (all specs if empty) with the status (all if empty), in the
+// order of R-12: spec slug with general last, status, priority, ID.
+func (s Store) List(specSlug, status string) ([]Front, error) {
+	if status != "" {
+		if err := oneOf("status", status, Statuses); err != nil {
+			return nil, err
 		}
 	}
-	return "Agent"
+	tasks, err := s.all()
+	if err != nil {
+		return nil, err
+	}
+	var out []Front
+	for _, f := range tasks {
+		if (specSlug == "" || f.Spec() == specSlug) && (status == "" || f.Status == status) {
+			out = append(out, f)
+		}
+	}
+	slices.SortFunc(out, compare)
+	return out, nil
 }
 
-// addHistory adds a Document History row with today's date and the author.
-func (s Store) addHistory(d *doc, note string) error {
-	history, ok := markdown.Section(d.body, "Document History")
-	if !ok {
-		return errors.New("the task has no Document History section")
+// compare orders two tasks for List.
+func compare(a, b Front) int {
+	return cmp.Or(
+		cmp.Compare(last(a), last(b)),
+		cmp.Compare(a.Spec(), b.Spec()),
+		cmp.Compare(slices.Index(Statuses, a.Status), slices.Index(Statuses, b.Status)),
+		cmp.Compare(a.Priority, b.Priority),
+		cmp.Compare(a.ID, b.ID),
+	)
+}
+
+// last is 1 for a general task, so List puts it after the tasks of the specs.
+func last(f Front) int {
+	if f.Spec() == general {
+		return 1
 	}
-	row := fmt.Sprintf("| %s | %s | %s |", s.today(), s.author(), docfile.Cell(note))
-	body, err := markdown.ReplaceSection(d.body, "Document History", history+"\n"+row)
+	return 0
+}
+
+// Get returns the task file, or one of its sections.
+func (s Store) Get(id, section string) (string, error) {
+	d, err := s.load(id)
+	if err != nil {
+		return "", err
+	}
+	if section == "" {
+		return markdown.Join(d.front, d.body), nil
+	}
+	text, ok := markdown.Section(d.body, section)
+	if !ok {
+		return "", fmt.Errorf("section %s does not exist. Use Brief, Plan, Notes or Definition of Done", section)
+	}
+	return text, nil
+}
+
+// edit reads the task id, changes it with fn and writes it, with the docs lock. It refuses a Done task,
+// because Done is final (R-3).
+func (s Store) edit(id string, fn func(*doc) error) error {
+	return docfile.Locked(s.Lock, func() error {
+		d, err := s.load(id)
+		if err != nil {
+			return err
+		}
+		if d.f.Status == "Done" {
+			return fmt.Errorf("task %s is Done and does not change", id)
+		}
+		if err := fn(d); err != nil {
+			return err
+		}
+		return d.write()
+	})
+}
+
+// write writes d. The file ends with one line break, also after a change of the last section.
+func (d *doc) write() error {
+	return docfile.Write(d.path, []byte(markdown.Join(d.front, strings.TrimRight(d.body, "\n")+"\n")))
+}
+
+// addNote adds the line as a list item to the Notes section (Q-41).
+func (d *doc) addNote(line string) error {
+	notes, ok := markdown.Section(d.body, "Notes")
+	if !ok {
+		return errors.New("the task has no Notes section")
+	}
+	body, err := markdown.ReplaceSection(d.body, "Notes", strings.TrimSpace(notes+"\n- "+line))
 	d.body = body
 	return err
 }
 
-func lastDate(history string) string {
-	m := dateRow.FindAllStringSubmatch(history, -1)
-	if m == nil {
-		return ""
+// specLocked returns the status and the requirement IDs of the spec slug. The caller holds the docs lock.
+func (s Store) specLocked(slug string) (status string, rids []string, err error) {
+	status, rids, err = s.Specs.RequirementsLocked(slug)
+	var missing spec.NotFoundError
+	if errors.Is(err, spec.ErrNoDir) || errors.As(err, &missing) {
+		return "", nil, fmt.Errorf("no spec has the slug %s", slug)
 	}
-	return m[len(m)-1][1]
-}
-
-func sortedNames(files map[int][]string) []string {
-	var names []string
-	for _, list := range files {
-		names = append(names, list...)
-	}
-	sort.Strings(names)
-	return names
+	return status, rids, err
 }
 
 // oneOf returns an error if value is not in valid. name is the field name for the message.
@@ -312,4 +273,16 @@ func oneOf(name, value string, valid []string) error {
 		return nil
 	}
 	return fmt.Errorf("%s %q is not valid. Use one of: %s", name, value, strings.Join(valid, ", "))
+}
+
+// oneLine joins the lines of text with one space.
+func oneLine(text string) string {
+	return strings.Join(strings.Fields(text), " ")
+}
+
+func nonNil(list []string) []string {
+	if list == nil {
+		return []string{}
+	}
+	return list
 }

@@ -156,14 +156,19 @@ func (s Store) find(slug string) (string, error) {
 		return "", ErrNoDir
 	}
 	if !slugPattern.MatchString(slug) {
-		return "", fmt.Errorf("spec %q does not exist", slug)
+		return "", NotFoundError{slug}
 	}
 	path := s.path(slug)
 	if _, err := os.Stat(path); docfile.NotExist(err) {
-		return "", fmt.Errorf("spec %q does not exist", slug)
+		return "", NotFoundError{slug}
 	}
 	return path, nil
 }
+
+// NotFoundError means that the spec Slug does not exist.
+type NotFoundError struct{ Slug string }
+
+func (e NotFoundError) Error() string { return fmt.Sprintf("spec %q does not exist", e.Slug) }
 
 // Get returns the spec document, or one of its sections, with no commits.
 func (s Store) Get(slug, ref string) (string, error) {

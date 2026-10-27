@@ -41,9 +41,10 @@ func New(version, dir string) (*mcp.Server, error) {
 	_ = writeProjectFile(filepath.Join(cacheDir, "projects", p.Key, "project.json"), p.Root, lock)
 	server := mcp.NewServer(&mcp.Implementation{Name: "dx", Version: version}, nil)
 	adr.Register(server, adr.Store{Dir: filepath.Join(p.Root, "docs", "decisions"), Alloc: alloc, Lock: lock})
-	task.Register(server, task.Store{Dir: filepath.Join(p.Root, "docs", "tasks"), Alloc: alloc, Author: gitUser(p.Root), Lock: lock})
-	spec.Register(server, spec.Store{Dir: filepath.Join(p.Root, "docs", "specs"), ADRDir: filepath.Join(p.Root, "docs", "decisions"),
-		Root: p.Root, Author: gitUser(p.Root), Lock: lock})
+	specs := spec.Store{Dir: filepath.Join(p.Root, "docs", "specs"), ADRDir: filepath.Join(p.Root, "docs", "decisions"),
+		Root: p.Root, Author: gitUser(p.Root), Lock: lock}
+	task.Register(server, task.Store{Dir: filepath.Join(alloc.Dir, project.Tasks), Specs: specs, Lock: lock})
+	spec.Register(server, specs)
 	learning.Register(server, learning.Store{Dir: filepath.Join(p.Root, "docs", "learnings"), Lock: lock})
 	glossary.Register(server, glossary.Store{Path: filepath.Join(p.Root, "docs", "GLOSSARY.md"), Lock: lock})
 	return server, nil

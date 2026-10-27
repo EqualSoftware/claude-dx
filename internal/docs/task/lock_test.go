@@ -7,6 +7,9 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -91,10 +94,18 @@ func waitsFor(t *testing.T, done <-chan time.Time, release func()) {
 	}
 }
 
+// create makes the task general/a.
+func create(t *testing.T, s Store) {
+	t.Helper()
+	if _, err := s.Create(New{Spec: "general", Slug: "a", Title: "A task", Priority: "P1", Brief: "Do it.", Plan: []string{"Do it."}}); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // TestReadWaitsForWrite is AC-1 of TASK-062.
 func TestReadWaitsForWrite(t *testing.T) {
 	s := newStore(t)
-	create(t, s, "A task")
+	create(t, s)
 	release := holdDocsLock(t, s, "exclusive")
 	waitsFor(t, callAsync(t, s, "task_list", map[string]any{}), release)
 }
@@ -102,10 +113,10 @@ func TestReadWaitsForWrite(t *testing.T) {
 // TestReadDoesNotWaitForRead is AC-2 of TASK-062.
 func TestReadDoesNotWaitForRead(t *testing.T) {
 	s := newStore(t)
-	create(t, s, "A task")
+	create(t, s)
 	holdDocsLock(t, s, "shared")
 	select {
-	case <-callAsync(t, s, "task_get", map[string]any{"id": "TASK-001"}):
+	case <-callAsync(t, s, "task_get", map[string]any{"id": "general/a"}):
 	case <-time.After(10 * time.Second):
 		t.Fatal("task_get waited for a shared lock")
 	}
@@ -114,8 +125,62 @@ func TestReadDoesNotWaitForRead(t *testing.T) {
 // TestWriteWaitsForRead is AC-3 of TASK-062.
 func TestWriteWaitsForRead(t *testing.T) {
 	s := newStore(t)
-	create(t, s, "A task")
+	create(t, s)
 	release := holdDocsLock(t, s, "shared")
-	done := callAsync(t, s, "task_update_section", map[string]any{"id": "TASK-001", "section": "1", "body": "New summary."})
+	done := callAsync(t, s, "task_update_section", map[string]any{"id": "general/a", "section": "Notes", "body": "A note."})
 	waitsFor(t, done, release)
+}
+
+// TestTaskWriter is a helper process: it makes the tasks a/<DX_PREFIX>-1 to -10 in the stores of
+// DX_ROOT and DX_DATA, each one covers one requirement, and sets each one to Done.
+func TestTaskWriter(t *testing.T) {
+	root, prefix := os.Getenv("DX_ROOT"), os.Getenv("DX_PREFIX")
+	if root == "" {
+		t.Skip("helper process")
+	}
+	s := storeAt(root, os.Getenv("DX_DATA"))
+	first, _ := strconv.Atoi(os.Getenv("DX_FIRST"))
+	for i := range 10 {
+		id := fmt.Sprintf("a/%s-%d", prefix, i)
+		_, err := s.Create(New{Spec: "a", Slug: id[2:], Title: "Task " + id[2:], Priority: "P1", Brief: "Do it.", Plan: []string{"Do it."},
+			Covers: []string{fmt.Sprintf("R-%d", first+i)}})
+		must(t, err)
+		must(t, s.CheckStep(id, 1))
+		must(t, s.CheckDoD(id, 1, "Test."))
+		must(t, s.CheckDoD(id, 2, "Test."))
+		_, err = s.SetStatus(id, "In Progress", "")
+		must(t, err)
+		_, err = s.SetStatus(id, "Done", "")
+		must(t, err)
+	}
+}
+
+// TestTwoProcesses is R-11: two processes change tasks and their spec at the same time. No write is lost
+// and each file stays valid.
+func TestTwoProcesses(t *testing.T) {
+	s := newStore(t)
+	addSpec(t, s, "a", "Approved", 20)
+	var cmds []*exec.Cmd
+	for i, prefix := range []string{"x", "y"} {
+		cmd := exec.Command(os.Args[0], "-test.run=^TestTaskWriter$")
+		cmd.Env = append(os.Environ(), "DX_ROOT="+s.Specs.Root, "DX_DATA="+filepath.Dir(s.Lock), "DX_PREFIX="+prefix,
+			fmt.Sprintf("DX_FIRST=%d", 1+10*i))
+		must(t, cmd.Start())
+		cmds = append(cmds, cmd)
+	}
+	for _, cmd := range cmds {
+		must(t, cmd.Wait())
+	}
+	tasks, err := s.List("a", "Done")
+	must(t, err)
+	if len(tasks) != 20 {
+		t.Errorf("%d Done tasks, want 20", len(tasks))
+	}
+	_, rids, err := s.Specs.RequirementsLocked("a")
+	must(t, err)
+	sp, err := s.Specs.Get("a", "")
+	must(t, err)
+	if n := strings.Count(sp, "| Done |"); n != 20 || len(rids) != 20 {
+		t.Errorf("%d Done requirements of %d, want 20:\n%s", n, len(rids), sp)
+	}
 }
