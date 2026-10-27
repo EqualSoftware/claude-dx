@@ -1,0 +1,31 @@
+name: Unmapped git operation
+description: A git operation that no dx git tool covers. "claude-dx report" fills this form.
+title: "git: add a tool for <operation>"
+labels: [git, enhancement]
+body:
+  - type: textarea
+    id: operations
+    attributes:
+      label: Operations
+      description: The git arguments and the reason of each git_exec call.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: claude-dx version
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [macOS, Linux, Windows]
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed tool
+      description: Optional. The name and parameters of a tool that covers these operations.
