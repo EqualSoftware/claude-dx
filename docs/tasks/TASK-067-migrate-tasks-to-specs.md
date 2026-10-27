@@ -51,10 +51,10 @@ After TASK-063 to TASK-066 the project still has 60 or more task files in git an
 
 ## 6. Requirements
 
-- R-1: Group the `Done` tasks into specs by area. Their requirements are `Done`.
+- R-1: Group the `Done` tasks into specs by area. Their requirements are `Done`. The sequence diagram of TASK-064 section 7.1 goes to the spec of local tasks.
 - R-2: The open tasks of v0.2.0 and later become `Draft` specs with their milestone.
 - R-3: Change TASK-NNN references in ADRs, learnings and the glossary to `<slug>#R-N` (the one exception of ADR-017).
-- R-4: Change the task, adr and grill skills, `rules.md`, the scout agent and `CLAUDE.md` to the spec and local task model.
+- R-4: Change the task, adr and grill skills, `rules.md`, the scout agent, `CLAUDE.md` and `README.md` to the spec and local task model.
 - R-5: Delete `docs/tasks/` and HANDOFF.md, and remove `/HANDOFF.md` from `.gitignore`.
 - R-6: Set ADR-016 and ADR-017 to `Accepted` with the user approval, then supersede ADR-013 with ADR-016.
 

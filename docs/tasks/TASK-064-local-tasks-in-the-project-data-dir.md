@@ -1,7 +1,7 @@
 ---
 id: TASK-064
 title: Local tasks in the project data dir
-status: In Development
+status: Done
 priority: P1
 milestone: v0.1.0
 type: feat
@@ -23,6 +23,8 @@ related: [ADR-016, ADR-015, ADR-017, ADR-019]
 | 2026-10-26 | Equal | Grill done: Q-3 to Q-37 answered. The user confirms the same understanding and size M. |
 | 2026-10-26 | Equal | The user approves the task in the chat. |
 | 2026-10-26 | Equal | Status: In Development. |
+| 2026-10-26 | Equal | Definition of Done item 4 removed (The final Design diagrams that describe the code are in the docs of the area, with a link from this task.): No area doc exists for tasks. TASK-067 moves the diagram of section 7.1 to the spec of local tasks. |
+| 2026-10-26 | Equal | Status: Done. |
 
 ## 1. Summary
 
@@ -340,12 +342,18 @@ A retry of `task_move` removes the old file when the new file has the Notes line
 | Q-45 | Where is the R-13 test (each task tool name in the plugin texts is a registered tool)? | Maintainer | In internal/mcpserver/server_test.go, TestPluginTextsNameRegisteredTools. The mcpserver package has the test server. A test in internal/plugin must import mcpserver. The check command of batch 4 is go test ./internal/mcpserver/... |
 | Q-46 | Does agents/scout.md of the plugin change? | Maintainer | No. It names only task_list and task_get, which stay registered. The R-13 test checks it. |
 | Q-47 | Do sections 7.2 and 7.4 give the answers of Q-42 and Q-43? | Maintainer | Yes. Add them to 7.2 and 7.4. |
+| Q-48 | README.md lines 9, 24 and 80 describe the old task model. Does TASK-064 change them? | Maintainer | No. TASK-067 R-4 adds README.md, because TASK-067 deletes docs/tasks. |
+| Q-49 | The only design diagram is in section 7.1, and no area doc exists for tasks. Where does it go? | Maintainer | TASK-067 moves it to the spec of local tasks when it moves docs/tasks to specs. TASK-064 removes the diagram DoD item. |
 
 The status cannot be `Approved` while a question is `Open`.
 
 ## 14. Definition of Done
-- [ ] All acceptance criteria pass, with evidence.
-- [ ] Project checks (build, tests, lint) pass.
-- [ ] Docs are updated (area docs, `CLAUDE.md`).
-- [ ] The final Design diagrams that describe the code are in the docs of the area, with a link from this task.
-- [ ] ADRs are recorded for architectural decisions.
+
+- [x] All acceptance criteria pass, with evidence.
+  - Evidence: R-1 TestWorktreesShareTasks; R-2, R-4, R-5 TestCreate and TestUpdate (internal/docs/task/task_test.go:115, :221); R-3, R-6, R-7 TestStatus, TestRequirementsAndSetDoneLocked; R-8 TestToolNames; R-9 TestMoveAndDelete, TestMoveRetry; R-10 TestDeleteRefusesTasks; R-11 TestTwoProcesses; R-12 TestListAndGet; R-13 TestPluginTextsNameRegisteredTools.
+- [x] Project checks (build, tests, lint) pass.
+  - Evidence: CI run 40430796173 passed on macOS, Linux and Windows. Local acceptance check on 6316e48 passed: build, vet x3, test -race, lint 0 issues, govulncheck none.
+- [x] Docs are updated (area docs, `CLAUDE.md`).
+  - Evidence: Task and grill skills (64167c2), CLAUDE.md (7b21359). README.md and the glossary go to TASK-067 (Q-26 and the new README question).
+- [x] ADRs are recorded for architectural decisions.
+  - Evidence: ADR-020 Accepted (6316e48).

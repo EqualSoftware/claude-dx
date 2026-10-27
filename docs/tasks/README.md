@@ -24,7 +24,6 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 
 | ID | Title | Status | Priority | Area | Depends on |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [TASK-064](TASK-064-local-tasks-in-the-project-data-dir.md) | Local tasks in the project data dir | `In Development` | `P1` | `mcp`, `docs`, `plugin` | TASK-063, TASK-068 |
 | [TASK-065](TASK-065-lock-pushed-adrs-in-adr-update.md) | Lock pushed ADRs in adr_update | `Draft` | `P1` | `mcp`, `docs` | TASK-058 |
 | [TASK-066](TASK-066-resume-command-and-sessionstart-hook.md) | Resume command and SessionStart hook | `Draft` | `P1` | `cli`, `plugin` | TASK-064 |
 | [TASK-067](TASK-067-migrate-tasks-to-specs.md) | Migrate tasks to specs | `Draft` | `P1` | `docs`, `plugin` | TASK-064, TASK-065, TASK-066, TASK-070 |
@@ -119,5 +118,6 @@ Open tasks are in one table for each milestone, in version order. Each table is 
 | [TASK-061](TASK-061-use-a-read-write-cache-lock.md) | Use a read-write cache lock | `Done` | 2026-10-26 |
 | [TASK-062](TASK-062-lock-the-docs-for-read-tools.md) | Lock the docs for read tools | `Done` | 2026-10-26 |
 | [TASK-063](TASK-063-spec-documents-and-spec-tools.md) | Spec documents and spec tools | `Done` | 2026-10-26 |
+| [TASK-064](TASK-064-local-tasks-in-the-project-data-dir.md) | Local tasks in the project data dir | `Done` | 2026-10-26 |
 | [TASK-068](TASK-068-project-data-directory.md) | Project data directory | `Done` | 2026-10-26 |
 | [TASK-070](TASK-070-ask-choices-found-during-work.md) | Ask choices found during work | `Done` | 2026-10-26 |
