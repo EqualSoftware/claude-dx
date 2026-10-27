@@ -1,6 +1,6 @@
 # ADR-009: Skills, scout agent and shared rules
 
-- Status: Accepted
+- Status: Superseded by ADR-022
 - Date: 2026-10-25
 - Owners: Maintainer
 

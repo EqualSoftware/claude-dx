@@ -13,7 +13,7 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-006](ADR-006-document-management-tools.md) | Manage documents with MCP tools | Accepted | 2026-10-25 |
 | [ADR-007](ADR-007-number-allocation.md) | Allocate numbers with a counter and lock | Superseded by ADR-019 | 2026-10-25 |
 | [ADR-008](ADR-008-git-tools.md) | Git with MCP tools, no git in Bash | Accepted | 2026-10-25 |
-| [ADR-009](ADR-009-skills-agent-and-rules.md) | Skills, scout agent and shared rules | Accepted | 2026-10-25 |
+| [ADR-009](ADR-009-skills-agent-and-rules.md) | Skills, scout agent and shared rules | Superseded by ADR-022 | 2026-10-25 |
 | [ADR-010](ADR-010-filesystem-tools-complement-native-tools.md) | File tools replace shell file commands | Accepted | 2026-10-25 |
 | [ADR-011](ADR-011-lsp-servers.md) | Download LSP servers on demand | Accepted | 2026-10-25 |
 | [ADR-012](ADR-012-semver-with-release-please.md) | SemVer with release-please | Accepted | 2026-10-25 |
@@ -26,3 +26,4 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-019](ADR-019-number-allocation-in-the-data-dir.md) | Number allocation in the data dir | Accepted | 2026-10-26 |
 | [ADR-020](ADR-020-task-move-delete-and-brief.md) | Task move, delete and Brief | Accepted | 2026-10-26 |
 | [ADR-021](ADR-021-accepted-adrs-do-not-change-after-a-push.md) | Accepted ADRs do not change after a push | Accepted | 2026-10-26 |
+| [ADR-022](ADR-022-skills-and-shared-rules-with-no-agent.md) | Skills and shared rules with no agent | Accepted | 2026-10-26 |
