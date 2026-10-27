@@ -12,8 +12,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 )
@@ -33,14 +35,30 @@ func (u Updater) Apply(ctx context.Context, r Release, binary string) error {
 	if err := verify(archive, sums, name); err != nil {
 		return err
 	}
-	data, err := extract(archive, name, filepath.Base(binary))
+	data, err := extract(archive, name, exeName())
 	if err != nil {
 		return err
 	}
 	if err := install(data, binary); err != nil {
 		return err
 	}
-	return u.writeState(r.Tag)
+	u.saveState(r.Tag)
+	return nil
+}
+
+// exeName is the name of the binary in the release archive.
+func exeName() string {
+	if runtime.GOOS == "windows" {
+		return "claude-dx.exe"
+	}
+	return "claude-dx"
+}
+
+// saveState writes update.json. The binary is already good here, so an error is only a warning.
+func (u Updater) saveState(tag string) {
+	if err := u.writeState(tag); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: cannot write %s: %v\n", stateFile, err)
+	}
 }
 
 // ArchiveName returns the name of the release archive, as GoReleaser makes it (.goreleaser.yaml).
@@ -55,6 +73,9 @@ func ArchiveName(tag, goos, goarch string) string {
 func (u Updater) download(ctx context.Context, r Release, name string) ([]byte, error) {
 	for _, a := range r.Assets {
 		if a.Name == name {
+			if requireHTTPS && !strings.HasPrefix(a.URL, "https://") {
+				return nil, fmt.Errorf("the URL of %s is not https", name)
+			}
 			return u.get(ctx, a.URL)
 		}
 	}
@@ -96,7 +117,25 @@ func extractZip(archive []byte, name string) ([]byte, error) {
 		return nil, fmt.Errorf("the archive has no %s: %w", name, err)
 	}
 	defer func() { _ = f.Close() }()
-	return io.ReadAll(io.LimitReader(f, maxSize))
+	if info, err := f.Stat(); err != nil || !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("%s in the archive is not a regular file", name)
+	}
+	return readFile(f, name)
+}
+
+// readFile reads a file of the archive. It refuses empty data.
+func readFile(r io.Reader, name string) ([]byte, error) {
+	data, err := io.ReadAll(io.LimitReader(r, maxSize+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(data) == 0 {
+		return nil, fmt.Errorf("%s in the archive is empty", name)
+	}
+	if int64(len(data)) > maxSize {
+		return nil, fmt.Errorf("%s in the archive is larger than %d bytes", name, maxSize)
+	}
+	return data, nil
 }
 
 func extractTarGz(archive []byte, name string) ([]byte, error) {
@@ -113,8 +152,8 @@ func extractTarGz(archive []byte, name string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		if h.Name == name {
-			return io.ReadAll(io.LimitReader(tr, maxSize))
+		if h.Name == name && h.Typeflag == tar.TypeReg {
+			return readFile(tr, name)
 		}
 	}
 }
@@ -143,13 +182,82 @@ func replace(tmp, binary string) error {
 	if runtime.GOOS != "windows" {
 		return os.Rename(tmp, binary)
 	}
-	old := binary + ".old"
-	_ = os.Remove(old)
-	if err := os.Rename(binary, old); err != nil {
+	return replaceKeepingOld(tmp, binary)
+}
+
+const closeSessions = "close the running claude-dx sessions and run the update again"
+
+// replaceKeepingOld renames binary to <binary>.old, or to <binary>.old.<n> if a locked .old file stays,
+// and then moves tmp to binary.
+func replaceKeepingOld(tmp, binary string) error {
+	RemoveOld(binary)
+	return renameOld(tmp, binary)
+}
+
+// rename is os.Rename. Tests replace it.
+var rename = os.Rename
+
+func renameOld(tmp, binary string) error {
+	old, err := oldName(binary)
+	if err != nil {
 		return err
 	}
-	if err := os.Rename(tmp, binary); err != nil {
-		return errors.Join(err, os.Rename(old, binary))
+	if err := rename(binary, old); err != nil {
+		return fmt.Errorf("cannot rename %s: %w. %s", binary, err, closeSessions)
 	}
-	return nil
+	err = rename(tmp, binary)
+	if err == nil {
+		return nil
+	}
+	err = fmt.Errorf("cannot write %s: %w. %s", binary, err, closeSessions)
+	if rerr := rename(old, binary); rerr != nil {
+		return errors.Join(err, fmt.Errorf("the update failed; the previous binary is at %s: %w", old, rerr))
+	}
+	return err
+}
+
+// oldName returns <binary>.old after it removes a file with that name. It returns a free
+// <binary>.old.<n> if .old is not a regular file or cannot be removed.
+func oldName(binary string) (string, error) {
+	old := binary + ".old"
+	info, err := os.Lstat(old)
+	if errors.Is(err, fs.ErrNotExist) {
+		return old, nil
+	}
+	if err == nil && info.Mode().IsRegular() && os.Remove(old) == nil {
+		return old, nil
+	}
+	return freeOld(binary)
+}
+
+// freeOld returns the first <binary>.old.<n> that does not exist. It stops after 100 tries
+// and at an error that is not "does not exist".
+func freeOld(binary string) (string, error) {
+	for n := 1; n <= 100; n++ {
+		p := fmt.Sprintf("%s.old.%d", binary, n)
+		_, err := os.Lstat(p)
+		if errors.Is(err, fs.ErrNotExist) {
+			return p, nil
+		}
+		if err != nil {
+			return "", fmt.Errorf("cannot check %s: %w. %s", p, err, closeSessions)
+		}
+	}
+	return "", fmt.Errorf("%s.old.1 to %s.old.100 exist. %s", binary, binary, closeSessions)
+}
+
+// RemoveOld deletes the <binary>.old and <binary>.old.<n> files that an update left. It ignores errors,
+// because Windows keeps a file that a running process uses.
+func RemoveOld(binary string) {
+	dir := filepath.Dir(binary)
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+	re := regexp.MustCompile(`^` + regexp.QuoteMeta(filepath.Base(binary)) + `\.old(\.[0-9]+)?$`)
+	for _, e := range entries {
+		if !e.IsDir() && re.MatchString(e.Name()) {
+			_ = os.Remove(filepath.Join(dir, e.Name()))
+		}
+	}
 }

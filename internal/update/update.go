@@ -23,7 +23,6 @@ const (
 	timeout   = 10 * time.Second
 	interval  = 24 * time.Hour
 	stateFile = "update.json"
-	maxSize   = 200 << 20 // limit for one download
 )
 
 // client limits the connection and the wait for the response headers, but not the body,
@@ -33,7 +32,27 @@ var client = &http.Client{Transport: &http.Transport{
 	DialContext:           (&net.Dialer{Timeout: timeout}).DialContext,
 	TLSHandshakeTimeout:   timeout,
 	ResponseHeaderTimeout: timeout,
-}}
+}, CheckRedirect: refuseInsecure}
+
+// maxSize is the limit for one download.
+var maxSize int64 = 200 << 20
+
+// applyTime is the total time for the download of an update.
+var applyTime = 5 * time.Minute
+
+// requireHTTPS is false only in tests, which use a local server with no TLS.
+var requireHTTPS = true
+
+// refuseInsecure refuses a redirect to a URL that is not https.
+func refuseInsecure(req *http.Request, via []*http.Request) error {
+	if len(via) >= 10 {
+		return errors.New("stopped after 10 redirects")
+	}
+	if requireHTTPS && req.URL.Scheme != "https" {
+		return fmt.Errorf("refused a redirect to %s: it is not https", req.URL.Redacted())
+	}
+	return nil
+}
 
 // Updater checks and installs releases for one version of claude-dx.
 type Updater struct {
@@ -94,9 +113,15 @@ func (u Updater) Update(ctx context.Context, binary string) (string, error) {
 		return "", err
 	}
 	if !Newer(r.Tag, u.Version) {
-		return fmt.Sprintf("claude-dx is up to date (%s).", u.Version), u.writeState(r.Tag)
+		u.saveState(r.Tag)
+		return fmt.Sprintf("claude-dx is up to date (%s).", u.Version), nil
 	}
+	ctx, cancel := context.WithTimeout(ctx, applyTime)
+	defer cancel()
 	if err := u.Apply(ctx, r, binary); err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return "", fmt.Errorf("the download took more than %d minutes: %w", int(applyTime.Minutes()), err)
+		}
 		return "", err
 	}
 	return fmt.Sprintf("claude-dx is updated to %s.", r.Tag), nil
@@ -113,6 +138,12 @@ func (u Updater) Check(ctx context.Context) {
 	}
 	r, err := u.Latest(ctx)
 	if err != nil {
+		if ctx.Err() != nil {
+			return // cancelled at shutdown: the next start checks again
+		}
+		// Keep the old latest and write checked_at, so the next start waits for the interval.
+		s, _ := ReadState(u.Cache)
+		_ = u.writeState(s.Latest)
 		return
 	}
 	_ = u.writeState(r.Tag)

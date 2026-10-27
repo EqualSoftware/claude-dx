@@ -27,8 +27,8 @@ func Run(version string, args []string) (int, error) {
 	if err != nil {
 		return 1, err
 	}
-	// Windows cannot replace a running binary, so "update" leaves a .old file (ADR-005).
-	_ = os.Remove(binary + ".old")
+	// Windows cannot replace a running binary, so "update" leaves .old files (ADR-005).
+	update.RemoveOld(binary)
 
 	cacheDir, err := cache.Dir()
 	if err != nil {

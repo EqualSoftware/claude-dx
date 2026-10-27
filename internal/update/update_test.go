@@ -20,6 +20,11 @@ import (
 	"time"
 )
 
+func TestMain(m *testing.M) {
+	requireHTTPS = false // the test servers have no TLS
+	os.Exit(m.Run())
+}
+
 // release serves a GitHub release with tag, an archive for this platform with the file name
 // and the content data, and checksums.txt. A non-empty sum replaces the correct checksum.
 type release struct {
@@ -190,11 +195,16 @@ func TestCheck(t *testing.T) {
 	}
 }
 
+// A failed check writes checked_at and keeps the old latest.
 func TestCheckIgnoresErrors(t *testing.T) {
 	cache := t.TempDir()
-	Updater{URL: "http://127.0.0.1:1/latest", Version: "v0.1.0", Cache: cache}.Check(context.Background())
-	if _, err := ReadState(cache); err == nil {
-		t.Fatal("a failed check wrote update.json")
+	now := time.Date(2026, 10, 25, 10, 0, 0, 0, time.UTC)
+	u := Updater{URL: "http://127.0.0.1:1/latest", Version: "v0.1.0", Cache: cache, Now: func() time.Time { return now }}
+	old := []byte(`{"checked_at":"2026-10-23T10:00:00Z","latest":"v0.2.0"}`)
+	must(t, os.WriteFile(filepath.Join(cache, "update.json"), old, 0o644))
+	u.Check(context.Background())
+	if s, _ := ReadState(cache); !s.CheckedAt.Equal(now) || s.Latest != "v0.2.0" {
+		t.Fatalf("state after a failed check = %+v", s)
 	}
 }
 
