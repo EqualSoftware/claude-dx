@@ -46,7 +46,7 @@ The dx tools must run in a session with no change to the project. Each tool must
 | R-6 | The file lock gives an exclusive lock and a shared lock, each with a blocking and a no-wait form. It uses flock on Unix and LockFileEx on Windows. | Done |
 | R-7 | The Markdown helpers read and write YAML frontmatter, and read or replace one section by its number or heading, with no change to the other sections. | Done |
 | R-8 | The result tables align the columns by the number of characters, not bytes. | Done |
-| R-9 | The MCP server adds less than 100 ms to the start of the `claude-dx` process, and it has no data race. | Planned |
+| R-9 | The MCP server adds less than 100 ms to the start of the `claude-dx` process, and it has no data race. | Done |
 | R-10 | While it runs, the server holds the shared cache lock. | Done |
 | R-11 | At start, the server writes the project file of the cache (see project-data). | Done |
 | R-12 | The update check writes cache update.json at most once in 24 hours. Network errors are ignored and the file does not change. | Done |
@@ -147,3 +147,4 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-10-27 | Equal | R-9: status Planned. |
 | 2026-10-27 | Equal | Status: In Review. The scope changed in section 5. |
 | 2026-10-27 | Equal | Approved by the user: R-9 start time subtracts the process cost. |
+| 2026-10-27 | Equal | R-9: Done. |
