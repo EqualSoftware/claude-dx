@@ -46,7 +46,7 @@ The dx tools must run in a session with no change to the project. Each tool must
 | R-6 | The file lock gives an exclusive lock and a shared lock, each with a blocking and a no-wait form. It uses flock on Unix and LockFileEx on Windows. | Done |
 | R-7 | The Markdown helpers read and write YAML frontmatter, and read or replace one section by its number or heading, with no change to the other sections. | Done |
 | R-8 | The result tables align the columns by the number of characters, not bytes. | Done |
-| R-9 | The MCP server starts in less than 100 ms and has no data race. | Done |
+| R-9 | The MCP server adds less than 100 ms to the start of the `claude-dx` process, and it has no data race. | Planned |
 | R-10 | While it runs, the server holds the shared cache lock. | Done |
 | R-11 | At start, the server writes the project file of the cache (see project-data). | Done |
 | R-12 | The update check writes cache update.json at most once in 24 hours. Network errors are ignored and the file does not change. | Done |
@@ -96,7 +96,7 @@ Done requirements (tests that exist):
 - R-12: `TestCheck` and `TestCheckIgnoresErrors` (`internal/update/update_test.go`).
 
 Planned requirements (tests to write):
-- R-9 start time: the start time is the time from the start of the `claude-dx mcp` process to the initialize result. The test uses the binary that is built without the race detector. The test starts the server 3 times. The fastest start must be less than 100 ms.
+- R-9 start time: the start time is the time from the start of the `claude-dx mcp` process to the initialize result. The process cost is the time of a run of `claude-dx --version` with the same binary, to its exit. The test uses the binary that is built without the race detector. The test measures each one 3 times and uses the fastest of each. The fastest start minus the fastest process cost must be less than 100 ms. The reason: the process start on the Windows runner takes more than 100 ms alone (CI run 40563088951: fastest start 171.6 ms).
 - R-9 data race: a test calls many tools at the same time through the in-memory transport. `go test -race` runs it in the acceptance check and in CI.
 
 ## 8. Open Questions
@@ -143,3 +143,7 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-10-27 | Equal | Status: In Review. The scope changed in section 7. |
 | 2026-10-27 | Equal | Approved by the user with the R-9 test criteria. |
 | 2026-10-27 | Equal | R-9: Done. |
+| 2026-10-27 | Equal | R-9: text changed. |
+| 2026-10-27 | Equal | R-9: status Planned. |
+| 2026-10-27 | Equal | Status: In Review. The scope changed in section 5. |
+| 2026-10-27 | Equal | Approved by the user: R-9 start time subtracts the process cost. |
