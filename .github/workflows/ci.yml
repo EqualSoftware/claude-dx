@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # The release pull request changes only these files, and GitHub does not run
+    # workflows for pull requests of the Actions bot without a manual approval.
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
+
+permissions:
+  contents: read
+
+# A new push to the same branch or pull request cancels the older run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build
+        run: go build ./...
+      - name: Vet
+        run: go vet ./...
+      - name: Test
+        if: runner.os != 'Windows'
+        run: go test -race ./...
+      - name: Test (Windows)
+        # The race detector needs CGO, which the Windows runner does not set up.
+        if: runner.os == 'Windows'
+        run: go test ./...
+      - name: Lint
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.15.0
+
+  vuln:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Check for known vulnerabilities
+        run: go tool govulncheck ./...
+
+  install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build snapshot release
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          version: "~> v2"
+          args: release --snapshot --clean
+      - name: Read snapshot version
+        shell: bash
+        run: echo "VERSION=v$(python -c 'import json; print(json.load(open("dist/metadata.json"))["version"])')" >> "$GITHUB_ENV"
+      - name: Install (macOS, Linux)
+        if: runner.os != 'Windows'
+        env:
+          CLAUDE_DX_BASE_URL: http://127.0.0.1:8765
+          CLAUDE_DX_INSTALL_DIR: ${{ runner.temp }}/bin
+        run: |
+          # Start the server in this step. On macOS, a background process does not survive to the next step.
+          python -m http.server 8765 --bind 127.0.0.1 --directory dist > /dev/null 2>&1 &
+          sleep 2
+          sh scripts/install.sh "$VERSION"
+          "$CLAUDE_DX_INSTALL_DIR/claude-dx" --version
+          # A changed archive must fail the checksum check.
+          rm -rf "$CLAUDE_DX_INSTALL_DIR"
+          echo bad >> dist/claude-dx_*_$(go env GOOS)_$(go env GOARCH).tar.gz
+          if sh scripts/install.sh "$VERSION"; then echo "checksum check did not fail"; exit 1; fi
+          test ! -e "$CLAUDE_DX_INSTALL_DIR/claude-dx"
+      - name: Install (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          CLAUDE_DX_BASE_URL: http://127.0.0.1:8765
+          CLAUDE_DX_INSTALL_DIR: ${{ runner.temp }}\bin
+        run: |
+          Start-Process python -ArgumentList "-m", "http.server", "8765", "--bind", "127.0.0.1", "--directory", "dist" -WindowStyle Hidden
+          Start-Sleep -Seconds 2
+          ./scripts/install.ps1 $env:VERSION
+          & "$env:CLAUDE_DX_INSTALL_DIR\claude-dx.exe" --version
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          # A second install replaces the binary through the .old rename.
+          ./scripts/install.ps1 $env:VERSION
+          if (-not (Test-Path "$env:CLAUDE_DX_INSTALL_DIR\claude-dx.exe.old")) { throw "no .old file" }
+          # A changed archive must fail the checksum check.
+          Remove-Item $env:CLAUDE_DX_INSTALL_DIR -Recurse -Force
+          Get-ChildItem dist/claude-dx_*_windows_amd64.zip | ForEach-Object { Add-Content $_.FullName "bad" }
+          pwsh -NoProfile -File ./scripts/install.ps1 $env:VERSION
+          if ($LASTEXITCODE -eq 0) { throw "checksum check did not fail" }
+          if (Test-Path "$env:CLAUDE_DX_INSTALL_DIR\claude-dx.exe") { throw "binary was installed" }
+          # The expected failure above set $LASTEXITCODE to 1. GitHub ends the step with it.
+          exit 0
