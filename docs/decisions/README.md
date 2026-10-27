@@ -24,3 +24,4 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-017](ADR-017-adrs-do-not-change-after-a-push.md) | ADRs do not change after a push | Accepted | 2026-10-26 |
 | [ADR-018](ADR-018-interactive-clean-command.md) | Interactive clean command | Accepted | 2026-10-26 |
 | [ADR-019](ADR-019-number-allocation-in-the-data-dir.md) | Number allocation in the data dir | Accepted | 2026-10-26 |
+| [ADR-020](ADR-020-task-move-delete-and-brief.md) | Task move, delete and Brief | Accepted | 2026-10-26 |
