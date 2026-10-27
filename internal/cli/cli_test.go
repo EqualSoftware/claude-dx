@@ -17,6 +17,7 @@ func TestParse(t *testing.T) {
 		{[]string{"-h"}, Command{Name: "help", Args: []string{}}},
 		{[]string{"--version"}, Command{Name: "version", Args: []string{}}},
 		{[]string{"clean", "--list"}, Command{Name: "clean", Args: []string{"--list"}}},
+		{[]string{"resume"}, Command{Name: "resume", Args: []string{}}},
 		{[]string{"cache", "clean"}, Command{Args: []string{"cache", "clean"}}},
 		{[]string{"--", "--help"}, Command{Args: []string{"--help"}}},
 		{[]string{"--", "update"}, Command{Args: []string{"update"}}},

@@ -292,6 +292,34 @@ func TestHelpHasNoCacheClean(t *testing.T) {
 	}
 }
 
+// TestHelpHasResume checks resume-command#R-12.
+func TestHelpHasResume(t *testing.T) {
+	want := "claude-dx resume                 Print the work state (tasks and git) for a new session.\n"
+	if !strings.Contains(help, want) {
+		t.Fatalf("help:\n%s", help)
+	}
+}
+
+// TestResumeExitsZero checks resume-command#R-10, R-11: the exit code is 0 with no repository and no
+// data directory (no tasks, no error line), and the command creates nothing.
+func TestResumeExitsZero(t *testing.T) {
+	home := t.TempDir()
+	for _, name := range []string{"HOME", "XDG_CACHE_HOME", "LocalAppData"} {
+		t.Setenv(name, home)
+	}
+	t.Chdir(t.TempDir())
+	var stdout, stderr bytes.Buffer
+	if code := run([]string{"resume"}, &stdout, &stderr); code != 0 {
+		t.Fatalf("exit code = %d, stderr: %s", code, stderr.String())
+	}
+	if !strings.HasPrefix(stdout.String(), "dx: no git repository\n") {
+		t.Fatalf("stdout:\n%s", stdout.String())
+	}
+	if entries, _ := os.ReadDir(home); len(entries) != 0 {
+		t.Fatalf("resume created %d entries in the cache", len(entries))
+	}
+}
+
 func TestUpdateRefusesDev(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if code := run([]string{"update"}, &stdout, &stderr); code != 1 || stderr.String() != "claude-dx: dev builds do not update. Install a release\n" {
