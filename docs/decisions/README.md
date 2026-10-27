@@ -8,7 +8,7 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-001](ADR-001-launcher-and-cli.md) | Launcher and CLI | Accepted | 2026-10-27 |
 | [ADR-002](ADR-002-mcp-server-and-tool-conventions.md) | MCP server and tool conventions | Accepted | 2026-10-27 |
 | [ADR-003](ADR-003-git-through-mcp-tools-no-merge.md) | Git through MCP tools, no merge | Accepted | 2026-10-27 |
-| [ADR-004](ADR-004-lsp-servers-on-demand.md) | LSP servers on demand | Accepted | 2026-10-27 |
+| [ADR-004](ADR-004-lsp-servers-on-demand.md) | LSP servers on demand | Superseded by ADR-013 | 2026-10-27 |
 | [ADR-005](ADR-005-release-and-update.md) | Release and update | Accepted | 2026-10-27 |
 | [ADR-006](ADR-006-os-locks-and-the-claude-child-process.md) | OS locks and the claude child process | Accepted | 2026-10-27 |
 | [ADR-007](ADR-007-project-data-dir-and-number-allocation.md) | Project data dir and number allocation | Accepted | 2026-10-27 |
@@ -17,3 +17,4 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-010](ADR-010-skills-and-shared-rules-no-agent.md) | Skills and shared rules, no agent | Accepted | 2026-10-27 |
 | [ADR-011](ADR-011-interactive-clean-command.md) | Interactive clean command | Accepted | 2026-10-27 |
 | [ADR-012](ADR-012-one-subject-for-each-spec.md) | One subject for each spec | Accepted | 2026-10-27 |
+| [ADR-013](ADR-013-no-lsp-management.md) | No LSP management | Accepted | 2026-10-27 |

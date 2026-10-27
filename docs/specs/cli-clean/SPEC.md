@@ -27,7 +27,6 @@ The user must remove the local data of claude-dx without losing tasks that they 
 - Flags that delete with no interactive selection (ADR-011).
 - The rules of the cache lock and the docs lock: see the specs session and docs-common.
 - The lock files and the project data directory: see the spec project-data.
-- The LSP servers in the cache. The spec that adds them also adds their clean item.
 - The delete of one task (use task_delete), and the delete of the project file or the counters of a project that exists.
 
 ## 5. Requirements
@@ -112,3 +111,5 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-10-27 | Equal | R-8: status Done. |
 | 2026-10-27 | Equal | Status: In Review. |
 | 2026-10-27 | Equal | Approved by the user. |
+| 2026-10-27 | Equal | Status: In Review. The scope changed in section 4. |
+| 2026-10-27 | Equal | Approved by the user after the removal of the LSP item (ADR-013). |

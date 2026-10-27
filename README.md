@@ -29,7 +29,6 @@ Each spec has a `milestone` field. The [spec index](docs/specs/README.md) has on
 | v0.2.0 | Git tools: safe defaults for commits, rebase and push. |
 | v0.3.0 | Filesystem tools. |
 | v0.4.0 | More skills, for example for commits and to record the lessons of a session. |
-| Later | LSP servers for the common languages, with no install by the user. |
 
 ## Requirements
 

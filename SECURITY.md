@@ -23,7 +23,6 @@ The maintainers reply as soon as possible. When a fix is available, the maintain
 These parts are important for security:
 
 - `claude-dx update` and the install scripts: download and checksum verification of binaries.
-- The download of LSP servers and runtimes.
 - The `PreToolUse` hook that checks Bash commands.
 - The git tools and the path checks that keep file operations inside the project.
 
