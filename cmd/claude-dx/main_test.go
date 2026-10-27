@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -159,23 +160,39 @@ func TestLaunchDeletesOldBinary(t *testing.T) {
 
 func TestMCPServerInitialize(t *testing.T) {
 	env := setup(t)
+	env.writeState(t, "v9.9.9") // a new update.json: the server does no network request
+	const starts = 3
+	times := make([]time.Duration, 0, starts)
+	for range starts {
+		times = append(times, startMCPServer(t, env))
+	}
+	t.Logf("initialize took %v", times)
+	// mcp-server#R-9: the server starts in less than 100 ms. The fastest start filters out machine noise.
+	if fastest := slices.Min(times); fastest >= 100*time.Millisecond {
+		t.Fatalf("fastest start = %v, want less than 100ms; all starts: %v", fastest, times)
+	}
+}
+
+// startMCPServer starts claude-dx mcp, checks the server info and returns the time of the initialize.
+func startMCPServer(t *testing.T, env launchEnv) time.Duration {
+	t.Helper()
 	client := mcp.NewClient(&mcp.Implementation{Name: "test", Version: "v0"}, nil)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	start := time.Now()
-	env.writeState(t, "v9.9.9") // a new update.json: the server does no network request
 	cmd := exec.Command(env.dx, "mcp")
 	cmd.Env = env.environ(os.Getenv("PATH"))
+	start := time.Now()
 	session, err := client.Connect(ctx, &mcp.CommandTransport{Command: cmd}, nil)
+	elapsed := time.Since(start)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer func() { _ = session.Close() }()
-	t.Logf("initialize took %v", time.Since(start))
 	info := session.InitializeResult().ServerInfo
 	if info.Name != "dx" || info.Version != "v9.9.9" {
 		t.Fatalf("server info = %+v, want dx v9.9.9", info)
 	}
+	return elapsed
 }
 
 func TestLaunchShowsUpdateNotice(t *testing.T) {

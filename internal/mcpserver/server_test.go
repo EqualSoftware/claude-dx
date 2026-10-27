@@ -3,13 +3,16 @@ package mcpserver
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -117,6 +120,72 @@ func TestToolsFlow(t *testing.T) {
 		text := res.Content[0].(*mcp.TextContent).Text
 		if res.IsError || text != s.want {
 			t.Fatalf("%s = %q, error %v; want %q", s.name, text, res.IsError, s.want)
+		}
+	}
+}
+
+// callText calls a tool, checks that it succeeds and returns its text.
+func callText(ctx context.Context, session *mcp.ClientSession, name string, args map[string]any) (string, error) {
+	res, err := session.CallTool(ctx, &mcp.CallToolParams{Name: name, Arguments: args})
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", name, err)
+	}
+	text := res.Content[0].(*mcp.TextContent).Text
+	if res.IsError {
+		return "", fmt.Errorf("%s: tool error: %s", name, text)
+	}
+	return text, nil
+}
+
+// TestToolsParallel checks mcp-server#R-9: parallel tool calls give no error, no data race and no lost write.
+func TestToolsParallel(t *testing.T) {
+	session := connect(t)
+	ctx := context.Background()
+	const workers = 8
+	var wg sync.WaitGroup
+	for i := range workers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			n := strconv.Itoa(i)
+			calls := []struct {
+				name string
+				args map[string]any
+			}{
+				{"task_create", map[string]any{"spec": "general", "slug": "task-" + n, "title": "Task " + n, "priority": "P1",
+					"brief": "Do " + n + ".", "plan": []string{"Do it. Check: go test ./..."}}},
+				{"adr_create", map[string]any{"title": "Decision " + n, "context": "C.", "decision": "D.", "evidence": "E.",
+					"alternatives": []map[string]any{{"option": "A", "reason": "more work"}},
+					"consequences": map[string]any{"positive": "P.", "negative": "N.", "follow_up": "None."}}},
+				{"glossary_upsert", map[string]any{"term": "Term" + n, "definition": "A term.", "area": "process", "source": "`docs/`"}},
+				{"learning_create", map[string]any{"topic": "topic-" + n, "description": "About " + n + ".", "body": "Lesson."}},
+				{"task_list", map[string]any{}},
+				{"adr_list", map[string]any{}},
+			}
+			for _, c := range calls {
+				if _, err := callText(ctx, session, c.name, c.args); err != nil {
+					t.Errorf("worker %d: %v", i, err)
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	for name, want := range map[string]int{"task_list": workers, "adr_list": workers, "glossary_list": workers, "learning_list": workers} {
+		text, err := callText(ctx, session, name, map[string]any{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := strings.Count(text, "\n"); got != want {
+			t.Errorf("%s has %d lines, want %d:\n%s", name, got, want, text)
+		}
+	}
+	text, err := callText(ctx, session, "adr_list", map[string]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for n := 1; n <= workers; n++ {
+		if !strings.Contains(text, fmt.Sprintf("ADR-%03d ", n)) {
+			t.Errorf("adr_list has no ADR-%03d:\n%s", n, text)
 		}
 	}
 }
