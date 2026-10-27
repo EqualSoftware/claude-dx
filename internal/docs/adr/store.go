@@ -28,6 +28,7 @@ var (
 	statusLine = regexp.MustCompile(`(?m)^- Status: (.*)$`)
 	titleLine  = regexp.MustCompile(`(?m)^# ADR-\d{3}: (.*)$`)
 	dateLine   = regexp.MustCompile(`(?m)^- Date: (.*)$`)
+	ownersLine = regexp.MustCompile(`(?m)^- Owners:[^\r\n]*\r?$`)
 )
 
 // ErrNoDir means that docs/decisions does not exist. It is a normal state, not a failure.
@@ -193,6 +194,11 @@ func (s Store) defaults(adr New) New {
 
 // Update changes the status, or replaces one section, or both, and makes README.md again.
 func (s Store) Update(id, status, section, body string) error {
+	if path, err := s.find(id); err == nil {
+		if err := checkUpstream(id, path); err != nil {
+			return err
+		}
+	}
 	return docfile.Locked(s.Lock, func() error { return s.update(id, status, section, body) })
 }
 
@@ -241,14 +247,15 @@ func (s Store) supersede(oldID, newID string) error {
 	if err := s.canSupersede(oldID, newID); err != nil {
 		return err
 	}
-	err = s.edit(oldID, func(doc string) (string, error) {
-		return statusLine.ReplaceAllLiteralString(doc, fmt.Sprintf("- Status: Superseded by ADR-%03d", newN)), nil
+	// The new ADR is written first: its edit can fail, and then nothing is written.
+	err = s.edit(newID, func(doc string) (string, error) {
+		return addSupersedes(doc, oldN)
 	})
 	if err != nil {
 		return err
 	}
-	err = s.edit(newID, func(doc string) (string, error) {
-		return addReplaces(doc, oldN)
+	err = s.edit(oldID, func(doc string) (string, error) {
+		return statusLine.ReplaceAllLiteralString(doc, fmt.Sprintf("- Status: Superseded by ADR-%03d", newN)), nil
 	})
 	if err != nil {
 		return err
@@ -305,14 +312,23 @@ func (s Store) status(id string) (string, error) {
 	return first(statusLine, data), nil
 }
 
-// addReplaces puts "Replaces ADR-NNN." at the start of Context, one time only.
-func addReplaces(doc string, oldN int) (string, error) {
-	line := fmt.Sprintf("Replaces ADR-%03d.", oldN)
-	context, _ := markdown.Section(doc, "Context")
-	if strings.Contains(context, line) {
-		return doc, nil
+// addSupersedes puts "- Supersedes: ADR-NNN" after the Owners line, one time only (ADR-021).
+func addSupersedes(doc string, oldN int) (string, error) {
+	line := fmt.Sprintf("- Supersedes: ADR-%03d", oldN)
+	for l := range strings.SplitSeq(doc, "\n") {
+		if strings.TrimSuffix(l, "\r") == line {
+			return doc, nil
+		}
 	}
-	return markdown.ReplaceSection(doc, "Context", line+"\n\n"+context)
+	loc := ownersLine.FindStringIndex(doc)
+	if loc == nil {
+		return "", errors.New("the new ADR has no Owners line")
+	}
+	insert := "\n" + line
+	if doc[loc[1]-1] == '\r' { // the file has CRLF line ends
+		insert += "\r"
+	}
+	return doc[:loc[1]] + insert + doc[loc[1]:], nil
 }
 
 // edit reads the ADR, changes it with fn and writes it again.

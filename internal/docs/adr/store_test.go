@@ -194,11 +194,68 @@ func TestSupersede(t *testing.T) {
 		t.Fatalf("old =\n%s", old)
 	}
 	context, _ := s.Get("ADR-002", "Context")
-	if context != "Replaces ADR-001.\n\nThe context." {
+	if context != "The context." {
 		t.Fatalf("new Context = %q", context)
 	}
+	checkSupersedesLine(t, s)
 	if err := s.Supersede("ADR-001", "ADR-001"); err == nil {
 		t.Error("an ADR replaced itself")
+	}
+}
+
+func checkSupersedesLine(t *testing.T, s Store) {
+	t.Helper()
+	doc, _ := s.Get("ADR-002", "")
+	if !strings.Contains(doc, "- Owners: Maintainer\n- Supersedes: ADR-001\n\n## Context") {
+		t.Fatalf("new =\n%s", doc)
+	}
+}
+
+// TestSupersedeNoOwners: an error on the new ADR writes nothing.
+func TestSupersedeNoOwners(t *testing.T) {
+	s := newStore(t)
+	for _, title := range []string{"Old", "New"} {
+		_, err := s.Create(sample(title))
+		must(t, err)
+	}
+	must(t, s.Update("ADR-002", "Accepted", "", ""))
+	path, err := s.find("ADR-002")
+	must(t, err)
+	data, _ := os.ReadFile(path)
+	broken := strings.Replace(string(data), "- Owners: Maintainer\n", "", 1)
+	must(t, os.WriteFile(path, []byte(broken), 0o644))
+	oldBefore, _ := s.Get("ADR-001", "")
+	refused(t, s.Supersede("ADR-001", "ADR-002"), "no Owners line")
+	if oldAfter, _ := s.Get("ADR-001", ""); oldAfter != oldBefore {
+		t.Fatal("a refused Supersede changed ADR-001")
+	}
+	if newAfter, _ := s.Get("ADR-002", ""); newAfter != broken {
+		t.Fatal("a refused Supersede changed ADR-002")
+	}
+}
+
+// TestSupersedeNoDuplicate: a second call adds no second Supersedes line, also with CRLF line ends.
+func TestSupersedeNoDuplicate(t *testing.T) {
+	doc := "# ADR-002: New\r\n\r\n- Status: Accepted\r\n- Owners:Maintainer\r\n\r\n## Context\r\nx\r\n"
+	once, err := addSupersedes(doc, 1)
+	must(t, err)
+	if !strings.Contains(once, "- Owners:Maintainer\r\n- Supersedes: ADR-001\r\n\r\n") {
+		t.Fatalf("once = %q", once)
+	}
+	twice, err := addSupersedes(once, 1)
+	if err != nil || twice != once {
+		t.Fatalf("twice = %q, %v", twice, err)
+	}
+	s := newStore(t)
+	for _, title := range []string{"Old", "New"} {
+		_, err := s.Create(sample(title))
+		must(t, err)
+	}
+	must(t, s.Update("ADR-002", "Accepted", "", ""))
+	must(t, s.Supersede("ADR-001", "ADR-002"))
+	_ = s.Supersede("ADR-001", "ADR-002") // refused: ADR-001 is superseded
+	if got, _ := s.Get("ADR-002", ""); strings.Count(got, "- Supersedes: ADR-001") != 1 {
+		t.Fatalf("new =\n%s", got)
 	}
 }
 
