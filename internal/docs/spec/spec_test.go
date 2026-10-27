@@ -194,7 +194,7 @@ func TestGates(t *testing.T) {
 	}
 	for _, want := range []string{
 		"| R-1 | Each write holds the docs lock. | Done |\n| R-2 | Each read holds the shared lock. | Planned |\n",
-		"| Q-1 | Which lock? | Maintainer | The docs lock. |\n| Q-2 | Q? | Equal | Open |\n",
+		"| Q-1 | Which lock? | Tester | The docs lock. |\n| Q-2 | Q? | Equal | Open |\n",
 		"| Added R-1. |", "| Status: In Review. |", "| The user approved it. |", "| Status: In Review. The scope changed in section Goals. |",
 		"| R-1: status Done. |", "| R-1: text changed. |", "| Status: In Review. The scope changed in section 5. |",
 		"| Added R-2. |", "| Status: In Review. Q-2 is Open. |", "| Status: Draft. |",

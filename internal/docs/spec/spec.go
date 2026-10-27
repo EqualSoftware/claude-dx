@@ -260,13 +260,16 @@ func (s Store) today() string {
 	return time.Now().Format(time.DateOnly)
 }
 
-func (s Store) author() string {
+func (s Store) author() string { return s.authorOr("Agent") }
+
+// authorOr returns the author name, or fallback when there is none.
+func (s Store) authorOr(fallback string) string {
 	if s.Author != nil {
 		if name := s.Author(); name != "" {
 			return name
 		}
 	}
-	return "Agent"
+	return fallback
 }
 
 // addHistory adds a Document History row with today's date and the author.

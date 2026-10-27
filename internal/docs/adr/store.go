@@ -39,10 +39,11 @@ var Sections = []string{"Context", "Decision", "Alternatives", "Consequences", "
 
 // Store reads and writes the ADR files of one project.
 type Store struct {
-	Dir   string              // absolute path of docs/decisions
-	Alloc numbering.Allocator // number allocation (ADR-019)
-	Now   func() time.Time    // clock; nil means time.Now
-	Lock  string              // path of the docs lock (TASK-047); required
+	Dir    string              // absolute path of docs/decisions
+	Alloc  numbering.Allocator // number allocation (ADR-019)
+	Now    func() time.Time    // clock; nil means time.Now
+	Author func() string       // default owner (the user name of the VCS); nil or "" means "Maintainer"
+	Lock   string              // path of the docs lock (TASK-047); required
 }
 
 // Entry is one ADR in a list.
@@ -177,12 +178,22 @@ func (s Store) checkNewTitle(title string) error {
 	return docfile.CheckNewTitle(title, titles)
 }
 
+// owner returns the default owner of an ADR: the author, else "Maintainer".
+func (s Store) owner() string {
+	if s.Author != nil {
+		if name := s.Author(); name != "" {
+			return name
+		}
+	}
+	return "Maintainer"
+}
+
 func (s Store) defaults(adr New) New {
 	if adr.Status == "" {
 		adr.Status = "Proposed"
 	}
 	if adr.Owners == "" {
-		adr.Owners = "Maintainer"
+		adr.Owners = s.owner()
 	}
 	now := time.Now
 	if s.Now != nil {

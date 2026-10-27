@@ -25,7 +25,7 @@ type createInput struct {
 	Consequences Consequences  `json:"consequences"`
 	Evidence     string        `json:"evidence" jsonschema:"verified facts only: path:line, commits, benchmarks, issues"`
 	Status       string        `json:"status,omitempty" jsonschema:"Proposed (default) or Accepted. Accepted only when the user approved the decision"`
-	Owners       string        `json:"owners,omitempty" jsonschema:"a role, default Maintainer"`
+	Owners       string        `json:"owners,omitempty" jsonschema:"a role or name, default: the git user.name, else Maintainer"`
 }
 
 type updateInput struct {

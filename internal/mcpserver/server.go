@@ -40,7 +40,7 @@ func New(version, dir string) (*mcp.Server, error) {
 	// The file is only information for "claude-dx clean", so an error does not stop the server.
 	_ = writeProjectFile(filepath.Join(cacheDir, "projects", p.Key, "project.json"), p.Root, lock)
 	server := mcp.NewServer(&mcp.Implementation{Name: "dx", Version: version}, nil)
-	adr.Register(server, adr.Store{Dir: filepath.Join(p.Root, "docs", "decisions"), Alloc: alloc, Lock: lock})
+	adr.Register(server, adr.Store{Dir: filepath.Join(p.Root, "docs", "decisions"), Alloc: alloc, Author: gitUser(p.Root), Lock: lock})
 	specs := spec.Store{Dir: filepath.Join(p.Root, "docs", "specs"), ADRDir: filepath.Join(p.Root, "docs", "decisions"),
 		Root: p.Root, Author: gitUser(p.Root), Lock: lock}
 	task.Register(server, task.Store{Dir: filepath.Join(alloc.Dir, project.Tasks), Specs: specs, Lock: lock})

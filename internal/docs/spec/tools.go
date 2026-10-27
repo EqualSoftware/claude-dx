@@ -70,7 +70,7 @@ type reqSetInput struct {
 type questionInput struct {
 	Slug     string `json:"slug" jsonschema:"spec slug"`
 	Question string `json:"question" jsonschema:"one decision for the user, with the context it needs"`
-	Owner    string `json:"owner,omitempty" jsonschema:"who decides, default Maintainer"`
+	Owner    string `json:"owner,omitempty" jsonschema:"who decides, default: the git user.name, else Maintainer"`
 }
 
 type answerInput struct {

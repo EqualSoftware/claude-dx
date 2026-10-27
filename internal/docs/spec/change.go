@@ -296,7 +296,7 @@ func setRow(d *doc, rid, text, status string) ([]string, error) {
 // to In Review, because Approved needs no Open question. review is true after that status change.
 func (s Store) AddQuestion(slug, question, owner string) (qid string, review bool, err error) {
 	if owner == "" {
-		owner = "Maintainer"
+		owner = s.authorOr("Maintainer")
 	}
 	err = s.edit(slug, func(d *doc) error {
 		lines, next := withoutPlaceholder(d.body, "8", noQuestions, questionRow)
