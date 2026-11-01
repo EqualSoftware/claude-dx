@@ -6,9 +6,9 @@ tool golang.org/x/vuln/cmd/govulncheck
 
 require (
 	github.com/charmbracelet/huh v1.0.0
-	github.com/charmbracelet/x/term v0.2.1
+	github.com/charmbracelet/x/term v0.2.2
 	github.com/modelcontextprotocol/go-sdk v1.8.0
-	go.yaml.in/yaml/v3 v3.0.5
+	go.yaml.in/yaml/v3 v3.0.6
 	golang.org/x/mod v0.42.0
 	golang.org/x/sys v0.49.0
 )
