@@ -39,10 +39,10 @@ The agent runs git in Bash, and it can rewrite history, push a force or discard 
 | R-1 | The git runner runs the system git in the project root, or in the directory of R-21, with LC_ALL=C, GIT_TERMINAL_PROMPT=0, no pager and no color. A git error gives a short tool error with the first lines of stderr. | Done |
 | R-2 | The read tools git_status, git_diff, git_log, git_show and git_blame return grouped status, file stats or diffs, one line for each commit, and one line for each source line. | Done |
 | R-3 | doctor checks that git is in PATH and that its version is 2.30 or later. It reports FAIL with the minimum version otherwise. | Done |
-| R-4 | The local tools git_stage, git_unstage, git_discard, git_commit, git_amend, git_undo, git_fixup, git_revert, git_cherry_pick, git_tag and git_stash run their git operation. git_discard is marked destructive in its description. | Planned |
-| R-5 | git_commit builds the commit message of ADR-003 and refuses a message that is not valid, such as a summary that is not lowercase imperative or that ends with a period. It refuses when nothing is staged, and it adds one Co-Authored-By trailer for each co-author. | Planned |
-| R-6 | A commit is on the remote when a remote-tracking branch contains it (git branch -r --contains). | Planned |
-| R-7 | A tool that rewrites a commit on the remote asks the user with elicitation first. If the client has no elicitation or the user says no, the tool refuses with the reason and does not change the repository. | Planned |
+| R-4 | The local tools git_stage, git_unstage, git_discard, git_commit, git_amend, git_undo, git_fixup, git_revert, git_cherry_pick, git_tag and git_stash run their git operation. git_discard is marked destructive in its description. | Done |
+| R-5 | git_commit builds the commit message of ADR-003 and refuses a message that is not valid, such as a summary that is not lowercase imperative or that ends with a period. It refuses when nothing is staged, and it adds one Co-Authored-By trailer for each co-author. | Done |
+| R-6 | A commit is on the remote when a remote-tracking branch contains it (git branch -r --contains). | Done |
+| R-7 | A tool that rewrites a commit on the remote asks the user with elicitation first. If the client has no elicitation or the user says no, the tool refuses with the reason and does not change the repository. | Done |
 | R-8 | git_branch runs the actions list, create, switch, rename and delete. delete uses git branch -d, and a branch that is not merged needs elicitation. | Planned |
 | R-9 | git_sync runs fetch --prune and rebase --autostash onto the upstream, and keeps the local changes. On a conflict it returns the result of git_conflicts. | Planned |
 | R-10 | git_rebase runs the actions start, continue, abort and skip. continue uses GIT_EDITOR=true. | Planned |
@@ -51,8 +51,8 @@ The agent runs git in Bash, and it can rewrite history, push a force or discard 
 | R-13 | Network git commands stop after 120 seconds, with GIT_TERMINAL_PROMPT=0, so a credential prompt never blocks the server. | Done |
 | R-14 | A PreToolUse hook denies a Bash call when a git command runs in it, also after ;, &&, \|\|, pipes, subshells, sh -c, eval and wrappers such as env and xargs. The deny reason says to use the git_* tools. | Planned |
 | R-15 | If the hook cannot parse a Bash command, it allows the command. | Planned |
-| R-16 | git_exec runs git with the given arguments for an operation that no tool maps. Each call appends one JSON line to <cache>/unmapped.log. | Planned |
-| R-17 | claude-dx report groups the lines of unmapped.log by git subcommand, opens the issue form in the browser with the values filled in, and prints the URL. report --clear empties the log. | Planned |
+| R-16 | git_exec runs git with the given arguments for an operation that no tool maps. Each call appends one JSON line to <cache>/unmapped.log. | Done |
+| R-17 | claude-dx report groups the lines of unmapped.log by git subcommand, opens the issue form in the browser with the values filled in, and prints the URL. report --clear empties the log. | Done |
 | R-18 | The shared rules say to use the git_* tools for git and not to run git in Bash. | Planned |
 | R-21 | Each git_* tool takes an optional path. The path must be the project root or a worktree of the same repository. The tool runs git in that directory. Another path gives a tool error. | Done |
 | R-22 | git_worktree runs the actions list, add and remove. add creates a new branch from a start point. remove refuses a worktree with changes that are not committed. With delete_branch it also deletes the branch with git branch -d. | Planned |
@@ -149,3 +149,5 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-11-02 | Equal | Status: In Review. |
 | 2026-11-02 | Equal | Approved after R-19 and R-20 were deleted. |
 | 2026-11-02 | Equal | R-1, R-2, R-3, R-13, R-21: Done. |
+| 2026-11-02 | Equal | R-16, R-17: Done. |
+| 2026-11-02 | Equal | R-4, R-5, R-6, R-7: Done. |
