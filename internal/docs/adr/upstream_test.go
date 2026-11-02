@@ -105,3 +105,20 @@ func TestSupersedePushed(t *testing.T) {
 		t.Fatalf("new =\n%s", doc)
 	}
 }
+
+// TestUpdateGitMissing: when git is not installed, the change is allowed.
+func TestUpdateGitMissing(t *testing.T) {
+	s, _ := pushStore(t)
+	t.Setenv("PATH", t.TempDir())
+	must(t, s.Update("ADR-001", "Accepted", "", ""))
+	must(t, s.Update("ADR-001", "", "Evidence", "More."))
+}
+
+// TestUpdateNotInUpstream: an ADR made after the push is not in the upstream, so the change is allowed.
+func TestUpdateNotInUpstream(t *testing.T) {
+	s, _ := pushStore(t)
+	_, err := s.Create(sample("New"))
+	must(t, err)
+	must(t, s.Update("ADR-002", "Accepted", "", ""))
+	must(t, s.Update("ADR-002", "", "Evidence", "More."))
+}

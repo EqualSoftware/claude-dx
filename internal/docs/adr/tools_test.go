@@ -2,6 +2,7 @@ package adr
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"testing"
 
@@ -71,5 +72,23 @@ func TestToolSchemaRequiresFields(t *testing.T) {
 	text, isErr := call(t, session, "adr_create", map[string]any{"title": "X"})
 	if !isErr || !strings.Contains(text, "missing properties") {
 		t.Fatalf("adr_create with missing fields = %q, error %v", text, isErr)
+	}
+}
+
+// TestToolNames checks that the ADR tools are exactly these five. There is no delete tool (R-12).
+func TestToolNames(t *testing.T) {
+	session := connect(t, newStore(t))
+	res, err := session.ListTools(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for _, tool := range res.Tools {
+		names = append(names, tool.Name)
+	}
+	slices.Sort(names)
+	want := []string{"adr_create", "adr_get", "adr_list", "adr_supersede", "adr_update"}
+	if !slices.Equal(names, want) {
+		t.Fatalf("tools = %v, want %v", names, want)
 	}
 }
