@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.1.0
 priority: P1
 area: [docs]
-related: [ADR-002, ADR-006, ADR-007, ADR-012]
+related: [ADR-002, ADR-006, ADR-007, ADR-018]
 ---
 
 # Rules shared by the doc tools
@@ -73,7 +73,7 @@ Each doc tool needs the same checks. Without shared rules, a title can be too lo
 - ADR-002: document tools and paths.
 - ADR-006: the write rule (temporary file and rename) and the read and write locks. This spec links to them and does not repeat them.
 - ADR-007: number allocation.
-- ADR-012: one subject for each spec.
+- ADR-018: one subject for each spec.
 
 ## 7. Acceptance Criteria
 
@@ -97,42 +97,3 @@ The tests pass on macOS, Linux and Windows.
 | — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification |
-| 2026-10-27 | Equal | Added R-1. |
-| 2026-10-27 | Equal | Added R-2. |
-| 2026-10-27 | Equal | Added R-3. |
-| 2026-10-27 | Equal | Added R-4. |
-| 2026-10-27 | Equal | Added R-5. |
-| 2026-10-27 | Equal | Added R-6. |
-| 2026-10-27 | Equal | Added R-7. |
-| 2026-10-27 | Equal | Added R-8. |
-| 2026-10-27 | Equal | Added R-9. |
-| 2026-10-27 | Equal | R-1: status Done. |
-| 2026-10-27 | Equal | R-2: status Done. |
-| 2026-10-27 | Equal | R-3: status Done. |
-| 2026-10-27 | Equal | R-4: status Done. |
-| 2026-10-27 | Equal | R-5: status Done. |
-| 2026-10-27 | Equal | R-6: status Done. |
-| 2026-10-27 | Equal | R-7: status Done. |
-| 2026-10-27 | Equal | R-8: status Done. |
-| 2026-10-27 | Equal | R-9: status Done. |
-| 2026-10-27 | Equal | Approved by the user. |
-| 2026-10-27 | Equal | R-5: text changed. |
-| 2026-10-27 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-10-27 | Equal | Approved by the user after the R-5 fix. |
-| 2026-10-27 | Equal | Changed fields: related. |
-| 2026-10-27 | Equal | R-1: text changed. |
-| 2026-10-27 | Equal | R-3: text changed. |
-| 2026-10-27 | Equal | R-9: text changed. |
-| 2026-10-27 | Equal | Added R-10. |
-| 2026-10-27 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-10-27 | Equal | Added R-11. |
-| 2026-10-27 | Equal | R-10: status Done. |
-| 2026-10-27 | Equal | R-11: status Done. |
-| 2026-10-27 | Equal | Changed fields: related. |
-| 2026-10-27 | Equal | Approved by the user after the split of locks-and-cache (ADR-012). |

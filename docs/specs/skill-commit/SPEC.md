@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.4.0
 priority: P2
 area: [skills, git, plugin]
-related: [ADR-003, ADR-010, ADR-017]
+related: [ADR-003, ADR-010]
 ---
 
 # Commit skill
@@ -84,18 +84,3 @@ From git-tools, these items apply to this skill:
 | Q-6 | Does the skill run the acceptance check? | Equal | No. The author of the change runs it before. The skill only groups and commits. |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification |
-| 2026-10-27 | Equal | Added R-1. |
-| 2026-11-02 | Equal | R-1: text changed. |
-| 2026-11-02 | Equal | Added R-2. |
-| 2026-11-02 | Equal | Added R-3. |
-| 2026-11-02 | Equal | Added R-4. |
-| 2026-11-02 | Equal | Changed fields: related. |
-| 2026-11-02 | Equal | Status: In Review. |
-| 2026-11-02 | Equal | The user approved the spec. |
-| 2026-11-02 | Equal | R-1, R-2, R-3, R-4: Done. |

@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.1.0
 priority: P1
 area: [plugin, skills]
-related: [ADR-002, ADR-010, ADR-012]
+related: [ADR-002, ADR-010, ADR-018]
 ---
 
 # dx plugin: skills and rules
@@ -86,7 +86,7 @@ skills/<name>/SKILL.md         adr, glossary, grill, learning, spec, task
 
 - ADR-002: the MCP tool conventions.
 - ADR-010: skills and shared rules with no agent.
-- ADR-012: one subject for each spec.
+- ADR-018: one subject for each spec.
 
 ## 7. Acceptance Criteria
 
@@ -109,45 +109,3 @@ Planned requirements: none.
 | — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification |
-| 2026-10-27 | Equal | Added R-1. |
-| 2026-10-27 | Equal | Added R-2. |
-| 2026-10-27 | Equal | Added R-3. |
-| 2026-10-27 | Equal | Added R-4. |
-| 2026-10-27 | Equal | Added R-5. |
-| 2026-10-27 | Equal | Added R-6. |
-| 2026-10-27 | Equal | Added R-7. |
-| 2026-10-27 | Equal | Added R-8. |
-| 2026-10-27 | Equal | R-1: status Done. |
-| 2026-10-27 | Equal | R-2: status Done. |
-| 2026-10-27 | Equal | R-3: status Done. |
-| 2026-10-27 | Equal | R-4: status Done. |
-| 2026-10-27 | Equal | R-5: status Done. |
-| 2026-10-27 | Equal | R-6: status Done. |
-| 2026-10-27 | Equal | R-7: status Done. |
-| 2026-10-27 | Equal | R-8: status Done. |
-| 2026-10-27 | Equal | Approved by the user. |
-| 2026-10-27 | Equal | Changed fields: related. |
-| 2026-10-27 | Equal | R-8: text changed. |
-| 2026-10-27 | Equal | Added R-9. |
-| 2026-10-27 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-10-27 | Equal | Added R-10. |
-| 2026-10-27 | Equal | Added R-11. |
-| 2026-10-27 | Equal | Added R-12. |
-| 2026-10-27 | Equal | R-9: status Done. |
-| 2026-10-27 | Equal | R-10: status Done. |
-| 2026-10-27 | Equal | R-11: status Done. |
-| 2026-10-27 | Equal | R-12: status Done. |
-| 2026-10-27 | Equal | Changed fields: related. |
-| 2026-10-27 | Equal | Approved by the user after the split of locks-and-cache (ADR-012). |
-| 2026-11-02 | Equal | Added R-13. |
-| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-11-02 | Equal | Added R-14. |
-| 2026-11-02 | Equal | Added R-15. |
-| 2026-11-02 | Equal | Added R-16. |
-| 2026-11-02 | Equal | Approved by the user after the ADR-018 requirements. |

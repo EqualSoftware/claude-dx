@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.1.0
 priority: P1
 area: [cli]
-related: [ADR-001, ADR-012]
+related: [ADR-001, ADR-018]
 ---
 
 # Command parser of claude-dx
@@ -25,7 +25,7 @@ The developer must start Claude Code with dx in one command, with no change to t
 
 ## 4. Out of Scope
 
-This spec is the scope of the family of the cli-* specs (ADR-012). Each command has its own spec:
+This spec is the scope of the family of the cli-* specs (ADR-018). Each command has its own spec:
 - The start of claude: see the spec cli-launch.
 - The update command: see the spec cli-update.
 - The doctor command: see the spec cli-doctor.
@@ -58,7 +58,7 @@ This spec is the scope of the family of the cli-* specs (ADR-012). Each command 
 ### Decisions
 
 - ADR-001: launch with flags, no change to the configuration, and the passthrough of arguments.
-- ADR-012: one subject for each spec.
+- ADR-018: one subject for each spec.
 
 ## 7. Acceptance Criteria
 
@@ -75,16 +75,3 @@ All tests pass on macOS. Linux and Windows run in CI.
 | — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification. Split from cli. |
-| 2026-10-27 | Equal | Added R-1. |
-| 2026-10-27 | Equal | Added R-2. |
-| 2026-10-27 | Equal | R-1: text changed. |
-| 2026-10-27 | Equal | R-1: status Done. |
-| 2026-10-27 | Equal | R-2: status Done. |
-| 2026-10-27 | Equal | Status: In Review. |
-| 2026-10-27 | Equal | Approved by the user. |

@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.1.0
 priority: P1
 area: [docs, mcp]
-related: [ADR-002, ADR-008]
+related: [ADR-002, ADR-018]
 ---
 
 # Spec documents and spec tools
@@ -16,19 +16,19 @@ A spec is one file, `docs/specs/<slug>/SPEC.md`. It gives the current definition
 
 ## 2. Problem
 
-Task files in git make many files, and they do not give the current behavior of a feature. A spec gives the current behavior, so a reader sees one definition for each feature (ADR-008).
+Task files in git make many files, and they do not give the current behavior of a feature. A spec gives the current behavior, so a reader sees one definition for each feature (ADR-018).
 
 ## 3. Goals
 
 - G-1: A spec gives the current definition of one feature, with requirements R-N and their status.
-- G-2: The status rules of ADR-008 apply to specs.
+- G-2: The status rules of ADR-018 apply to specs.
 - G-3: `spec_get` gives the commits of each requirement from the `Refs: <slug>#R-N` trailers of HEAD.
 
 ## 4. Out of Scope
 
 - Local tasks: the task spec.
-- Removal of a requirement or a Removed status: it needs a change of ADR-008.
-- Renaming of a slug: the slug does not change (ADR-008).
+- Removal of a requirement or a Removed status: it needs a change of ADR-018.
+- Renaming of a slug: the slug does not change (ADR-018).
 
 ## 5. Requirements
 
@@ -63,7 +63,7 @@ Task files in git make many files, and they do not give the current behavior of 
 
 ### Decisions
 
-- ADR-008: specs in git, and the gates of the status changes.
+- ADR-018: specs in git, and the gates of the status changes.
 - ADR-002: the document tools.
 
 ## 7. Acceptance Criteria
@@ -84,41 +84,3 @@ The tests pass on macOS, Linux and Windows.
 | — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification |
-| 2026-10-27 | Equal | Added R-1. |
-| 2026-10-27 | Equal | Added R-2. |
-| 2026-10-27 | Equal | Added R-3. |
-| 2026-10-27 | Equal | Added R-4. |
-| 2026-10-27 | Equal | Added R-5. |
-| 2026-10-27 | Equal | Added R-6. |
-| 2026-10-27 | Equal | Added R-7. |
-| 2026-10-27 | Equal | R-1: status Done. |
-| 2026-10-27 | Equal | R-2: status Done. |
-| 2026-10-27 | Equal | R-3: status Done. |
-| 2026-10-27 | Equal | R-4: status Done. |
-| 2026-10-27 | Equal | R-5: status Done. |
-| 2026-10-27 | Equal | R-6: status Done. |
-| 2026-10-27 | Equal | R-7: status Done. |
-| 2026-10-27 | Equal | Approved by the user. |
-| 2026-10-27 | Equal | Changed fields: related. |
-| 2026-10-27 | Equal | R-3: text changed. |
-| 2026-11-02 | Equal | Added R-8. |
-| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-11-02 | Equal | Approved R-8 (spec_req_delete). |
-| 2026-11-02 | Equal | R-8: Done. |
-| 2026-11-02 | Equal | Added R-9. |
-| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-11-02 | Equal | Added R-10. |
-| 2026-11-02 | Equal | Added R-11. |
-| 2026-11-02 | Equal | R-3: text changed. |
-| 2026-11-02 | Equal | R-3: status Planned. |
-| 2026-11-02 | Equal | R-7: text changed. |
-| 2026-11-02 | Equal | R-7: status Planned. |
-| 2026-11-02 | Equal | R-8: text changed. |
-| 2026-11-02 | Equal | R-8: status Planned. |
-| 2026-11-02 | Equal | Approved by the user after the ADR-018 requirements. |

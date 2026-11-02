@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.1.0
 priority: P1
 area: [cache, session]
-related: [ADR-006, ADR-011, ADR-012]
+related: [ADR-006, ADR-011, ADR-018]
 ---
 
 # Cache lock and sessions
@@ -70,6 +70,7 @@ Many sessions run at the same time, in one repository and in worktrees. Without 
 
 - ADR-006: read-write locks for the cache, and the claude child process.
 - ADR-011: the interactive clean command removes global data under the exclusive lock.
+- Decision: take an exclusive lock on `<cache>/plugin.repair.lock` for the plugin directory repair, because two processes that repair at the same time can delete the good plugin directory of the other process. The normal path takes no lock. The repair path takes the lock after the shared cache lock.
 
 ## 7. Acceptance Criteria
 
@@ -90,23 +91,3 @@ All tests pass on macOS. Linux and Windows run in CI.
 | — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification. Split from locks-and-cache. |
-| 2026-10-27 | Equal | Added R-1. |
-| 2026-10-27 | Equal | Added R-2. |
-| 2026-10-27 | Equal | Added R-3. |
-| 2026-10-27 | Equal | Added R-4. |
-| 2026-10-27 | Equal | Added R-5. |
-| 2026-10-27 | Equal | Added R-6. |
-| 2026-10-27 | Equal | R-1: status Done. |
-| 2026-10-27 | Equal | R-2: status Done. |
-| 2026-10-27 | Equal | R-3: status Done. |
-| 2026-10-27 | Equal | R-4: status Done. |
-| 2026-10-27 | Equal | R-5: status Done. |
-| 2026-10-27 | Equal | R-6: status Done. |
-| 2026-10-27 | Equal | Status: In Review. |
-| 2026-10-27 | Equal | Approved by the user. |

@@ -5,18 +5,18 @@ status: Approved
 milestone: v0.1.0
 priority: P1
 area: [cli, plugin]
-related: [ADR-008]
+related: [ADR-018]
 ---
 
 # Resume command and SessionStart hook
 
 ## 1. Summary
 
-Add the command `claude-dx resume` and a `SessionStart` hook of the plugin that runs it (ADR-008).
+Add the command `claude-dx resume` and a `SessionStart` hook of the plugin that runs it (ADR-018).
 
 ## 2. Problem
 
-After a session start, `/clear` or compact, the model has no work state. A handoff file that a person writes needs the model to update it, and it repeats the rules and the task status that other files already have (ADR-008).
+After a session start, `/clear` or compact, the model has no work state. A handoff file that a person writes needs the model to update it, and it repeats the rules and the task status that other files already have (ADR-018).
 
 ## 3. Goals
 
@@ -25,7 +25,7 @@ After a session start, `/clear` or compact, the model has no work state. A hando
 
 ## 4. Out of Scope
 
-- A journal of events (ADR-008 rejects it).
+- A journal of events (ADR-018 rejects it).
 - A history of the work for projects with no git repository. It needs a new ADR and its own spec (Q-4).
 - Spec and task tools (docs-spec, docs-task).
 
@@ -78,7 +78,7 @@ Unpushed:
 
 ### Decisions
 
-- ADR-008: the resume command, the hook, and the rule that no journal is kept (Q-4).
+- ADR-018: the resume command, the hook, and the rule that no journal is kept (Q-4).
 
 ## 7. Acceptance Criteria
 
@@ -97,7 +97,7 @@ Unpushed:
 | Q-1 | Output format: which layout does the command print? Recommended: plain text with one header line (branch, upstream, ahead count, number of changed files) and then the sections Changed, In Progress, Next, Blocked and Unpushed. It does not print an empty section. | Equal | Yes. Plain text: one header line (branch, upstream, ahead count, number of changed files), then the sections Changed, In Progress, Next, Blocked and Unpushed. The command does not print an empty section. |
 | Q-2 | No upstream: what does the command print when the branch has no upstream? Recommended: the header shows "no upstream", and the Unpushed section lists the commits that no remote branch has (git log --branches --not --remotes, current branch only). | Equal | Yes. The header shows "no upstream". The Unpushed section lists the commits of the current branch that no remote branch has. |
 | Q-3 | Limits for 40 lines: how does the command shorten the output? Recommended: Changed files max 10, Next max 3, Blocked max 5, Unpushed max 10, Notes of an In Progress task: the last 3 lines. Each cut list ends with "+N more". When the total is still more than 40 lines, the command cuts the Notes first. | Equal | Yes. Changed max 10, Next max 3, Blocked max 5, Unpushed max 10, Notes of an In Progress task: the last 3 lines. Each cut list ends with "+N more". When the total is more than 40 lines, the command cuts the Notes first. |
-| Q-4 | Errors and side effects: what does the command do when git is missing, the directory is not a git repository, the project has no data directory, or a task file is not valid? Recommended: it skips the part that fails, prints one line for each error, and always exits with code 0, so the hook does not stop the session. It only reads: it does not create the data directory and does not change project.json. | Equal | Keep ADR-008: no journal. In a project with no git repository, the header is "dx: no git repository" and the output has only the task sections (In Progress, Next, Blocked). For the other errors (git not installed, no data directory, task file not valid), the command skips the part that fails and prints one line for each error. It always exits with code 0. It only reads: it does not create the data directory and does not change project.json. A history for projects with no git is a possible later spec with a new ADR. |
+| Q-4 | Errors and side effects: what does the command do when git is missing, the directory is not a git repository, the project has no data directory, or a task file is not valid? Recommended: it skips the part that fails, prints one line for each error, and always exits with code 0, so the hook does not stop the session. It only reads: it does not create the data directory and does not change project.json. | Equal | Keep ADR-018: no journal. In a project with no git repository, the header is "dx: no git repository" and the output has only the task sections (In Progress, Next, Blocked). For the other errors (git not installed, no data directory, task file not valid), the command skips the part that fails and prints one line for each error. It always exits with code 0. It only reads: it does not create the data directory and does not change project.json. A history for projects with no git is a possible later spec with a new ADR. |
 | Q-5 | Next tasks: which Todo tasks are in Next, and in which order? Recommended: Todo tasks of Approved specs and general with all depends_on Done, ordered by priority and then ID (as task_list), max 3. | Equal | Yes. Todo tasks of Approved specs and of general, with all depends_on Done. Order: priority, then ID. Max 3. |
 | Q-6 | R-4 text: what is the one line when there are no tasks to show and the tree is clean? Recommended: "dx: branch <branch>, clean tree, no active tasks." And does "no tasks" mean no In Progress, Next and Blocked tasks (Done tasks do not count)? Recommended: yes. | Equal | Yes. The line is "dx: branch <branch>, clean tree, no active tasks." No tasks means no In Progress, Next and Blocked tasks. Done tasks do not count. |
 | Q-7 | Line formats: Recommended: (a) Changed is one line with the git status short codes, separated by commas. (b) In Progress is ordered by modification time, newest first. (c) A Blocked line has the ID, the priority, the title and the last line of Notes (the blocker). (d) An Unpushed line has the short hash, the subject and the Refs trailers in brackets. (e) A Notes line is one non-empty line of the Notes section, sub-items included. | Equal | Yes. (a) Changed is one line with the git status short codes, separated by commas. (b) In Progress is ordered by modification time, newest first. (c) A Blocked line has the ID, the priority, the title and the last line of Notes. (d) An Unpushed line has the short hash, the subject and the Refs trailers in brackets. (e) A Notes line is one non-empty line of the Notes section, sub-items included. |
@@ -106,41 +106,3 @@ Unpushed:
 | Q-10 | Error line text (R-10): which text does the command print for a part that fails? Recommended: "dx: skipped <part>: <error>", where part is git, tasks or the task ID (example: "dx: skipped tasks: no data directory"). | Equal | Yes. The text is "dx: skipped <part>: <error>". The part is git, tasks or the task ID. Example: "dx: skipped tasks: no data directory". |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-26 | Equal | Initial draft specification |
-| 2026-10-26 | Equal | Added R-1. |
-| 2026-10-26 | Equal | Added R-2. |
-| 2026-10-26 | Equal | Added R-3. |
-| 2026-10-26 | Equal | Added R-4. |
-| 2026-10-27 | Equal | Changed fields: related. |
-| 2026-10-27 | Equal | R-1: text changed. |
-| 2026-10-27 | Equal | R-4: text changed. |
-| 2026-10-27 | Equal | Added R-5. |
-| 2026-10-27 | Equal | Added R-6. |
-| 2026-10-27 | Equal | Added R-7. |
-| 2026-10-27 | Equal | Added R-8. |
-| 2026-10-27 | Equal | Added R-9. |
-| 2026-10-27 | Equal | Added R-10. |
-| 2026-10-27 | Equal | Added R-11. |
-| 2026-10-27 | Equal | Added R-12. |
-| 2026-10-27 | Equal | R-10: text changed. |
-| 2026-10-27 | Equal | Refined with the user: Q-1 to Q-10 answered, R-1 to R-12. |
-| 2026-10-27 | Equal | Approved by the user. |
-| 2026-10-27 | Equal | R-4: text changed. |
-| 2026-10-27 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-10-27 | Equal | R-10: text changed. |
-| 2026-10-27 | Equal | R-12: text changed. |
-| 2026-10-27 | Equal | R-3: text changed. |
-| 2026-10-27 | Equal | Approved again by the user after the changes of R-3, R-4, R-10 and R-12. |
-| 2026-10-27 | Equal | R-1, R-2, R-3, R-4, R-5, R-6, R-7, R-8, R-9, R-10, R-11, R-12: Done. |
-| 2026-11-02 | Equal | Added R-13. |
-| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-11-02 | Equal | R-1: text changed. |
-| 2026-11-02 | Equal | R-1: status Planned. |
-| 2026-11-02 | Equal | R-4: text changed. |
-| 2026-11-02 | Equal | R-4: status Planned. |
-| 2026-11-02 | Equal | Approved by the user after the ADR-018 requirements. |

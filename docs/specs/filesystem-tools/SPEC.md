@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.3.0
 priority: P2
 area: [mcp, filesystem]
-related: [ADR-002, ADR-003, ADR-013, ADR-016]
+related: [ADR-002, ADR-003, ADR-013]
 ---
 
 # Filesystem tools for dx
@@ -76,6 +76,8 @@ Deny reasons: `rm` → fs_delete, `mv` → fs_move, `cp` → fs_copy, `mkdir` �
 - ADR-002: the filesystem tools complement the native tools.
 - ADR-003: the Bash hook (see git-tools).
 - ADR-013: claude-dx does not manage language servers. fs_move does not update imports.
+- Decision: the filesystem tools are fs_move, fs_copy, fs_delete, fs_mkdir and fs_tree, and each refuses a path outside the project root, because native Edit needs a native Read first, so fs_read_many does not save calls.
+- Decision: the Bash hook denies mv, rm, cp and mkdir only when a path argument is inside the project root, because a hook that blocks all four also blocks the cleanup of temporary directories.
 
 ## 7. Acceptance Criteria
 
@@ -106,35 +108,3 @@ Planned requirements (tests to write, on a temporary directory):
 | Q-10 | Decisions found during the build: refuse a source and destination that contain each other; no copy fallback across devices for fs_move; fs_tree does not show empty directories; fs_tree shows a directory deeper than depth as name/; fs_mkdir also refuses .git; a failed restore keeps the backup. Do we accept them? | Equal | Yes, all accepted. Known limits: a race between the check and the rename can replace a destination that another process makes; .fs-old-* or .fs-copy-* entries stay if the process stops during a replace; on Windows a move across devices gives the raw system error. |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification |
-| 2026-10-27 | Equal | Added R-1. |
-| 2026-10-27 | Equal | Added R-2. |
-| 2026-10-27 | Equal | Added R-3. |
-| 2026-10-27 | Equal | Added R-4. |
-| 2026-10-27 | Equal | Added R-5. |
-| 2026-10-27 | Equal | Changed fields: related. |
-| 2026-10-27 | Equal | R-4: text changed. |
-| 2026-11-02 | Equal | Deleted R-3. |
-| 2026-11-02 | Equal | Deleted R-4. |
-| 2026-11-02 | Equal | R-5: text changed. |
-| 2026-11-02 | Equal | Added R-6. |
-| 2026-11-02 | Equal | R-1: text changed. |
-| 2026-11-02 | Equal | R-2: text changed. |
-| 2026-11-02 | Equal | Added R-7. |
-| 2026-11-02 | Equal | Added R-8. |
-| 2026-11-02 | Equal | Added R-9. |
-| 2026-11-02 | Equal | R-7: text changed. |
-| 2026-11-02 | Equal | Added R-10. |
-| 2026-11-02 | Equal | Refined with the user (Q-1 to Q-9). |
-| 2026-11-02 | Equal | Changed fields: related. |
-| 2026-11-02 | Equal | Approved by the user. ADR-016 records the scope. |
-| 2026-11-02 | Equal | R-10: text changed. |
-| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-11-02 | Equal | R-10 extended to fs_mkdir and same-file checks (Q-10). Approved by the user. |
-| 2026-11-02 | Equal | R-1, R-2, R-6, R-7, R-8, R-9, R-10: Done. |
-| 2026-11-02 | Equal | R-5: Done. |

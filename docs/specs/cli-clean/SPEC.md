@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.1.0
 priority: P1
 area: [cli]
-related: [ADR-006, ADR-008, ADR-011, ADR-012]
+related: [ADR-006, ADR-011, ADR-018]
 ---
 
 # Clean command of claude-dx
@@ -16,7 +16,7 @@ claude-dx clean shows the local data of claude-dx as a tree: old plugin versions
 
 ## 2. Problem
 
-The user must remove the local data of claude-dx without losing tasks that they want to keep (ADR-008, ADR-011). A flag that deletes with no selection can delete too much, so the command is interactive.
+The user must remove the local data of claude-dx without losing tasks that they want to keep (ADR-018, ADR-011). A flag that deletes with no selection can delete too much, so the command is interactive.
 
 ## 3. Goals
 
@@ -59,7 +59,7 @@ The user must remove the local data of claude-dx without losing tasks that they 
 ### Decisions
 
 - ADR-006: read-write locks.
-- ADR-008: specs and tasks model.
+- ADR-018: specs and tasks model.
 - ADR-011: the interactive clean command.
 
 ## 7. Acceptance Criteria
@@ -87,29 +87,3 @@ All tests pass on macOS. Linux and Windows run in CI.
 | — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification. Split from cli. |
-| 2026-10-27 | Equal | Added R-1. |
-| 2026-10-27 | Equal | Added R-2. |
-| 2026-10-27 | Equal | Added R-3. |
-| 2026-10-27 | Equal | Added R-4. |
-| 2026-10-27 | Equal | Added R-5. |
-| 2026-10-27 | Equal | Added R-6. |
-| 2026-10-27 | Equal | Added R-7. |
-| 2026-10-27 | Equal | Added R-8. |
-| 2026-10-27 | Equal | R-1: status Done. |
-| 2026-10-27 | Equal | R-2: status Done. |
-| 2026-10-27 | Equal | R-3: status Done. |
-| 2026-10-27 | Equal | R-4: status Done. |
-| 2026-10-27 | Equal | R-5: status Done. |
-| 2026-10-27 | Equal | R-6: status Done. |
-| 2026-10-27 | Equal | R-7: status Done. |
-| 2026-10-27 | Equal | R-8: status Done. |
-| 2026-10-27 | Equal | Status: In Review. |
-| 2026-10-27 | Equal | Approved by the user. |
-| 2026-10-27 | Equal | Status: In Review. The scope changed in section 4. |
-| 2026-10-27 | Equal | Approved by the user after the removal of the LSP item (ADR-013). |

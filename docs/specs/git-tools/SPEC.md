@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.2.0
 priority: P1
 area: [git, mcp, plugin]
-related: [ADR-003, ADR-010, ADR-015, ADR-017]
+related: [ADR-003, ADR-010]
 ---
 
 # Git tools and the Bash git hook
@@ -85,7 +85,8 @@ The agent runs git in Bash, and it can rewrite history, push a force or discard 
 
 - ADR-003: the git tools.
 - ADR-010: the skills and the rules.
-- ADR-015: git tools in worktrees.
+- Decision: each git_* tool takes an optional path, which must be the project root or a worktree of the same repository, and git_worktree manages worktrees, because workers commit in their worktrees and the Bash hook blocks git in Bash.
+- Decision: git_diff numbers the hunks of each file and gives a token, and the new tool git_stage_hunks stages only the chosen hunks and refuses a stale token, because git_stage stages whole files only and a hand-written patch has wrong line numbers.
 
 ## 7. Acceptance Criteria
 
@@ -117,55 +118,3 @@ Planned requirements (tests to write):
 | — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification |
-| 2026-10-27 | Equal | Added R-1. |
-| 2026-10-27 | Equal | Added R-2. |
-| 2026-10-27 | Equal | Added R-3. |
-| 2026-10-27 | Equal | Added R-4. |
-| 2026-10-27 | Equal | Added R-5. |
-| 2026-10-27 | Equal | Added R-6. |
-| 2026-10-27 | Equal | Added R-7. |
-| 2026-10-27 | Equal | Added R-8. |
-| 2026-10-27 | Equal | Added R-9. |
-| 2026-10-27 | Equal | Added R-10. |
-| 2026-10-27 | Equal | Added R-11. |
-| 2026-10-27 | Equal | Added R-12. |
-| 2026-10-27 | Equal | Added R-13. |
-| 2026-10-27 | Equal | Added R-14. |
-| 2026-10-27 | Equal | Added R-15. |
-| 2026-10-27 | Equal | Added R-16. |
-| 2026-10-27 | Equal | Added R-17. |
-| 2026-10-27 | Equal | Added R-18. |
-| 2026-10-27 | Equal | Added R-19. |
-| 2026-10-27 | Equal | Added R-20. |
-| 2026-10-27 | Equal | v0.2.0 work is planned again after the migration. |
-| 2026-10-27 | Equal | Changed fields: related. |
-| 2026-10-27 | Equal | R-5: text changed. |
-| 2026-11-02 | Equal | Added R-21. |
-| 2026-11-02 | Equal | Added R-22. |
-| 2026-11-02 | Equal | R-1: text changed. |
-| 2026-11-02 | Equal | Changed fields: related. |
-| 2026-11-02 | Equal | Deleted R-19. |
-| 2026-11-02 | Equal | Deleted R-20. |
-| 2026-11-02 | Equal | Status: In Review. |
-| 2026-11-02 | Equal | Approved after R-19 and R-20 were deleted. |
-| 2026-11-02 | Equal | R-1, R-2, R-3, R-13, R-21: Done. |
-| 2026-11-02 | Equal | R-16, R-17: Done. |
-| 2026-11-02 | Equal | R-4, R-5, R-6, R-7: Done. |
-| 2026-11-02 | Equal | R-8, R-9, R-10, R-11, R-12, R-22: Done. |
-| 2026-11-02 | Equal | R-14, R-15, R-18: Done. |
-| 2026-11-02 | Equal | Added R-23. |
-| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-11-02 | Equal | Added R-24. |
-| 2026-11-02 | Equal | Changed fields: related. |
-| 2026-11-02 | Equal | The user approved R-23 and R-24. |
-| 2026-11-02 | Equal | R-23, R-24: Done. |
-| 2026-11-02 | Equal | Added R-25. |
-| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-11-02 | Equal | The user approved R-25. |
-| 2026-11-02 | Equal | R-25: status Done. |

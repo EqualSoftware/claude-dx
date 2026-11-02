@@ -54,10 +54,3 @@ Out-of-scope items for the skill are not set in git-tools. See Open Questions.
 | Q-1 | Define the goals and the out-of-scope items of the Eureka skill. git-tools gives only requirement R-20 for this skill. | Equal | Open |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification |
-| 2026-10-27 | Equal | Added R-1. |

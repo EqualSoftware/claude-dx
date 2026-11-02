@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.1.0
 priority: P1
 area: [docs, mcp]
-related: [ADR-002, ADR-006, ADR-007, ADR-008]
+related: [ADR-002, ADR-006, ADR-007, ADR-018]
 ---
 
 # Local tasks and task tools
@@ -16,7 +16,7 @@ A task is a local work item. It belongs to one spec. It is stored in the project
 
 ## 2. Problem
 
-Task files in git make the repository large. Two branches can create tasks with the same number, so the IDs collide. The current behavior of a feature is spread over many closed tasks. The tools must enforce the status rules, so that an agent cannot skip a step. See ADR-008.
+Task files in git make the repository large. Two branches can create tasks with the same number, so the IDs collide. The current behavior of a feature is spread over many closed tasks. The tools must enforce the status rules, so that an agent cannot skip a step. See ADR-018.
 
 ## 3. Goals
 
@@ -69,11 +69,11 @@ Task files in git make the repository large. Two branches can create tasks with 
 
 ### 6.2 File layout
 
-A task is `<data dir>/tasks/<spec>/<task-slug>.md`. A task with no spec is in `<data dir>/tasks/general/`. The data directory is `<git-common-dir>/dx/` in a git repository, else `<cache>/projects/<key>/`. See ADR-007 and ADR-008.
+A task is `<data dir>/tasks/<spec>/<task-slug>.md`. A task with no spec is in `<data dir>/tasks/general/`. The data directory is `<git-common-dir>/dx/` in a git repository, else `<cache>/projects/<key>/`. See ADR-007 and ADR-018.
 
 ### 6.3 Frontmatter and sections
 
-The frontmatter has `id`, `title`, `status`, `priority`, `covers` and `depends_on`. The ID is `<spec>/<task-slug>`. The sections are Brief, Plan, Notes and Definition of Done, in this order. The Brief has what to do, the files, the constraints and the check commands. The Plan is a list of steps. Each step has one action and its check. See ADR-008.
+The frontmatter has `id`, `title`, `status`, `priority`, `covers` and `depends_on`. The ID is `<spec>/<task-slug>`. The sections are Brief, Plan, Notes and Definition of Done, in this order. The Brief has what to do, the files, the constraints and the check commands. The Plan is a list of steps. Each step has one action and its check. See ADR-018.
 
 ```markdown
 ---
@@ -147,60 +147,3 @@ sequenceDiagram
 | — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification |
-| 2026-10-27 | Equal | Added R-1. |
-| 2026-10-27 | Equal | Added R-2. |
-| 2026-10-27 | Equal | Added R-3. |
-| 2026-10-27 | Equal | Added R-4. |
-| 2026-10-27 | Equal | Added R-5. |
-| 2026-10-27 | Equal | Added R-6. |
-| 2026-10-27 | Equal | Added R-7. |
-| 2026-10-27 | Equal | Added R-8. |
-| 2026-10-27 | Equal | Added R-9. |
-| 2026-10-27 | Equal | Added R-10. |
-| 2026-10-27 | Equal | Added R-11. |
-| 2026-10-27 | Equal | Added R-12. |
-| 2026-10-27 | Equal | Added R-13. |
-| 2026-10-27 | Equal | Added R-14. |
-| 2026-10-27 | Equal | Added R-15. |
-| 2026-10-27 | Equal | Added R-16. |
-| 2026-10-27 | Equal | Added R-17. |
-| 2026-10-27 | Equal | Added R-18. |
-| 2026-10-27 | Equal | Added R-19. |
-| 2026-10-27 | Equal | Added R-20. |
-| 2026-10-27 | Equal | Added R-21. |
-| 2026-10-27 | Equal | R-1: status Done. |
-| 2026-10-27 | Equal | R-2: status Done. |
-| 2026-10-27 | Equal | R-3: status Done. |
-| 2026-10-27 | Equal | R-4: status Done. |
-| 2026-10-27 | Equal | R-5: status Done. |
-| 2026-10-27 | Equal | R-6: status Done. |
-| 2026-10-27 | Equal | R-7: status Done. |
-| 2026-10-27 | Equal | R-8: status Done. |
-| 2026-10-27 | Equal | R-9: status Done. |
-| 2026-10-27 | Equal | R-10: status Done. |
-| 2026-10-27 | Equal | R-11: status Done. |
-| 2026-10-27 | Equal | R-12: status Done. |
-| 2026-10-27 | Equal | R-13: status Done. |
-| 2026-10-27 | Equal | R-14: status Done. |
-| 2026-10-27 | Equal | R-15: status Done. |
-| 2026-10-27 | Equal | R-16: status Done. |
-| 2026-10-27 | Equal | R-17: status Done. |
-| 2026-10-27 | Equal | R-18: status Done. |
-| 2026-10-27 | Equal | R-19: status Done. |
-| 2026-10-27 | Equal | R-20: status Done. |
-| 2026-10-27 | Equal | R-21: status Done. |
-| 2026-10-27 | Equal | Approved by the user. |
-| 2026-10-27 | Equal | Changed fields: related. |
-| 2026-10-27 | Equal | R-21: text changed. |
-| 2026-10-27 | Equal | Status: In Review. The scope changed in section 4. |
-| 2026-10-27 | Equal | Approved by the user after the reference change (ADR-012). |
-| 2026-11-02 | Equal | R-10: text changed. |
-| 2026-11-02 | Equal | R-10: status Planned. |
-| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-11-02 | Equal | Approved by the user after the ADR-018 requirements. |

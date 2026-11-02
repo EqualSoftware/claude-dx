@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.1.0
 priority: P1
 area: [cli]
-related: [ADR-005, ADR-006, ADR-012]
+related: [ADR-005, ADR-006, ADR-018]
 ---
 
 # Update command of claude-dx
@@ -78,26 +78,3 @@ All tests pass on macOS. Linux and Windows run in CI.
 | — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-10-27 | Equal | Initial draft specification. Split from cli. |
-| 2026-10-27 | Equal | Added R-1. |
-| 2026-10-27 | Equal | Added R-2. |
-| 2026-10-27 | Equal | Added R-3. |
-| 2026-10-27 | Equal | Added R-4. |
-| 2026-10-27 | Equal | Added R-5. |
-| 2026-10-27 | Equal | Added R-6. |
-| 2026-10-27 | Equal | R-1: status Done. |
-| 2026-10-27 | Equal | R-2: status Done. |
-| 2026-10-27 | Equal | R-3: status Done. |
-| 2026-10-27 | Equal | R-4: status Done. |
-| 2026-10-27 | Equal | R-5: status Done. |
-| 2026-10-27 | Equal | R-6: status Done. |
-| 2026-10-27 | Equal | Status: In Review. |
-| 2026-10-27 | Equal | Approved by the user. |
-| 2026-10-27 | Equal | R-1: text changed. |
-| 2026-10-27 | Equal | Status: In Review. The scope changed in section 5. |
-| 2026-10-27 | Equal | The user approved the new R-1 text: the launcher deletes only regular .old and .old.<n> files. |

@@ -117,21 +117,3 @@ Each spike write holds the exclusive docs lock of the project data directory. Ea
 | — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| 2026-11-02 | Equal | Initial draft specification |
-| 2026-11-02 | Equal | Added R-1. |
-| 2026-11-02 | Equal | Added R-2. |
-| 2026-11-02 | Equal | Added R-3. |
-| 2026-11-02 | Equal | Added R-4. |
-| 2026-11-02 | Equal | Added R-5. |
-| 2026-11-02 | Equal | Added R-6. |
-| 2026-11-02 | Equal | Added R-7. |
-| 2026-11-02 | Equal | Added R-8. |
-| 2026-11-02 | Equal | Added R-9. |
-| 2026-11-02 | Equal | Added R-10. |
-| 2026-11-02 | Equal | Status: In Review. |
-| 2026-11-02 | Equal | Approved by the user. |
