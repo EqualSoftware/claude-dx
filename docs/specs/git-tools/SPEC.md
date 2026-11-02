@@ -58,6 +58,7 @@ The agent runs git in Bash, and it can rewrite history, push a force or discard 
 | R-22 | git_worktree runs the actions list, add and remove. add creates a new branch from a start point. remove refuses a worktree with changes that are not committed. With delete_branch it also deletes the branch with git branch -d. | Done |
 | R-23 | git_diff takes hunks (default false). With true, it shows each hunk with a number per file ([1], [2], ...) and a token: a short hash of the diff. It stays read only. With false, the output does not change. | Done |
 | R-24 | git_stage_hunks takes the token and a list of paths with hunk numbers from git_diff with hunks: true, and stages only those hunks. It refuses when the current diff has another token, or when a number does not exist. | Done |
+| R-25 | git_unstage takes all (default false). With true and no paths, it unstages all staged changes. With true and paths, it gives a tool error. | Planned |
 
 ## 6. Design
 
@@ -107,6 +108,7 @@ Planned requirements (tests to write):
 - R-22: tests of add, list and remove on a temporary repository, and a test that remove refuses a worktree with changes that are not committed.
 - R-23: a test that git_diff with `hunks` false gives the same output as before, and that with `hunks` true it numbers the hunks per file and gives the same token for the same diff.
 - R-24: a test on a temporary repository with two hunks in one file: git_stage_hunks stages only the chosen hunk. A test that it refuses a token of another diff, and a hunk number that does not exist.
+- R-25: a test on a temporary repository with two staged files: git_unstage with all: true unstages both, and all: true with paths gives a tool error.
 
 ## 8. Open Questions
 
@@ -163,3 +165,6 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-11-02 | Equal | Changed fields: related. |
 | 2026-11-02 | Equal | The user approved R-23 and R-24. |
 | 2026-11-02 | Equal | R-23, R-24: Done. |
+| 2026-11-02 | Equal | Added R-25. |
+| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
+| 2026-11-02 | Equal | The user approved R-25. |
