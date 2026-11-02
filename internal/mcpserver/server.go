@@ -18,6 +18,7 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/docs/glossary"
 	"github.com/EqualSoftware/claude-dx/internal/docs/learning"
 	"github.com/EqualSoftware/claude-dx/internal/docs/spec"
+	"github.com/EqualSoftware/claude-dx/internal/docs/spike"
 	"github.com/EqualSoftware/claude-dx/internal/docs/task"
 	"github.com/EqualSoftware/claude-dx/internal/fs"
 	"github.com/EqualSoftware/claude-dx/internal/git"
@@ -48,6 +49,7 @@ func New(version, dir string) (*mcp.Server, error) {
 	task.Register(server, task.Store{Dir: filepath.Join(alloc.Dir, project.Tasks), Specs: specs, Lock: lock})
 	spec.Register(server, specs)
 	learning.Register(server, learning.Store{Dir: filepath.Join(p.Root, "docs", "learnings"), Lock: lock})
+	spike.Register(server, spike.Store{Dir: filepath.Join(alloc.Dir, project.Spikes), Lock: lock})
 	glossary.Register(server, glossary.Store{Path: filepath.Join(p.Root, "docs", "GLOSSARY.md"), Lock: lock})
 	git.Register(server, p.Root)
 	fs.Register(server, p)

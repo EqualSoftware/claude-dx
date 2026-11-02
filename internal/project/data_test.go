@@ -72,6 +72,7 @@ func TestMoveData(t *testing.T) {
 	old := oldDir(cacheDir, p)
 	writeFile(t, filepath.Join(old, "docs.lock"), "")
 	writeFile(t, filepath.Join(old, "project.json"), `{"counters":{"adr":3}}`)
+	writeFile(t, filepath.Join(old, "spikes", "s.md"), "spike")
 	writeFile(t, filepath.Join(old, "tasks", "general", "a.md"), "task")
 	writeFile(t, filepath.Join(p.Common, "dx.tmp-old", "x"), "garbage")
 	if err := p.MoveData(cacheDir); err != nil {
@@ -83,6 +84,9 @@ func TestMoveData(t *testing.T) {
 	}
 	if data, _ := os.ReadFile(filepath.Join(dx, "tasks", "general", "a.md")); string(data) != "task" {
 		t.Fatalf("moved task = %q", data)
+	}
+	if data, _ := os.ReadFile(filepath.Join(dx, "spikes", "s.md")); string(data) != "spike" {
+		t.Fatalf("moved spike = %q", data)
 	}
 	if data, _ := os.ReadFile(filepath.Join(dx, "project.json")); string(data) != `{"counters":{"adr":3}}` {
 		t.Fatalf("moved project.json = %q", data)

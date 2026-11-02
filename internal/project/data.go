@@ -14,11 +14,12 @@ import (
 const (
 	DocsLock = "docs.lock" // the docs lock
 	Tasks    = "tasks"     // the folder of the local tasks: tasks/<spec>/<task-slug>.md
+	Spikes   = "spikes"    // the folder of the local spikes: spikes/<slug>.md
 )
 
 // dataNames are the entries of a project data directory that hold data. docs.lock is not data,
 // because it has no content and no process removes it (ADR-006).
-var dataNames = []string{"project.json", Tasks}
+var dataNames = []string{"project.json", Tasks, Spikes}
 
 // DataDir returns the project data directory (ADR-007): <Common>/dx in git, else
 // <cacheDir>/projects/<Key>. In git, the cache folder of the top level stays the data directory while it

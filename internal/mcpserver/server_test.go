@@ -31,6 +31,7 @@ var tools = []string{
 	"learning_create", "learning_delete", "learning_get", "learning_list", "learning_update",
 	"spec_create", "spec_delete", "spec_get", "spec_list", "spec_question_add", "spec_question_answer", "spec_req_add", "spec_req_delete", "spec_req_set",
 	"spec_set_status", "spec_update_fields", "spec_update_section",
+	"spike_close", "spike_create", "spike_delete", "spike_get", "spike_list", "spike_note",
 	"task_create", "task_delete", "task_dod_add", "task_dod_check", "task_dod_remove", "task_dod_uncheck", "task_get", "task_list", "task_move",
 	"task_set_status", "task_step_check", "task_update_fields", "task_update_section",
 }
@@ -257,7 +258,7 @@ func TestWorktreesShareTasks(t *testing.T) {
 	}
 }
 
-// TestPluginTextsNameRegisteredTools checks docs-task: each task tool name in the plugin texts is a registered tool.
+// TestPluginTextsNameRegisteredTools checks docs-task: each task or spike tool name in the plugin texts is a registered tool.
 func TestPluginTextsNameRegisteredTools(t *testing.T) {
 	root := filepath.Join("..", "plugin", "assets")
 	session := connect(t)
@@ -268,7 +269,7 @@ func TestPluginTextsNameRegisteredTools(t *testing.T) {
 		}
 		registered[tool.Name] = true
 	}
-	name := regexp.MustCompile(`task_[a-z_]*[a-z]`)
+	name := regexp.MustCompile(`(?:task|spike)_[a-z_]*[a-z]`)
 	files := 0
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() || filepath.Ext(path) != ".md" {
@@ -354,4 +355,44 @@ func TestGitExecTool(t *testing.T) {
 	if res.IsError || !strings.HasPrefix(text, "true\n") || !strings.Contains(text, "claude-dx report") {
 		t.Errorf("git_exec = %q, error %v", text, res.IsError)
 	}
+}
+
+// TestWorktreesShareSpikes checks docs-spike#R-1: two worktrees of one repository see the same spikes, and
+// git does not track them.
+func TestWorktreesShareSpikes(t *testing.T) {
+	main := connect(t)
+	repo := filepath.Join(os.Getenv("HOME"), "repo") // connect sets HOME to its temporary directory
+	other := filepath.Join(os.Getenv("HOME"), "other")
+	runGit(t, "-C", repo, "-c", "commit.gpgsign=false", "-c", "user.email=t@example.com", "commit", "-q", "--allow-empty", "-m", "first")
+	runGit(t, "-C", repo, "worktree", "add", "-q", other)
+	res, err := main.CallTool(context.Background(), &mcp.CallToolParams{Name: "spike_create", Arguments: map[string]any{
+		"slug": "shared", "title": "Shared", "question": "Is it shared?",
+	}})
+	if err != nil || res.IsError {
+		t.Fatalf("spike_create = %v, %+v", err, res)
+	}
+	res, err = serve(t, other).CallTool(context.Background(), &mcp.CallToolParams{Name: "spike_list", Arguments: map[string]any{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := res.Content[0].(*mcp.TextContent).Text
+	if !strings.HasPrefix(text, "shared  Open  ") || !strings.HasSuffix(text, "  Shared\n") {
+		t.Fatalf("spike_list in the other worktree = %q", text)
+	}
+	if _, err := os.Stat(filepath.Join(repo, ".git", "dx", "spikes", "shared.md")); err != nil {
+		t.Fatalf("the spike is not in .git/dx/spikes: %v", err)
+	}
+	if out := runGit(t, "-C", repo, "status", "--porcelain"); len(out) != 0 {
+		t.Fatalf("git status = %q; want clean", out)
+	}
+}
+
+// runGit runs git with args and returns its output.
+func runGit(t *testing.T, args ...string) []byte {
+	t.Helper()
+	out, err := exec.Command("git", args...).CombinedOutput()
+	if err != nil {
+		t.Fatalf("git %v: %v\n%s", args, err, out)
+	}
+	return out
 }
