@@ -1,7 +1,7 @@
 ---
 slug: git-tools
 title: Git tools and the Bash git hook
-status: Draft
+status: Approved
 milestone: v0.2.0
 priority: P1
 area: [git, mcp, plugin]
@@ -54,8 +54,6 @@ The agent runs git in Bash, and it can rewrite history, push a force or discard 
 | R-16 | git_exec runs git with the given arguments for an operation that no tool maps. Each call appends one JSON line to <cache>/unmapped.log. | Planned |
 | R-17 | claude-dx report groups the lines of unmapped.log by git subcommand, opens the issue form in the browser with the values filled in, and prints the URL. report --clear empties the log. | Planned |
 | R-18 | The shared rules say to use the git_* tools for git and not to run git in Bash. | Planned |
-| R-19 | The /dx:commit skill splits the changes into logical groups, makes one commit for each group with git_commit, and does not push unless the user asks. | Planned |
-| R-20 | The /dx:eureka skill keeps only verified, reusable and undocumented lessons, and records each one as an ADR, a learning or a glossary term. It reports No new lessons and changes no file when there is none. | Planned |
 | R-21 | Each git_* tool takes an optional path. The path must be the project root or a worktree of the same repository. The tool runs git in that directory. Another path gives a tool error. | Planned |
 | R-22 | git_worktree runs the actions list, add and remove. add creates a new branch from a start point. remove refuses a worktree with changes that are not committed. With delete_branch it also deletes the branch with git branch -d. | Planned |
 
@@ -146,3 +144,7 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-11-02 | Equal | Added R-22. |
 | 2026-11-02 | Equal | R-1: text changed. |
 | 2026-11-02 | Equal | Changed fields: related. |
+| 2026-11-02 | Equal | Deleted R-19. |
+| 2026-11-02 | Equal | Deleted R-20. |
+| 2026-11-02 | Equal | Status: In Review. |
+| 2026-11-02 | Equal | Approved after R-19 and R-20 were deleted. |
