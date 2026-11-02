@@ -40,10 +40,10 @@ From git-tools, these items apply to this skill:
 
 | ID | Requirement | Status |
 | :--- | :--- | :--- |
-| R-1 | The /dx:commit skill unstages all changes and splits all changes (staged, not staged and untracked) into logical groups. A group holds whole files or some hunks of a file (git_diff with hunks: true, git_stage_hunks of git-tools). | Planned |
-| R-2 | Before it commits, the /dx:commit skill shows each group with its files, its hunks and its full commit message. It makes no commit until the user approves the plan. It applies the corrections of the user. | Planned |
-| R-3 | The /dx:commit skill makes one commit for each group with git_commit of git-tools. It does not run the acceptance check and does not push unless the user asks. | Planned |
-| R-4 | The /dx:commit skill adds Refs: <slug>#R-N trailers to the body from the spec and the task In Progress. It asks the user when the requirements of a group are not clear. A group with no related spec gets no trailer. | Planned |
+| R-1 | The /dx:commit skill unstages all changes and splits all changes (staged, not staged and untracked) into logical groups. A group holds whole files or some hunks of a file (git_diff with hunks: true, git_stage_hunks of git-tools). | Done |
+| R-2 | Before it commits, the /dx:commit skill shows each group with its files, its hunks and its full commit message. It makes no commit until the user approves the plan. It applies the corrections of the user. | Done |
+| R-3 | The /dx:commit skill makes one commit for each group with git_commit of git-tools. It does not run the acceptance check and does not push unless the user asks. | Done |
+| R-4 | The /dx:commit skill adds Refs: <slug>#R-N trailers to the body from the spec and the task In Progress. It asks the user when the requirements of a group are not clear. A group with no related spec gets no trailer. | Done |
 
 ## 6. Design
 
@@ -98,3 +98,4 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-11-02 | Equal | Changed fields: related. |
 | 2026-11-02 | Equal | Status: In Review. |
 | 2026-11-02 | Equal | The user approved the spec. |
+| 2026-11-02 | Equal | R-1, R-2, R-3, R-4: Done. |
