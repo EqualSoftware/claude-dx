@@ -33,10 +33,10 @@ The README roadmap plans skills "to record the lessons of a session" for v0.4.0.
 
 | ID | Requirement | Status |
 | :--- | :--- | :--- |
-| R-1 | The /dx:eureka skill keeps only verified, reusable and undocumented lessons of the session, gives each one a type (ADR, learning or glossary term), and reports "No new lessons" and changes no file when there is none. | Planned |
-| R-2 | The skill shows the list of candidate lessons with their type and asks the user to select them, and records only the selected lessons, each one with the skill of its type (dx:adr, dx:learning or dx:glossary). | Planned |
-| R-3 | The skill does not commit, does not change specs, tasks or spikes, and its report lists each record and each lesson that needs new work. | Planned |
-| R-4 | The plugin ships the skill eureka, and the tool names in its text are registered tools of the dx server. | Planned |
+| R-1 | The /dx:eureka skill keeps only verified, reusable and undocumented lessons of the session, gives each one a type (ADR, learning or glossary term), and reports "No new lessons" and changes no file when there is none. | Done |
+| R-2 | The skill shows the list of candidate lessons with their type and asks the user to select them, and records only the selected lessons, each one with the skill of its type (dx:adr, dx:learning or dx:glossary). | Done |
+| R-3 | The skill does not commit, does not change specs, tasks or spikes, and its report lists each record and each lesson that needs new work. | Done |
+| R-4 | The plugin ships the skill eureka, and the tool names in its text are registered tools of the dx server. | Done |
 
 ## 6. Design
 
