@@ -13,7 +13,7 @@ import (
 
 func git(t *testing.T, dir string, args ...string) {
 	t.Helper()
-	full := append([]string{"-C", dir, "-c", "user.name=Tester", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false"}, args...)
+	full := append([]string{"-C", dir, "-c", "user.name=Tester", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", "-c", "core.autocrlf=false"}, args...)
 	if out, err := exec.Command("git", full...).CombinedOutput(); err != nil {
 		t.Fatalf("git %v: %v\n%s", args, err, out)
 	}
@@ -34,6 +34,11 @@ func repo(t *testing.T) Runner {
 		t.Fatal(err)
 	}
 	git(t, dir, "init", "-b", "main")
+	// Runner commands (rebase, merge) need an identity and LF files without a global git config.
+	git(t, dir, "config", "user.name", "Tester")
+	git(t, dir, "config", "user.email", "t@example.com")
+	git(t, dir, "config", "commit.gpgsign", "false")
+	git(t, dir, "config", "core.autocrlf", "false")
 	write(t, dir, "a.txt", "one\ntwo\n")
 	git(t, dir, "add", "a.txt")
 	git(t, dir, "commit", "-m", "feat: add a")
