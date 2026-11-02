@@ -36,15 +36,15 @@ Task files in git make many files, and they do not give the current behavior of 
 | :--- | :--- | :--- |
 | R-1 | A spec has one file docs/specs/<slug>/SPEC.md, made from the template by spec_create with status Draft. | Done |
 | R-2 | The tool spec_get gives the commits of each requirement from the Refs trailers of HEAD. | Done |
-| R-3 | The spec tools list, read, create, change status and add requirements of a spec, with the rules of ADR-018. | Planned |
+| R-3 | The spec tools list, read, create, change status and add requirements of a spec, with the rules of ADR-018. | Done |
 | R-4 | The tool spec_update_fields changes one or more of the frontmatter fields title, milestone, priority, area and related of a spec. It does not change slug or status. | Done |
 | R-5 | A list that spec_update_fields gets (area, related) replaces the full list. A field that the tool does not get does not change. | Done |
 | R-6 | spec_update_fields validates each field with the rules of spec_create, and changes no field on an error. | Done |
-| R-7 | spec_update_fields writes no history row and does not change the status of the spec. | Planned |
-| R-8 | spec_req_delete deletes one requirement that is Planned, has no commits and has no task that refers to it. | Planned |
-| R-9 | A spec has no Document History section, and the spec tools write no history row. | Planned |
-| R-10 | spec_req_add gives the ID R-N, where N is the highest current requirement number + 1. | Planned |
-| R-11 | A change of Goals or Out of Scope of an Approved spec, or a new question, sets the spec to In Review; a change of Requirements, Design or Acceptance Criteria, and a requirement add, change or delete, keep the status. | Planned |
+| R-7 | spec_update_fields writes no history row and does not change the status of the spec. | Done |
+| R-8 | spec_req_delete deletes one requirement that is Planned, has no commits and has no task that refers to it. | Done |
+| R-9 | A spec has no Document History section, and the spec tools write no history row. | Done |
+| R-10 | spec_req_add gives the ID R-N, where N is the highest current requirement number + 1. | Done |
+| R-11 | A change of Goals or Out of Scope of an Approved spec, or a new question, sets the spec to In Review; a change of Requirements, Design or Acceptance Criteria, and a requirement add, change or delete, keep the status. | Done |
 
 ## 6. Design
 

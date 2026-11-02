@@ -44,7 +44,7 @@ Task files in git make the repository large. Two branches can create tasks with 
 | R-7 | covers refuses a requirement that the spec does not have, accepts a requirement that is Done, and is refused for a general task. | Done |
 | R-8 | A task goes to In Progress only when its spec is Approved and all depends_on tasks are Done; a general task has no spec check. | Done |
 | R-9 | A task goes to Blocked only with a note, and a note for another status is optional; a given note is added to Notes as "<status>: <note>". | Done |
-| R-10 | A task goes to Done only when all Plan steps and all Definition of Done items are checked, and then the covers requirements are set to Done in the spec with no history row. | Planned |
+| R-10 | A task goes to Done only when all Plan steps and all Definition of Done items are checked, and then the covers requirements are set to Done in the spec with no history row. | Done |
 | R-11 | When a task goes to Done, the spec is written before the task, so a retry after a failure changes nothing twice. | Done |
 | R-12 | task_step_check checks one Plan step by its number, and refuses a step that is already checked or does not exist. | Done |
 | R-13 | The Definition of Done tools check, uncheck, add and remove an item; a removal needs a reason and writes the item text and the reason to Notes. | Done |
