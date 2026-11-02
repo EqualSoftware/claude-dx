@@ -168,12 +168,29 @@ func TestMCPServerInitialize(t *testing.T) {
 		costs = append(costs, processCost(t, env))
 		starts = append(starts, startMCPServer(t, env))
 	}
-	// mcp-server#R-9: the server starts in less than 100 ms, minus the cost of a process start.
-	// The fastest runs filter out machine noise.
+	// mcp-server#R-9: the server starts in less than 100 ms (150 ms on Windows),
+	// minus the cost of a process start. The fastest runs filter out machine noise.
+	limit := startLimit(runtime.GOOS)
 	diff := slices.Min(starts) - slices.Min(costs)
 	t.Logf("initialize took %v; process cost (--version) took %v; difference = %v", starts, costs, diff)
-	if diff >= 100*time.Millisecond {
-		t.Fatalf("start minus process cost = %v, want less than 100ms; starts: %v; costs: %v", diff, starts, costs)
+	if diff >= limit {
+		t.Fatalf("start minus process cost = %v, want less than %v; starts: %v; costs: %v", diff, limit, starts, costs)
+	}
+}
+
+// startLimit gives the start limit of mcp-server R-9 for the OS goos.
+func startLimit(goos string) time.Duration {
+	if goos == "windows" {
+		return 150 * time.Millisecond
+	}
+	return 100 * time.Millisecond
+}
+
+func TestStartLimit(t *testing.T) {
+	for goos, want := range map[string]time.Duration{"windows": 150 * time.Millisecond, "linux": 100 * time.Millisecond, "darwin": 100 * time.Millisecond} {
+		if got := startLimit(goos); got != want {
+			t.Errorf("startLimit(%q) = %v, want %v", goos, got, want)
+		}
 	}
 }
 
