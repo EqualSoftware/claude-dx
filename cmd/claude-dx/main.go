@@ -15,6 +15,7 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/clean"
 	"github.com/EqualSoftware/claude-dx/internal/cli"
 	"github.com/EqualSoftware/claude-dx/internal/doctor"
+	"github.com/EqualSoftware/claude-dx/internal/hook"
 	"github.com/EqualSoftware/claude-dx/internal/launcher"
 	"github.com/EqualSoftware/claude-dx/internal/mcpserver"
 	"github.com/EqualSoftware/claude-dx/internal/plugin"
@@ -73,6 +74,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runResume(stdout)
 	case "report":
 		return runReport(cmd.Args, stdout, stderr)
+	case "hook":
+		return runHook(cmd.Args, os.Stdin, stdout, stderr)
 	}
 	fmt.Fprintf(stderr, "claude-dx: %q is not available yet.\n", args[0])
 	return 1
@@ -204,6 +207,19 @@ func runReport(args []string, stdout, stderr io.Writer) int {
 	}
 	r := report.Reporter{Path: filepath.Join(dir, report.LogName), Version: version, GOOS: runtime.GOOS, Open: report.OpenBrowser}
 	return r.Run(args, stdout, stderr)
+}
+
+// runHook runs a hook of Claude Code. Only pre-tool-use exists. A hook error gives exit code 1, which
+// does not block the tool call.
+func runHook(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	if len(args) != 1 || args[0] != "pre-tool-use" {
+		fmt.Fprintln(stderr, "Usage: claude-dx hook pre-tool-use")
+		return 1
+	}
+	if err := hook.PreToolUse(stdin, stdout); err != nil {
+		return fail(stderr, err)
+	}
+	return 0
 }
 
 func fail(stderr io.Writer, err error) int {

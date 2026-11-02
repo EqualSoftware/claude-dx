@@ -5,6 +5,9 @@
       { "matcher": "resume", "hooks": [{ "type": "command", "command": "\"{{BINARY}}\" resume" }] },
       { "matcher": "clear", "hooks": [{ "type": "command", "command": "\"{{BINARY}}\" resume" }] },
       { "matcher": "compact", "hooks": [{ "type": "command", "command": "\"{{BINARY}}\" resume" }] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "\"{{BINARY}}\" hook pre-tool-use" }] }
     ]
   }
 }

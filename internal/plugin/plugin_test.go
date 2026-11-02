@@ -193,6 +193,48 @@ func TestHooksExtracted(t *testing.T) {
 	}
 }
 
+// TestPreToolUseHookExtracted checks git-tools#R-14: the Bash PreToolUse hook runs the absolute binary path.
+func TestPreToolUseHookExtracted(t *testing.T) {
+	binary := filepath.Join(t.TempDir(), "claude-dx")
+	dir, err := Ensure(t.TempDir(), "v1.2.3", binary)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "hooks", "hooks.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var file struct {
+		Hooks map[string][]struct {
+			Matcher string
+			Hooks   []struct{ Type, Command string }
+		}
+	}
+	if err := json.Unmarshal(data, &file); err != nil {
+		t.Fatal(err)
+	}
+	entries := file.Hooks["PreToolUse"]
+	want := `"` + binary + `" hook pre-tool-use`
+	if len(entries) != 1 || entries[0].Matcher != "Bash" || len(entries[0].Hooks) != 1 || entries[0].Hooks[0].Type != "command" || entries[0].Hooks[0].Command != want {
+		t.Fatalf("PreToolUse = %+v, want one Bash command %q", entries, want)
+	}
+}
+
+// TestRulesHaveGitLine checks git-tools#R-18.
+func TestRulesHaveGitLine(t *testing.T) {
+	dir, err := Ensure(t.TempDir(), "v1.2.3", "/bin/claude-dx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "rules.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(data), "- Use the git_* tools for git. Do not run git in Bash.\n") {
+		t.Fatalf("rules.md has no git line:\n%s", data)
+	}
+}
+
 func TestEnsureRefusesUnsafeBinary(t *testing.T) {
 	for _, binary := range []string{`/a"b/claude-dx`, "/a\rb/claude-dx", `\\\\host\\share\\claude-dx`, "/a$b/claude-dx", "/a`b/claude-dx", "/a\nb/claude-dx"} {
 		cache := t.TempDir()

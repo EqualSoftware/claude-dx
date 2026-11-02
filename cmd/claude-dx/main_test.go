@@ -354,3 +354,23 @@ func exe(name string) string {
 	}
 	return name
 }
+
+func TestHookPreToolUse(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	in := strings.NewReader(`{"tool_name":"Bash","tool_input":{"command":"cd sub && bash -c \"git push\""}}`)
+	if code := runHook([]string{"pre-tool-use"}, in, &stdout, &stderr); code != 0 || !strings.Contains(stdout.String(), `"permissionDecision":"deny"`) {
+		t.Fatalf("code = %d, stdout = %q, stderr = %q", code, stdout.String(), stderr.String())
+	}
+	stdout.Reset()
+	in = strings.NewReader(`{"tool_name":"Bash","tool_input":{"command":"gh pr list"}}`)
+	if code := runHook([]string{"pre-tool-use"}, in, &stdout, &stderr); code != 0 || stdout.Len() != 0 {
+		t.Fatalf("code = %d, stdout = %q", code, stdout.String())
+	}
+}
+
+func TestHookUsage(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if code := run([]string{"hook"}, &stdout, &stderr); code != 1 || !strings.Contains(stderr.String(), "Usage: claude-dx hook pre-tool-use") {
+		t.Fatalf("code = %d, stderr = %q", code, stderr.String())
+	}
+}
