@@ -302,3 +302,27 @@ func TestEnsureConcurrentRepair(t *testing.T) {
 		t.Fatal("the directory is not complete")
 	}
 }
+
+// TestCommitSkill checks skill-commit#R-1 to R-4: the embedded commit skill has the steps and the tools.
+func TestCommitSkill(t *testing.T) {
+	dir, err := Ensure(t.TempDir(), "v1.2.3", "/bin/claude-dx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "skills", "commit", "SKILL.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(data)
+	for _, want := range []string{
+		"name: commit", "git_unstage", "`hunks: true`", "git_stage_hunks", "git_commit",
+		"Wait for the approval", "Refs: <slug>#R-N", "no trailer", "Do not run the acceptance check", "Do not push",
+	} {
+		if !strings.Contains(text, want) {
+			t.Errorf("commit skill lacks %q", want)
+		}
+	}
+	if strings.Index(text, "Wait for the approval") > strings.Index(text, "Run `git_commit`") {
+		t.Error("the approval step is after the commit step")
+	}
+}
