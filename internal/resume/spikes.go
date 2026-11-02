@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"syscall"
 
 	"github.com/EqualSoftware/claude-dx/internal/docs/spike"
 	"github.com/EqualSoftware/claude-dx/internal/markdown"
@@ -36,10 +37,7 @@ func readSpikes(dir, cacheDir string) (spikes []spikeInfo, errs []error) {
 		return nil, nil
 	}
 	spikesDir := filepath.Join(p.DataDir(cacheDir), project.Spikes)
-	entries, err := os.ReadDir(spikesDir)
-	if errors.Is(err, os.ErrNotExist) {
-		return nil, nil
-	}
+	entries, err := readSpikeDir(spikesDir)
 	if err != nil {
 		return nil, []error{skip("spikes", err)}
 	}
@@ -57,6 +55,19 @@ func readSpikes(dir, cacheDir string) (spikes []spikeInfo, errs []error) {
 		}
 	}
 	return spikes, errs
+}
+
+// readSpikeDir reads the spikes folder. A missing folder gives no entries and no error.
+// On Windows, ReadDir of a file gives a "not exist" error, so Stat tells a missing folder from a file.
+func readSpikeDir(dir string) ([]os.DirEntry, error) {
+	entries, err := os.ReadDir(dir)
+	if !errors.Is(err, os.ErrNotExist) {
+		return entries, err
+	}
+	if _, statErr := os.Stat(dir); statErr == nil {
+		return nil, &os.PathError{Op: "open", Path: dir, Err: syscall.ENOTDIR}
+	}
+	return nil, nil
 }
 
 // readSpike reads one spike file.
