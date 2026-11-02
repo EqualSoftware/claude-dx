@@ -20,6 +20,12 @@ type rebaseInput struct {
 	Onto   string `json:"onto,omitempty" jsonschema:"for start: the branch or commit to rebase onto"`
 }
 
+type pushInput struct {
+	pathInput
+	Remote string `json:"remote,omitempty" jsonschema:"the remote. The default is origin"`
+	Branch string `json:"branch,omitempty" jsonschema:"the branch to push. The default is the current branch"`
+}
+
 // registerBranch adds the branch, remote and worktree tools (git-tools#R-8 to R-12, R-22).
 func registerBranch(server *mcp.Server, r Runner) {
 	addLocal(server, r, "git_branch", "List, create, switch, rename or delete branches. delete uses git branch -d and refuses the current branch. If the branch is not merged it asks the user first.", true,
@@ -36,4 +42,8 @@ func registerBranch(server *mcp.Server, r Runner) {
 		})
 	add(server, r, "git_conflicts", "Show each conflicted path with its conflict hunks and line numbers. Reads only.",
 		func(ctx context.Context, dir string, _ pathInput) (string, error) { return r.Conflicts(ctx, dir) })
+	addLocal(server, r, "git_push", "Push a branch. It sets the upstream on the first push. If the remote branch is not an ancestor it uses --force-with-lease and --force-if-includes, and for the main branch it asks the user first.", true,
+		func(ctx context.Context, dir string, in pushInput, confirm Confirm) (string, error) {
+			return r.Push(ctx, dir, PushOptions{Remote: in.Remote, Branch: in.Branch}, confirm)
+		})
 }
