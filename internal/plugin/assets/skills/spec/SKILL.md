@@ -37,7 +37,7 @@ Change the sections with `spec_update_section`. Change the title, milestone, pri
 
 Only their own tools change these sections, so the flow checks stay true:
 
-- Section 5 (Requirements): `spec_req_add` and `spec_req_set`.
+- Section 5 (Requirements): `spec_req_add`, `spec_req_set` and `spec_req_delete`.
 - Section 8 (Open Questions): `spec_question_add` and `spec_question_answer`.
 - Section 9 (Document History): the tools add the rows.
 
@@ -47,11 +47,12 @@ Only their own tools change these sections, so the flow checks stay true:
 
 - `In Review` needs no `Open` question, no section with the template text and one requirement or more.
 - `Approved` only when the user approves. It needs no `Open` question.
-- A change of section 3, 4, 5, 6 or 7 of an `Approved` spec, a new requirement, a requirement text change and a new question set it to `In Review`. The user approves it again.
+- A change of section 3, 4, 5, 6 or 7 of an `Approved` spec, a new requirement, a deleted requirement, a requirement text change and a new question set it to `In Review`. The user approves it again.
 
 ## Requirements
 
 - `spec_req_add` adds `R-N` with the status `Planned`. An ID does not change, and the tools do not use it again.
+- `spec_req_delete` deletes one `Planned` requirement that has no commit and no task that covers it. The tool gives the reasons if it refuses.
 - `spec_req_set` changes the text, the status (`Planned` or `Done`), or both. A status change does not change the scope.
 - A commit gives the requirements that it implements in a trailer: `Refs: <slug>#R-N`. One commit can have many `Refs:` lines, or a comma list: `Refs: docs-lock#R-1, docs-lock#R-2`.
 

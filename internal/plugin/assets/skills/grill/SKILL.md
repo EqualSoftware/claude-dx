@@ -37,7 +37,7 @@ The **frontier** is the set of open decisions whose parent decisions have an ans
 
 For a spec:
 - Add each question with `spec_question_add` before you ask it. Use the `Q-n` ID that the tool returns.
-- Write each answer with `spec_question_answer`. Change the sections that the answer affects with `spec_update_section`, `spec_req_add` and `spec_req_set`.
+- Write each answer with `spec_question_answer`. Change the sections that the answer affects with `spec_update_section`, `spec_req_add`, `spec_req_set` and `spec_req_delete`.
 
 A task has no questions: refine its spec.
 

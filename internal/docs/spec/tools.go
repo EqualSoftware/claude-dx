@@ -67,6 +67,11 @@ type reqSetInput struct {
 	Status string `json:"status,omitempty" jsonschema:"Planned or Done"`
 }
 
+type reqDeleteInput struct {
+	Slug string `json:"slug" jsonschema:"spec slug"`
+	RID  string `json:"rid" jsonschema:"requirement ID, example R-2"`
+}
+
 type questionInput struct {
 	Slug     string `json:"slug" jsonschema:"spec slug"`
 	Question string `json:"question" jsonschema:"one decision for the user, with the context it needs"`
@@ -122,6 +127,11 @@ func Register(server *mcp.Server, s Store) {
 		func(in reqSetInput) (string, error) {
 			review, err := s.SetRequirement(in.Slug, in.RID, in.Text, in.Status)
 			return "Updated " + strings.ToUpper(in.RID) + "." + scopeText(review, in.Slug), err
+		})
+	add(server, "spec_req_delete", "Delete one requirement of a spec. The requirement must be Planned, have no commit with Refs: <slug>#R-N in HEAD and have no task that covers it. A refusal gives the reasons. The ID is not used again. An Approved spec goes to In Review.",
+		func(in reqDeleteInput) (string, error) {
+			review, err := s.DeleteRequirement(in.Slug, in.RID)
+			return "Deleted " + strings.ToUpper(strings.TrimSpace(in.RID)) + "." + scopeText(review, in.Slug), err
 		})
 	add(server, "spec_question_add", "Add an Open question to the Open Questions table of a spec.",
 		func(in questionInput) (string, error) {

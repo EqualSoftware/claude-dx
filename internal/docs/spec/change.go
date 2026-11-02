@@ -34,7 +34,7 @@ const (
 
 // protected are the sections that only their own tools change, so the flow checks of ADR-008 stay true.
 var protected = []struct{ number, title, tools string }{
-	{"5", "Requirements", "spec_req_add and spec_req_set"},
+	{"5", "Requirements", "spec_req_add, spec_req_set and spec_req_delete"},
 	{"8", "Open Questions", "spec_question_add and spec_question_answer"},
 	{"9", "Document History", "spec_set_status"},
 }
@@ -177,7 +177,7 @@ func (s Store) AddRequirement(slug, text string) (rid string, review bool, err e
 	}
 	err = s.edit(slug, func(d *doc) error {
 		lines, next := withoutPlaceholder(d.body, "5", noRequirements, requirementRow)
-		rid = fmt.Sprintf("R-%d", next)
+		rid = fmt.Sprintf("R-%d", max(next, historyMax(d.body)+1)) // The history keeps the IDs of deleted rows.
 		row := fmt.Sprintf("| %s | %s | Planned |", rid, docfile.Cell(text))
 		if err := replaceTable(d, "5", insertRow(lines, row)); err != nil {
 			return err

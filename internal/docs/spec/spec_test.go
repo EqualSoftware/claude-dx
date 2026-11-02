@@ -150,7 +150,7 @@ func TestGates(t *testing.T) {
 	review := " The scope changed, so docs-lock is In Review. The user must approve it again."
 	steps := []step{
 		{"spec_create", createArgs("docs-lock", "Docs lock"), "Created docs-lock."},
-		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "5", "body": "x"}, `ERR Section "5" changes only with spec_req_add and spec_req_set.`},
+		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "5", "body": "x"}, `ERR Section "5" changes only with spec_req_add, spec_req_set and spec_req_delete.`},
 		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "open questions", "body": "x"}, `ERR Section "open questions" changes only with spec_question_add and spec_question_answer.`},
 		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "9", "body": "x"}, `ERR Section "9" changes only with spec_set_status.`},
 		{"spec_set_status", map[string]any{"slug": "docs-lock", "status": "Done"}, `ERR Status "Done" is not valid. Use one of: Draft, In Review, Approved.`},
