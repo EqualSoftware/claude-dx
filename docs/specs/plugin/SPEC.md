@@ -47,6 +47,10 @@ A user of claude-dx needs the dx skills and rules in each session, with no setup
 | R-10 | The plugin of a dev build is extracted to <cache>/plugin/dev-<key>, where the key comes from the embedded files and the binary path. A new dev build does not change the files of a running session. | Done |
 | R-11 | The plugin extraction writes to a temporary directory and renames it. Two parallel starts never leave a partial plugin. | Done |
 | R-12 | The extraction replaces {{BINARY}} and {{VERSION}} in the .json files. The binary path is JSON-escaped, so Windows paths are valid. | Done |
+| R-13 | The rules and the dx:adr skill say to record an ADR only for a decision that is expensive to reverse or that affects more than one spec, and to write each other decision as one Design line "Decision: X, because Y" in the spec. | Planned |
+| R-14 | The dx:spec, dx:task and dx:adr skills give the rules of ADR-018 and do not name a Document History. | Planned |
+| R-15 | The plugin ships the skill spike, which tells when to create, note and close a spike, and that /dx:spec makes the spec from the spike and the code. | Planned |
+| R-16 | The rules say to use a spike for an exploration before a spec exists, and that the code of an exploration does not need an Approved spec. | Planned |
 
 ## 6. Design
 
@@ -141,3 +145,9 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-10-27 | Equal | R-12: status Done. |
 | 2026-10-27 | Equal | Changed fields: related. |
 | 2026-10-27 | Equal | Approved by the user after the split of locks-and-cache (ADR-012). |
+| 2026-11-02 | Equal | Added R-13. |
+| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
+| 2026-11-02 | Equal | Added R-14. |
+| 2026-11-02 | Equal | Added R-15. |
+| 2026-11-02 | Equal | Added R-16. |
+| 2026-11-02 | Equal | Approved by the user after the ADR-018 requirements. |
