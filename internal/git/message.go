@@ -59,10 +59,10 @@ func (m Message) Header() string {
 	return m.Type + scope + bang + ": " + m.Summary
 }
 
-// Args validates the message and returns the -m arguments of git commit: the header, the body and the
+// Args validates the message for tool and returns the -m arguments of git commit: the header, the body and the
 // footers. The footers are BREAKING CHANGE, then Co-Authored-By (git-tools#R-5).
-func (m Message) Args() ([]string, error) {
-	if err := m.validate(); err != nil {
+func (m Message) Args(tool string) ([]string, error) {
+	if err := m.validate(tool); err != nil {
 		return nil, err
 	}
 	args := []string{"-m", m.Header()}
@@ -82,22 +82,22 @@ func (m Message) Args() ([]string, error) {
 	return args, nil
 }
 
-func (m Message) validate() error {
+func (m Message) validate(tool string) error {
 	if !commitTypes[m.Type] {
-		return fmt.Errorf("git_commit refused: type %q is not one of feat, fix, refactor, perf, test, docs, build, ci, style, chore, revert", m.Type)
+		return fmt.Errorf(tool+" refused: type %q is not one of feat, fix, refactor, perf, test, docs, build, ci, style, chore, revert", m.Type)
 	}
 	if m.Scope != "" && !scopePattern.MatchString(m.Scope) {
-		return fmt.Errorf("git_commit refused: scope %q must be lowercase letters, digits and dashes", m.Scope)
+		return fmt.Errorf(tool+" refused: scope %q must be lowercase letters, digits and dashes", m.Scope)
 	}
 	if err := validSummary(m.Summary); err != nil {
-		return fmt.Errorf("git_commit refused: %w", err)
+		return fmt.Errorf("%s refused: %w", tool, err)
 	}
 	if n := utf8.RuneCountInString(m.Header()); n > maxHeader {
-		return fmt.Errorf("git_commit refused: the header has %d characters and the maximum is %d", n, maxHeader)
+		return fmt.Errorf(tool+" refused: the header has %d characters and the maximum is %d", n, maxHeader)
 	}
 	for _, c := range m.CoAuthors {
 		if !coAuthorPattern.MatchString(c) {
-			return fmt.Errorf("git_commit refused: co-author %q must have the form Name <email>", c)
+			return fmt.Errorf(tool+" refused: co-author %q must have the form Name <email>", c)
 		}
 	}
 	return nil

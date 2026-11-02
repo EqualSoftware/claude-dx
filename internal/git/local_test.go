@@ -48,18 +48,26 @@ func TestMessageRefusals(t *testing.T) {
 	for _, tt := range tests {
 		m := ok
 		tt.edit(&m)
-		if _, err := m.Args(); err == nil || !strings.Contains(err.Error(), tt.want) {
+		if _, err := m.Args("git_commit"); err == nil || !strings.Contains(err.Error(), tt.want) {
 			t.Errorf("%s: err = %v, want %q", tt.name, err, tt.want)
 		}
 	}
-	if _, err := (Message{Type: "fix", Summary: "embed the file"}).Args(); err != nil {
+	if _, err := (Message{Type: "fix", Summary: "embed the file"}).Args("git_commit"); err != nil {
 		t.Errorf("embed: %v", err)
+	}
+}
+
+func TestAmendRefusalName(t *testing.T) {
+	r := local(t)
+	_, err := r.Amend(context.Background(), r.Root, Message{Type: "feat", Summary: "Added a"}, nil, nil)
+	if err == nil || !strings.HasPrefix(err.Error(), "git_amend refused: ") {
+		t.Errorf("Amend err = %v, want the prefix %q", err, "git_amend refused: ")
 	}
 }
 
 func TestMessageArgs(t *testing.T) {
 	m := Message{Type: "feat", Scope: "cli", Summary: "add x", Body: "why", Breaking: true, CoAuthors: []string{"A B <a@b.c>", "C D <c@d.e>"}}
-	args, err := m.Args()
+	args, err := m.Args("git_commit")
 	if err != nil {
 		t.Fatal(err)
 	}

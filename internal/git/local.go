@@ -57,7 +57,7 @@ func (r Runner) requireStaged(ctx context.Context, dir, tool string) error {
 // Commit makes a commit of the staged changes with the message of ADR-003. With paths, it stages them first
 // (git-tools#R-5).
 func (r Runner) Commit(ctx context.Context, dir string, m Message, paths []string) (string, error) {
-	args, err := m.Args()
+	args, err := m.Args("git_commit")
 	if err != nil {
 		return "", err
 	}
@@ -109,7 +109,7 @@ func (r Runner) Amend(ctx context.Context, dir string, m Message, paths []string
 	args := []string{"--no-edit"}
 	if m.Summary != "" {
 		var err error
-		if args, err = m.Args(); err != nil {
+		if args, err = m.Args("git_amend"); err != nil {
 			return "", err
 		}
 	}

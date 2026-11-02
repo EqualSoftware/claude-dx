@@ -45,7 +45,7 @@ type blameInput struct {
 	End   int    `json:"end,omitempty" jsonschema:"the last line. Omit it for the end of the file"`
 }
 
-// Register adds the read tools to the server. root is the project root.
+// Register adds the read tools and the local tools to the server. root is the project root.
 func Register(server *mcp.Server, root string) {
 	r := Runner{Root: root}
 	add(server, r, "git_status", "Show the git status: the branch line (## branch...upstream +ahead -behind), then the groups Staged, Unstaged, Conflicted and Untracked with one line for each path. Reads only.",
