@@ -33,10 +33,10 @@ After a session start, `/clear` or compact, the model has no work state. A hando
 
 | ID | Requirement | Status |
 | :--- | :--- | :--- |
-| R-1 | claude-dx resume prints a header line, then the sections Changed, In Progress, Next, Blocked, Spikes and Unpushed, in this order. It does not print an empty section. Header: "dx: branch <branch>, <N> ahead of <upstream>, <M> changed files"; with no upstream, "no upstream" replaces "<N> ahead of <upstream>"; with a detached HEAD, "dx: detached at <short hash>" and no Unpushed section. | Planned |
+| R-1 | claude-dx resume prints a header line, then the sections Changed, In Progress, Next, Blocked, Spikes and Unpushed, in this order. It does not print an empty section. Header: "dx: branch <branch>, <N> ahead of <upstream>, <M> changed files"; with no upstream, "no upstream" replaces "<N> ahead of <upstream>"; with a detached HEAD, "dx: detached at <short hash>" and no Unpushed section. | Done |
 | R-2 | It uses no network and no MCP server. | Done |
 | R-3 | The plugin has a `SessionStart` hook with the matchers `startup`, `resume`, `clear` and `compact` that runs it. The binary path in the hook command is in double quotes. | Done |
-| R-4 | With no In Progress, Next or Blocked task, no Open spike, no unpushed commit and a clean tree, it prints only the line "dx: branch <branch>, clean tree, no active tasks." Done tasks and Closed spikes do not count. | Planned |
+| R-4 | With no In Progress, Next or Blocked task, no Open spike, no unpushed commit and a clean tree, it prints only the line "dx: branch <branch>, clean tree, no active tasks." Done tasks and Closed spikes do not count. | Done |
 | R-5 | Changed: one line with the `git status` short codes and paths, separated by commas, max 10 files. | Done |
 | R-6 | In Progress: all In Progress tasks, newest modification time first. Each task has its ID, priority and title, the first unchecked Plan step, and the last 3 non-empty lines of Notes (sub-items included). | Done |
 | R-7 | Next: Todo tasks of Approved specs and of `general` with all `depends_on` tasks Done, ordered by priority and then ID, max 3. Blocked: Blocked tasks with ID, priority, title and the last non-empty line of Notes, max 5. | Done |
@@ -45,7 +45,7 @@ After a session start, `/clear` or compact, the model has no work state. A hando
 | R-10 | In a directory that is not in a git repository, the header is "dx: no git repository" and the output has only the In Progress, Next and Blocked sections. A project with no data directory has no tasks and gets no error line. For the other errors (git not installed, a data directory that cannot be read, a task file that is not valid), the command skips the part that fails and prints one line "dx: skipped <part>: <error>" for each error. The part is git, tasks or the task ID. | Done |
 | R-11 | The command always exits with code 0. It only reads: it does not create the data directory, does not change `project.json` and writes no other file. | Done |
 | R-12 | The help of `claude-dx` has a line for `claude-dx resume`, aligned with the other commands, with the text "Print the work state (tasks and git) for a new session." | Done |
-| R-13 | Spikes: the Open spikes, newest created first, max 3. Each line has the slug, the title and the date of the last note, or the created date when the spike has no note. A spikes folder that cannot be read gives the line "dx: skipped spikes: <error>". | Planned |
+| R-13 | Spikes: the Open spikes, newest created first, max 3. Each line has the slug, the title and the date of the last note, or the created date when the spike has no note. A spikes folder that cannot be read gives the line "dx: skipped spikes: <error>". | Done |
 
 ## 6. Design
 

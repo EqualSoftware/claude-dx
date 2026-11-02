@@ -35,7 +35,7 @@ A user of claude-dx needs the dx skills and rules in each session, with no setup
 
 | ID | Requirement | Status |
 | :--- | :--- | :--- |
-| R-1 | The plugin ships the skills adr, glossary, grill, learning, spec and task. | Done |
+| R-1 | The plugin ships the skills adr, glossary, grill, learning, spec, spike and task. | Done |
 | R-2 | The rules text rules.md is extracted to the plugin directory, and the launcher gives it with --append-system-prompt-file. It has at most 15 lines. | Done |
 | R-3 | The rules say to write dx documents and dx tool arguments in ASD-STE100, to talk to the user in the user language, and to change dx documents only with the dx tools. | Done |
 | R-4 | The rules say to stop and ask the user about each choice that the task or ADR does not decide, and about each conflict with an Accepted ADR or another task. | Done |
@@ -49,8 +49,8 @@ A user of claude-dx needs the dx skills and rules in each session, with no setup
 | R-12 | The extraction replaces {{BINARY}} and {{VERSION}} in the .json files. The binary path is JSON-escaped, so Windows paths are valid. | Done |
 | R-13 | The rules and the dx:adr skill say to record an ADR only for a decision that is expensive to reverse or that affects more than one spec, and to write each other decision as one Design line "Decision: X, because Y" in the spec. | Done |
 | R-14 | The dx:spec, dx:task and dx:adr skills give the rules of ADR-018 and do not name a Document History. | Done |
-| R-15 | The plugin ships the skill spike, which tells when to create, note and close a spike, and that /dx:spec makes the spec from the spike and the code. | Planned |
-| R-16 | The rules say to use a spike for an exploration before a spec exists, and that the code of an exploration does not need an Approved spec. | Planned |
+| R-15 | The plugin ships the skill spike, which tells when to create, note and close a spike, and that /dx:spec makes the spec from the spike and the code. | Done |
+| R-16 | The rules say to use a spike for an exploration before a spec exists, and that the code of an exploration does not need an Approved spec. | Done |
 
 ## 6. Design
 
@@ -60,7 +60,7 @@ A user of claude-dx needs the dx skills and rules in each session, with no setup
 .claude-plugin/plugin.json     name "dx" and the version
 .mcp.json                      server mcp (see mcp-server)
 rules.md                       the shared rules, given with --append-system-prompt-file
-skills/<name>/SKILL.md         adr, glossary, grill, learning, spec, task
+skills/<name>/SKILL.md         adr, glossary, grill, learning, spec, spike, task
 ```
 
 ### Extraction layout

@@ -37,16 +37,16 @@ Before a spec exists, an exploration has no place to keep its findings. The find
 
 | ID | Requirement | Status |
 | :--- | :--- | :--- |
-| R-1 | Each spike is a file spikes/<slug>.md in the project data directory, git does not track it, and all worktrees of a repository see the same spikes. | Planned |
-| R-2 | A spike has the frontmatter slug, title, status and created, and the sections Question, Notes and Result, in this order. | Planned |
-| R-3 | spike_create makes an Open spike with the date of today in created, and refuses a spike with no Question, and a slug that is not kebab-case, is longer than 40 characters or is the slug of a spike that exists. | Planned |
-| R-4 | spike_note adds one finding to Notes as the list item "YYYY-MM-DD: <text>" with the date of today, and refuses an empty text. | Planned |
-| R-5 | spike_close writes the Result and sets the status to Closed, and refuses an empty Result. | Planned |
-| R-6 | A Closed spike is final: spike_note and spike_close refuse it, and only spike_get, spike_list and spike_delete accept it. | Planned |
-| R-7 | spike_list gives one line for each spike with its slug, status, created date and title, Open spikes first and then by slug, with an optional status filter, and spike_get gives the full spike or one section. | Planned |
-| R-8 | spike_delete deletes one or more spikes of any status, and refuses the full call before any change when a slug does not exist. | Planned |
-| R-9 | Each spike write holds the exclusive docs lock of the project data directory, and each spike read holds the shared lock. | Planned |
-| R-10 | The spike tools that the plugin texts name are registered tools of the dx server. | Planned |
+| R-1 | Each spike is a file spikes/<slug>.md in the project data directory, git does not track it, and all worktrees of a repository see the same spikes. | Done |
+| R-2 | A spike has the frontmatter slug, title, status and created, and the sections Question, Notes and Result, in this order. | Done |
+| R-3 | spike_create makes an Open spike with the date of today in created, and refuses a spike with no Question, and a slug that is not kebab-case, is longer than 40 characters or is the slug of a spike that exists. | Done |
+| R-4 | spike_note adds one finding to Notes as the list item "YYYY-MM-DD: <text>" with the date of today, and refuses an empty text. | Done |
+| R-5 | spike_close writes the Result and sets the status to Closed, and refuses an empty Result. | Done |
+| R-6 | A Closed spike is final: spike_note and spike_close refuse it, and only spike_get, spike_list and spike_delete accept it. | Done |
+| R-7 | spike_list gives one line for each spike with its slug, status, created date and title, Open spikes first and then by slug, with an optional status filter, and spike_get gives the full spike or one section. | Done |
+| R-8 | spike_delete deletes one or more spikes of any status, and refuses the full call before any change when a slug does not exist. | Done |
+| R-9 | Each spike write holds the exclusive docs lock of the project data directory, and each spike read holds the shared lock. | Done |
+| R-10 | The spike tools that the plugin texts name are registered tools of the dx server. | Done |
 
 ## 6. Design
 
