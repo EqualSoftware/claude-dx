@@ -20,7 +20,7 @@ A user of claude-dx needs the dx skills and rules in each session, with no setup
 
 ## 3. Goals
 
-- G-1: /dx:task, /dx:adr, /dx:spec, /dx:glossary, /dx:learning and /dx:grill are available in each session.
+- G-1: /dx:task, /dx:adr, /dx:spec, /dx:spike, /dx:glossary, /dx:learning and /dx:grill are available in each session.
 - G-2: The rules text is in the system prompt of each session, and it sets the rules for documents and questions.
 - G-3: During work, the model asks the user before each choice that a task or ADR does not decide.
 
