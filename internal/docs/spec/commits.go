@@ -19,7 +19,7 @@ type commit struct {
 	refs    []string // requirement IDs of the spec
 }
 
-// commits returns the commits of HEAD with a trailer "Refs: <slug>#R-N", newest first (ADR-008).
+// commits returns the commits of HEAD with a trailer "Refs: <slug>#R-N", newest first (ADR-018).
 // A repository with no commit has no commits.
 func (s Store) commits(slug string) ([]commit, error) {
 	err := exec.Command("git", "-C", s.Root, "rev-parse", "--verify", "-q", "HEAD").Run()

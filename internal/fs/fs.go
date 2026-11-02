@@ -1,5 +1,5 @@
 // Package fs has the fs_* tools: move, copy, delete, mkdir and tree for the files of the project
-// (ADR-002, ADR-016, filesystem-tools).
+// (ADR-002, filesystem-tools).
 package fs
 
 import (

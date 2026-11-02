@@ -1,5 +1,5 @@
 // Package task manages the local tasks in tasks/<spec>/<task-slug>.md of the project data directory
-// (ADR-008). A task points to one spec, or to "general" for work that has no spec. Git does not track the
+// (ADR-018). A task points to one spec, or to "general" for work that has no spec. Git does not track the
 // tasks, so a task has no number and no Document History.
 package task
 
@@ -22,7 +22,7 @@ import (
 //go:embed template.md
 var templateText string
 
-// general is the spec slug of the tasks that have no spec (ADR-008).
+// general is the spec slug of the tasks that have no spec (ADR-018).
 const general = "general"
 
 // Statuses are the valid task statuses, in the order of task_list.

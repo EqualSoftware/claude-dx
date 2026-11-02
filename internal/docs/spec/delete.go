@@ -13,7 +13,7 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/project"
 )
 
-// Delete deletes the folder of a spec (ADR-008). Git keeps the old version, so it refuses changes that
+// Delete deletes the folder of a spec (ADR-018). Git keeps the old version, so it refuses changes that
 // are not committed. moveTo is the slug of a spec that gets the other files of the folder; discard
 // deletes them. The spec must have no other files if both are empty, so a delete never loses a file by chance.
 func (s Store) Delete(slug, reason, moveTo string, discard bool) error {

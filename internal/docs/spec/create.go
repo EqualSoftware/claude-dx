@@ -15,7 +15,7 @@ var (
 	adrKind          = docfile.NewKind("ADR")
 )
 
-// reserved is the slug of the tasks that have no spec (ADR-008).
+// reserved is the slug of the tasks that have no spec (ADR-018).
 const reserved = "general"
 
 // New holds the content of a new spec.

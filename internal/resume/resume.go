@@ -1,4 +1,4 @@
-// Package resume prints the work state (tasks and git) for a new session (resume-command spec, ADR-008).
+// Package resume prints the work state (tasks and git) for a new session (resume-command spec, ADR-018).
 // It only reads. It uses no network and no MCP server.
 package resume
 

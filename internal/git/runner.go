@@ -1,4 +1,4 @@
-// Package git runs the system git for the git_* tools (ADR-003, ADR-015).
+// Package git runs the system git for the git_* tools (ADR-003, git-tools).
 package git
 
 import (
@@ -71,7 +71,7 @@ func failure(ctx context.Context, args []string, err error, stderr string) error
 }
 
 // Dir returns the directory where a tool runs git. An empty path gives the project root. Else the path
-// must be the project root or a worktree of the same repository (git-tools#R-21, ADR-015).
+// must be the project root or a worktree of the same repository (git-tools#R-21).
 func (r Runner) Dir(ctx context.Context, path string) (string, error) {
 	if path == "" {
 		return r.Root, nil

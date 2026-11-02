@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-// Hunk tools (git-tools#R-23, git-tools#R-24, ADR-017). The numbers and the token come from the unstaged
+// Hunk tools (git-tools#R-23, git-tools#R-24). The numbers and the token come from the unstaged
 // diff of the working tree.
 
 // HunkSelection is the hunks of one file to stage. The numbers start at 1.

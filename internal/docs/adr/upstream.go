@@ -9,7 +9,7 @@ import (
 )
 
 // checkUpstream refuses a change to an ADR that is Accepted or superseded in the upstream branch
-// (ADR-009). It reads only the local ref of the upstream. Any git failure allows the change.
+// (ADR-018). It reads only the local ref of the upstream. Any git failure allows the change.
 func checkUpstream(id, path string) error {
 	// "./name" is relative to the directory of -C, so the path has no OS separators.
 	cmd := exec.Command("git", "-C", filepath.Dir(path), "show", "@{upstream}:./"+filepath.Base(path))

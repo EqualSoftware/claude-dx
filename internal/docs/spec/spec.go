@@ -1,4 +1,4 @@
-// Package spec manages the spec documents in docs/specs and the generated README.md (ADR-008).
+// Package spec manages the spec documents in docs/specs and the generated README.md (ADR-018).
 package spec
 
 import (

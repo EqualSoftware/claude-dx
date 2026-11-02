@@ -32,7 +32,7 @@ const (
 	noRequirements = "| — | None. | — |"
 )
 
-// protected are the sections that only their own tools change, so the flow checks of ADR-008 stay true.
+// protected are the sections that only their own tools change, so the flow checks of ADR-018 stay true.
 var protected = []struct{ number, title, tools string }{
 	{"5", "Requirements", "spec_req_add, spec_req_set and spec_req_delete"},
 	{"8", "Open Questions", "spec_question_add and spec_question_answer"},
@@ -92,7 +92,7 @@ func scopeChanged(old, body string) bool {
 	})
 }
 
-// transitions gives the allowed new statuses for each current status (ADR-008).
+// transitions gives the allowed new statuses for each current status (ADR-018).
 var transitions = map[string][]string{
 	"Draft":     {"In Review"},
 	"In Review": {"Approved", "Draft"},

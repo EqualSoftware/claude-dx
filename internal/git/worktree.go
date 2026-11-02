@@ -46,7 +46,7 @@ func (r Runner) worktrees(ctx context.Context, dir string) ([]worktreeEntry, err
 	return list, nil
 }
 
-// Worktree lists, adds or removes worktrees (git-tools#R-22, ADR-015). An empty action lists.
+// Worktree lists, adds or removes worktrees (git-tools#R-22). An empty action lists.
 func (r Runner) Worktree(ctx context.Context, dir string, o WorktreeOptions) (string, error) {
 	if o.Action == "" || o.Action == "list" {
 		return r.worktreeList(ctx, dir)

@@ -382,7 +382,7 @@ func (s Store) status(id string) (string, error) {
 	return first(statusLine, data), nil
 }
 
-// addSupersedes puts "- Supersedes: ADR-NNN" after the Owners line, one time only (ADR-009).
+// addSupersedes puts "- Supersedes: ADR-NNN" after the Owners line, one time only (ADR-018).
 func addSupersedes(doc string, oldN int) (string, error) {
 	line := fmt.Sprintf("- Supersedes: ADR-%03d", oldN)
 	for l := range strings.SplitSeq(doc, "\n") {
