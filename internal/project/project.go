@@ -26,11 +26,23 @@ func Open(dir string) (Project, error) {
 	if err != nil {
 		return Project{}, err
 	}
+	// The two git calls are independent. A process start is slow on Windows, so they run in parallel
+	// (mcp-server#R-9).
+	type result struct {
+		path string
+		ok   bool
+	}
+	commonCh := make(chan result, 1)
+	go func() {
+		path, ok := git(dir, "--git-common-dir")
+		commonCh <- result{path, ok}
+	}()
 	root := dir
 	if top, ok := git(dir, "--show-toplevel"); ok {
 		root = top
 	}
-	common, ok := git(dir, "--git-common-dir")
+	c := <-commonCh
+	common, ok := c.path, c.ok
 	if !ok {
 		return Project{Root: root, Key: key(root)}, nil
 	}
