@@ -11,7 +11,7 @@ import (
 type pathsInput struct {
 	pathInput
 	Paths []string `json:"paths,omitempty" jsonschema:"the paths, relative to the directory of the tool"`
-	All   bool     `json:"all,omitempty" jsonschema:"true to stage all changes, also untracked files. Use it with no paths"`
+	All   bool     `json:"all,omitempty" jsonschema:"true to stage all changes (git_stage, also untracked files) or to unstage all staged changes (git_unstage). Use it with no paths"`
 }
 
 type messageInput struct {
@@ -82,9 +82,9 @@ func registerLocal(server *mcp.Server, r Runner) {
 		func(ctx context.Context, dir string, in stageHunksInput, _ Confirm) (string, error) {
 			return r.StageHunks(ctx, dir, in.Token, in.Hunks)
 		})
-	addLocal(server, r, "git_unstage", "Unstage paths. The changes stay in the working tree.", false,
+	addLocal(server, r, "git_unstage", "Unstage paths, or all staged changes with all. The changes stay in the working tree.", false,
 		func(ctx context.Context, dir string, in pathsInput, _ Confirm) (string, error) {
-			return r.Unstage(ctx, dir, in.Paths)
+			return r.Unstage(ctx, dir, in.Paths, in.All)
 		})
 	addLocal(server, r, "git_discard", "DESTRUCTIVE: drop the changes of tracked paths in the working tree. The changes are lost and cannot be restored. It does not touch untracked files.", true,
 		func(ctx context.Context, dir string, in pathsInput, _ Confirm) (string, error) {

@@ -21,10 +21,18 @@ func (r Runner) Stage(ctx context.Context, dir string, paths []string, all bool)
 	return fmt.Sprintf("Staged %d paths.", len(paths)), err
 }
 
-// Unstage removes paths from the index and keeps the changes in the working tree.
-func (r Runner) Unstage(ctx context.Context, dir string, paths []string) (string, error) {
+// Unstage removes paths from the index, or all staged changes with all, and keeps the changes in the
+// working tree (git-tools#R-25). Reset also works in a repository with no commit.
+func (r Runner) Unstage(ctx context.Context, dir string, paths []string, all bool) (string, error) {
+	if all && len(paths) > 0 {
+		return "", errors.New("git_unstage refused: all and paths together. Use all with no paths")
+	}
+	if all {
+		_, err := r.Run(ctx, dir, "reset", "-q")
+		return "Unstaged all changes.", err
+	}
 	if len(paths) == 0 {
-		return "", errors.New("git_unstage refused: give paths")
+		return "", errors.New("git_unstage refused: give paths, or all")
 	}
 	_, err := r.Run(ctx, dir, append([]string{"restore", "--staged", "--"}, paths...)...)
 	return fmt.Sprintf("Unstaged %d paths.", len(paths)), err

@@ -86,7 +86,7 @@ func TestStageUnstageDiscard(t *testing.T) {
 	if got, err := r.Stage(ctx, r.Root, []string{"a.txt"}, false); err != nil || got != "Staged 1 paths." {
 		t.Fatalf("Stage = %q, %v", got, err)
 	}
-	if got, err := r.Unstage(ctx, r.Root, []string{"a.txt"}); err != nil || got != "Unstaged 1 paths." {
+	if got, err := r.Unstage(ctx, r.Root, []string{"a.txt"}, false); err != nil || got != "Unstaged 1 paths." {
 		t.Fatalf("Unstage = %q, %v", got, err)
 	}
 	if _, err := r.Discard(ctx, r.Root, []string{"new.txt"}); err == nil || !strings.Contains(err.Error(), "not tracked") {
@@ -98,6 +98,27 @@ func TestStageUnstageDiscard(t *testing.T) {
 	st, _ := r.Status(ctx, r.Root)
 	if strings.Contains(st, "a.txt") {
 		t.Errorf("a.txt is still changed: %s", st)
+	}
+}
+
+// TestUnstageAll checks git-tools#R-25.
+func TestUnstageAll(t *testing.T) {
+	r := local(t)
+	ctx := context.Background()
+	write(t, r.Root, "a.txt", "changed\n")
+	write(t, r.Root, "new.txt", "n\n")
+	if _, err := r.Stage(ctx, r.Root, nil, true); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.Unstage(ctx, r.Root, []string{"a.txt"}, true); err == nil {
+		t.Error("Unstage all with paths must refuse")
+	}
+	if got, err := r.Unstage(ctx, r.Root, nil, true); err != nil || got != "Unstaged all changes." {
+		t.Fatalf("Unstage all = %q, %v", got, err)
+	}
+	st, _ := r.Status(ctx, r.Root)
+	if strings.Contains(st, "Staged:") {
+		t.Errorf("changes are still staged: %s", st)
 	}
 }
 
