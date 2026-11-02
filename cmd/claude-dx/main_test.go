@@ -227,7 +227,12 @@ func TestDoctor(t *testing.T) {
 		t.Fatalf("exit code = %d, stdout:\n%s", code, stdout)
 	}
 	env.launch(t, env.bin, "--resume") // extracts the plugin
-	if code, stdout, _ = env.launch(t, env.bin, "doctor"); code != 0 {
+	gitPath, err := exec.LookPath("git")
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := env.bin + string(os.PathListSeparator) + filepath.Dir(gitPath) // the git check needs git
+	if code, stdout, _ = env.launch(t, path, "doctor"); code != 0 {
 		t.Fatalf("exit code = %d, stdout:\n%s", code, stdout)
 	}
 }

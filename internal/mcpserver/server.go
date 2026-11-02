@@ -19,6 +19,7 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/docs/learning"
 	"github.com/EqualSoftware/claude-dx/internal/docs/spec"
 	"github.com/EqualSoftware/claude-dx/internal/docs/task"
+	"github.com/EqualSoftware/claude-dx/internal/git"
 	"github.com/EqualSoftware/claude-dx/internal/numbering"
 	"github.com/EqualSoftware/claude-dx/internal/project"
 	"github.com/EqualSoftware/claude-dx/internal/session"
@@ -47,6 +48,7 @@ func New(version, dir string) (*mcp.Server, error) {
 	spec.Register(server, specs)
 	learning.Register(server, learning.Store{Dir: filepath.Join(p.Root, "docs", "learnings"), Lock: lock})
 	glossary.Register(server, glossary.Store{Path: filepath.Join(p.Root, "docs", "GLOSSARY.md"), Lock: lock})
+	git.Register(server, p.Root)
 	return server, nil
 }
 

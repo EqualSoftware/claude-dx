@@ -24,6 +24,7 @@ import (
 // tools is the full list of tool names. A new tool needs a change of this list.
 var tools = []string{
 	"adr_create", "adr_get", "adr_list", "adr_supersede", "adr_update",
+	"git_blame", "git_diff", "git_log", "git_show", "git_status",
 	"glossary_delete", "glossary_list", "glossary_lookup", "glossary_upsert",
 	"learning_create", "learning_delete", "learning_get", "learning_list", "learning_update",
 	"spec_create", "spec_delete", "spec_get", "spec_list", "spec_question_add", "spec_question_answer", "spec_req_add", "spec_req_delete", "spec_req_set",
@@ -320,5 +321,22 @@ func TestProjectFileKeepsCountersOutsideGit(t *testing.T) {
 		if _, ok := f[key]; !ok {
 			t.Errorf("project.json has no %q: %s", key, data)
 		}
+	}
+}
+
+func TestGitStatusTool(t *testing.T) {
+	session := connect(t)
+	call := func(args map[string]any) (string, bool) {
+		res, err := session.CallTool(context.Background(), &mcp.CallToolParams{Name: "git_status", Arguments: args})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return res.Content[0].(*mcp.TextContent).Text, res.IsError
+	}
+	if text, isErr := call(map[string]any{}); isErr || !strings.HasPrefix(text, "## ") {
+		t.Errorf("git_status = %q, error %v", text, isErr)
+	}
+	if text, isErr := call(map[string]any{"path": t.TempDir()}); !isErr || !strings.Contains(text, "is not the project root or a worktree of this repository") {
+		t.Errorf("git_status with another path = %q, error %v", text, isErr)
 	}
 }
