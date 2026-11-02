@@ -10,11 +10,11 @@ Use the dx git tools. Do not run git in Bash. Pass `path` when you work in a wor
 ## Steps
 
 1. Read all changes (staged, not staged and untracked) with `git_status` and `git_diff`. Read the staged diff and the unstaged diff.
-2. Unstage all changes with `git_unstage`. The skill groups all changes again and does not keep the staged state. Then run `git_diff` with `hunks: true` to see the hunks of each file. It works only on the unstaged diff, so run it after the unstage.
+2. Unstage all changes with `git_unstage` and `all: true`. The skill groups all changes again and does not keep the staged state. Then run `git_diff` with `hunks: true` to see the hunks of each file. It works only on the unstaged diff, so run it after the unstage.
 3. Split the changes into logical groups. A group holds whole files or some hunks of a file. Each change is in exactly one group.
 4. Set the message of each group: type, scope, summary and body (rules: ADR-003, Conventional Commits). Add the Refs trailer (see Refs).
-5. Show the plan. For each group give the files, the hunks and the full message (type, scope, summary, body and Refs).
-6. Wait for the approval of the user. Make no commit before the approval. Apply the corrections of the user, show the new plan and wait again.
+5. Write the plan as text in your reply. For each group give the files, the hunks and the full message (type, scope, summary, body and Refs). Do this before any `git_stage`, `git_stage_hunks` or `git_commit`. Do it also when the user already said to approve or to continue.
+6. Stop and wait for the reply of the user. Make no stage and no commit before the reply. Apply the corrections of the user, write the new plan and wait again.
 7. For each group, in order:
    - Whole files, also untracked files, binary files, mode-only changes, renames and deletes: stage them with `git_stage`. `git_stage_hunks` refuses these files.
    - Part of a file: run `git_diff` with `hunks: true` to get a new token. The first line is `Token: <12 hex>`. Each hunk line has a number, example `[2] @@ -10,3 +10,4 @@`. The numbers restart for each file. Run `git_stage_hunks` with the token and `hunks: [{path, numbers}]`. The token covers the full unstaged diff: get a new token before each `git_stage_hunks`, because each stage and each commit changes the diff.

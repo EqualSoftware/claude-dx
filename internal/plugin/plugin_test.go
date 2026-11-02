@@ -316,13 +316,13 @@ func TestCommitSkill(t *testing.T) {
 	text := string(data)
 	for _, want := range []string{
 		"name: commit", "git_unstage", "`hunks: true`", "git_stage_hunks", "git_commit",
-		"Wait for the approval", "Refs: <slug>#R-N", "no trailer", "Do not run the acceptance check", "Do not push",
+		"`all: true`", "Write the plan as text in your reply", "Stop and wait for the reply", "Refs: <slug>#R-N", "no trailer", "Do not run the acceptance check", "Do not push",
 	} {
 		if !strings.Contains(text, want) {
 			t.Errorf("commit skill lacks %q", want)
 		}
 	}
-	if strings.Index(text, "Wait for the approval") > strings.Index(text, "Run `git_commit`") {
-		t.Error("the approval step is after the commit step")
+	if strings.Index(text, "Stop and wait for the reply") > strings.Index(text, "Run `git_commit`") {
+		t.Error("the plan step is after the commit step")
 	}
 }
