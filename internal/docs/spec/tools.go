@@ -30,7 +30,7 @@ type createInput struct {
 	Milestone string   `json:"milestone" jsonschema:"vMAJOR.MINOR.PATCH, example v0.1.0"`
 	Priority  string   `json:"priority" jsonschema:"P0, P1, P2 or P3"`
 	Area      []string `json:"area" jsonschema:"the areas of the project, example [api] or [docs, ci]"`
-	Related   []string `json:"related,omitempty" jsonschema:"IDs of ADRs that exist, example [ADR-008]"`
+	Related   []string `json:"related,omitempty" jsonschema:"IDs of ADRs that exist, example [ADR-123]"`
 }
 
 type fieldsInput struct {
