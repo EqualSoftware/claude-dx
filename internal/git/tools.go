@@ -68,6 +68,7 @@ func Register(server *mcp.Server, root string) {
 		})
 	registerExec(server, r)
 	registerLocal(server, r)
+	registerBranch(server, r)
 }
 
 // pather gives the path of an input.

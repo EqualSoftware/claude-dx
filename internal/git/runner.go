@@ -27,9 +27,15 @@ type Runner struct {
 // Run runs git with args in dir and returns its standard output.
 // It sets LC_ALL=C and GIT_TERMINAL_PROMPT=0, and turns off the pager and the color (git-tools#R-1).
 func (r Runner) Run(ctx context.Context, dir string, args ...string) (string, error) {
+	return r.RunEnv(ctx, dir, nil, args...)
+}
+
+// RunEnv is Run with more environment variables, each as NAME=value.
+func (r Runner) RunEnv(ctx context.Context, dir string, env []string, args ...string) (string, error) {
 	full := append([]string{"--no-pager", "-c", "color.ui=never", "-c", "core.quotepath=false", "-C", dir}, args...)
 	cmd := exec.CommandContext(ctx, "git", full...)
 	cmd.Env = append(os.Environ(), "LC_ALL=C", "GIT_TERMINAL_PROMPT=0", "GIT_PAGER=cat", "GIT_OPTIONAL_LOCKS=0")
+	cmd.Env = append(cmd.Env, env...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
 	if err := cmd.Run(); err != nil {
