@@ -99,6 +99,39 @@ func TestResolve(t *testing.T) {
 	}
 }
 
+func TestOpenBareRepository(t *testing.T) {
+	dir, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	run(t, dir, "init", "-q", "--bare")
+	p, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Root != dir || p.Common != dir || p.Key != key(dir) {
+		t.Fatalf("Open = %+v, want Root and Common %q and Key %q", p, dir, key(dir))
+	}
+}
+
+func TestOpenWithoutGit(t *testing.T) {
+	dir, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", "")
+	if path, err := exec.LookPath("git"); err == nil {
+		t.Fatalf("git is still found: %s", path)
+	}
+	p, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Root != dir || p.Common != "" || p.Key != key(dir) {
+		t.Fatalf("Open = %+v, want Root %q, no Common and Key %q", p, dir, key(dir))
+	}
+}
+
 func TestResolveRefusesSymlinkOutside(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("symlinks need extra privileges on Windows")
