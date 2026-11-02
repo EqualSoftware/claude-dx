@@ -327,6 +327,30 @@ func TestCommitSkill(t *testing.T) {
 	}
 }
 
+// TestSpikeText checks plugin#R-15 and R-16: the spike skill and the spike rule.
+func TestSpikeText(t *testing.T) {
+	dir, err := Ensure(t.TempDir(), "v1.2.3", "/bin/claude-dx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "skills", "spike", "SKILL.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"name: spike", "spike_create", "spike_note", "spike_close", "`/dx:spec` makes the spec from the spike and the code"} {
+		if !strings.Contains(string(data), want) {
+			t.Errorf("spike skill lacks %q", want)
+		}
+	}
+	rules, err := os.ReadFile(filepath.Join(dir, "rules.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(rules), "use a spike") || !strings.Contains(string(rules), "does not need an Approved spec") {
+		t.Error("rules.md lacks the spike rule")
+	}
+}
+
 // TestADR018Text checks plugin#R-13 and R-14: the rules stay short and the skills do not name a Document History.
 func TestADR018Text(t *testing.T) {
 	dir, err := Ensure(t.TempDir(), "v1.2.3", "/bin/claude-dx")

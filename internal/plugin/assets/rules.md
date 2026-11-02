@@ -7,5 +7,6 @@
 - Use the terms of docs/GLOSSARY.md. Use glossary_lookup for a term that is not clear.
 - During work, if the task or ADR does not decide a choice (user-facing text, error or fallback behavior, a name, a format, a change to another command), stop. Ask the user, with a recommendation, before you write it. Do not report a choice after you made it.
 - Record an ADR only for a decision that is expensive to reverse or that affects more than one spec. Write each other decision as one line in the Design of the spec: "Decision: X, because Y."
+- For an exploration before a spec exists, use a spike (/dx:spike). The code of an exploration does not need an Approved spec.
 - If a task conflicts with an Accepted ADR or with another task, stop and ask the user.
 - A commit gives the requirements that it implements in a trailer `Refs: <slug>#R-N`.
