@@ -10,6 +10,7 @@ type input struct {
 	ToolInput struct {
 		Command string `json:"command"`
 	} `json:"tool_input"`
+	Cwd string `json:"cwd"`
 }
 
 type output struct {
@@ -21,19 +22,23 @@ type output struct {
 }
 
 // PreToolUse reads the PreToolUse event from in. It writes a deny decision to out when a Bash command
-// runs git. Otherwise it writes nothing, and Claude Code allows the call. An input that does not
+// runs git or a file operation on a project path. Otherwise it writes nothing, and Claude Code allows the call. An input that does not
 // parse is allowed (R-15).
 func PreToolUse(in io.Reader, out io.Writer) error {
 	var ev input
 	if err := json.NewDecoder(in).Decode(&ev); err != nil {
 		return nil
 	}
-	if ev.ToolName != "Bash" || !RunsGit(ev.ToolInput.Command) {
+	if ev.ToolName != "Bash" {
+		return nil
+	}
+	reason := Deny(ev.ToolInput.Command, ev.Cwd)
+	if reason == "" {
 		return nil
 	}
 	var o output
 	o.HookSpecificOutput.HookEventName = "PreToolUse"
 	o.HookSpecificOutput.PermissionDecision = "deny"
-	o.HookSpecificOutput.PermissionDecisionReason = DenyReason
+	o.HookSpecificOutput.PermissionDecisionReason = reason
 	return json.NewEncoder(out).Encode(o)
 }

@@ -1,9 +1,13 @@
-// Package hook decides if a Bash command of Claude Code runs git (git-tools#R-14, R-15).
+// Package hook decides if a Bash command of Claude Code runs git or a file operation on project paths
+// (git-tools#R-14, R-15, filesystem-tools#R-5).
 package hook
 
 import (
 	"path"
+	"path/filepath"
 	"strings"
+
+	"github.com/EqualSoftware/claude-dx/internal/project"
 )
 
 // maxDepth limits the nesting of sh -c, eval and command substitutions.
@@ -23,12 +27,66 @@ var skipped = map[string]string{
 	"env": "-u -C -S", "xargs": "-I -n -P -L -d -s -E -a", "sudo": "-u -g -C -h -p", "nice": "-n",
 }
 
+// matcher reports whether one simple command (program name and arguments) is denied.
+type matcher func(name string, args []string) bool
+
 // RunsGit reports whether the Bash command runs git. A command that does not parse gives false (R-15).
 func RunsGit(command string) bool {
-	return runsGit(command, 0)
+	return runs(command, 0, func(name string, _ []string) bool { return name == "git" })
 }
 
-func runsGit(command string, depth int) bool {
+// fileReasons maps a file program to its deny reason (filesystem-tools#R-5).
+var fileReasons = map[string]string{
+	"rm":    "Do not run rm on project files in Bash. Use fs_delete of the dx MCP server.",
+	"mv":    "Do not run mv on project files in Bash. Use fs_move of the dx MCP server.",
+	"cp":    "Do not run cp on project files in Bash. Use fs_copy of the dx MCP server.",
+	"mkdir": "Do not run mkdir on project files in Bash. Use fs_mkdir of the dx MCP server.",
+}
+
+// Deny returns the deny reason for a Bash command, or an empty string to allow it. cwd is the working
+// directory of the command. Git has priority over file operations.
+func Deny(command, cwd string) string {
+	if RunsGit(command) {
+		return DenyReason
+	}
+	p, err := project.Open(cwd)
+	if err != nil {
+		return ""
+	}
+	var reason string
+	runs(command, 0, func(name string, args []string) bool {
+		r, ok := fileReasons[name]
+		if !ok || !anyInside(p, cwd, args) {
+			return false
+		}
+		reason = r
+		return true
+	})
+	return reason
+}
+
+// anyInside reports whether one argument is a path inside the project. Options are not paths. A path
+// with a variable or a glob counts as inside.
+func anyInside(p project.Project, cwd string, args []string) bool {
+	for _, a := range args {
+		if a == "" || strings.HasPrefix(a, "-") {
+			continue
+		}
+		if strings.ContainsAny(a, "$*?[") {
+			return true
+		}
+		abs := a
+		if !filepath.IsAbs(abs) {
+			abs = filepath.Join(cwd, abs)
+		}
+		if _, err := p.Resolve(abs); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+func runs(command string, depth int, match matcher) bool {
 	if depth > maxDepth {
 		return false
 	}
@@ -37,32 +95,32 @@ func runsGit(command string, depth int) bool {
 		return false
 	}
 	for _, sub := range subs {
-		if runsGit(sub, depth+1) {
+		if runs(sub, depth+1, match) {
 			return true
 		}
 	}
 	for _, words := range cmds {
-		if commandRunsGit(words, depth) {
+		if commandRuns(words, depth, match) {
 			return true
 		}
 	}
 	return false
 }
 
-// commandRunsGit checks one simple command.
-func commandRunsGit(words []string, depth int) bool {
+// commandRuns checks one simple command.
+func commandRuns(words []string, depth int, match matcher) bool {
 	words = skipPrefix(words)
 	if len(words) == 0 {
 		return false
 	}
 	name := baseName(words[0])
 	switch {
-	case name == "git":
+	case match(name, words[1:]):
 		return true
 	case name == "eval":
-		return runsGit(strings.Join(words[1:], " "), depth+1)
+		return runs(strings.Join(words[1:], " "), depth+1, match)
 	case shells[name]:
-		return shellRunsGit(words[1:], depth)
+		return shellRuns(words[1:], depth, match)
 	}
 	return false
 }
@@ -96,14 +154,14 @@ func skipOptions(words []string, withArg string) []string {
 	return words
 }
 
-// shellRunsGit checks the string after the -c option of a shell.
-func shellRunsGit(args []string, depth int) bool {
+// shellRuns checks the string after the -c option of a shell.
+func shellRuns(args []string, depth int, match matcher) bool {
 	for i, a := range args {
 		if !strings.HasPrefix(a, "-") {
 			return false
 		}
 		if !strings.HasPrefix(a, "--") && strings.Contains(a, "c") {
-			return i+1 < len(args) && runsGit(args[i+1], depth+1)
+			return i+1 < len(args) && runs(args[i+1], depth+1, match)
 		}
 	}
 	return false

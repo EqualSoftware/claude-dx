@@ -2,6 +2,7 @@ package hook
 
 import (
 	"bytes"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -78,5 +79,45 @@ func TestPreToolUse(t *testing.T) {
 		if tt.deny && (!strings.Contains(out.String(), `"permissionDecision":"deny"`) || !strings.Contains(out.String(), "If no tool maps your operation, use git_exec.")) {
 			t.Errorf("%s: output = %q", tt.name, out.String())
 		}
+	}
+}
+
+func TestDeny(t *testing.T) {
+	proj, other := t.TempDir(), t.TempDir()
+	in := filepath.Join(proj, "a.txt")
+	out := filepath.ToSlash(filepath.Join(other, "a.txt"))
+	tests := []struct {
+		name, command, want string
+	}{
+		{"rm relative", "rm a.txt", "fs_delete"},
+		{"mv absolute", "mv '" + in + "' '" + out + "'", "fs_move"},
+		{"cp backslash", `cp 'sub\a.txt' '` + out + `'`, "fs_copy"},
+		{"mkdir", "mkdir -p dir", "fs_mkdir"},
+		{"in sh -c", `sh -c "rm -rf a.txt"`, "fs_delete"},
+		{"in pipe", "ls | xargs -n1 echo && rm a.txt", "fs_delete"},
+		{"glob", "rm " + out + " *.go", "fs_delete"},
+		{"variable", "rm $FILE", "fs_delete"},
+		{"outside", "rm -rf '" + out + "'", ""},
+		{"options only", "rm -f", ""},
+		{"git first", "rm a.txt; git status", "git_exec"},
+		{"other program", "ls a.txt", ""},
+	}
+	for _, tt := range tests {
+		got := Deny(tt.command, proj)
+		if (tt.want == "") != (got == "") || !strings.Contains(got, tt.want) {
+			t.Errorf("%s: Deny = %q, want %q", tt.name, got, tt.want)
+		}
+	}
+}
+
+func TestPreToolUseFileOp(t *testing.T) {
+	proj := filepath.ToSlash(t.TempDir())
+	in := `{"tool_name":"Bash","cwd":"` + proj + `","tool_input":{"command":"rm a.txt"}}`
+	var out bytes.Buffer
+	if err := PreToolUse(strings.NewReader(in), &out); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), "fs_delete") {
+		t.Errorf("output = %q", out.String())
 	}
 }
