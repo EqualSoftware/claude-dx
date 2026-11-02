@@ -5,7 +5,7 @@ status: Approved
 milestone: v0.2.0
 priority: P1
 area: [git, mcp, plugin]
-related: [ADR-003, ADR-010, ADR-015]
+related: [ADR-003, ADR-010, ADR-015, ADR-017]
 ---
 
 # Git tools and the Bash git hook
@@ -56,12 +56,14 @@ The agent runs git in Bash, and it can rewrite history, push a force or discard 
 | R-18 | The shared rules say to use the git_* tools for git and not to run git in Bash. | Done |
 | R-21 | Each git_* tool takes an optional path. The path must be the project root or a worktree of the same repository. The tool runs git in that directory. Another path gives a tool error. | Done |
 | R-22 | git_worktree runs the actions list, add and remove. add creates a new branch from a start point. remove refuses a worktree with changes that are not committed. With delete_branch it also deletes the branch with git branch -d. | Done |
+| R-23 | git_diff takes hunks (default false). With true, it shows each hunk with a number per file ([1], [2], ...) and a token: a short hash of the diff. It stays read only. With false, the output does not change. | Planned |
+| R-24 | git_stage_hunks takes the token and a list of paths with hunk numbers from git_diff with hunks: true, and stages only those hunks. It refuses when the current diff has another token, or when a number does not exist. | Planned |
 
 ## 6. Design
 
 ### Planned modules
 
-- `internal/git/`: the runner (environment, timeout, error text) and the tools of each group: read, local, branch, remote and worktree (`git_worktree`). Each `git_*` tool takes the optional `path` parameter.
+- `internal/git/`: the runner (environment, timeout, error text) and the tools of each group: read, local, branch, remote and worktree (`git_worktree`). Each `git_*` tool takes the optional `path` parameter. The local group has `git_stage_hunks`. `git_diff` takes the `hunks` option (default false): with `true`, it numbers the hunks per file and gives a token, a short hash of the diff.
 - `internal/hook/`: the Bash command parser for the PreToolUse hook. It parses the lists, pipes, subshells, `sh -c` strings and the wrappers. It fails open (allows) on a parse error.
 - `internal/cli/`: the `hook pre-tool-use` and `report` commands.
 - `internal/plugin/assets/hooks/hooks.json`: the PreToolUse hook for the Bash tool, with `{{BINARY}} hook pre-tool-use`.
@@ -103,6 +105,8 @@ Planned requirements (tests to write):
 - R-18: a test that the shared rules have the git line.
 - R-21: a test that a path out of the repository gives a tool error, and that git_commit makes a commit in a worktree.
 - R-22: tests of add, list and remove on a temporary repository, and a test that remove refuses a worktree with changes that are not committed.
+- R-23: a test that git_diff with `hunks` false gives the same output as before, and that with `hunks` true it numbers the hunks per file and gives the same token for the same diff.
+- R-24: a test on a temporary repository with two hunks in one file: git_stage_hunks stages only the chosen hunk. A test that it refuses a token of another diff, and a hunk number that does not exist.
 
 ## 8. Open Questions
 
@@ -153,3 +157,8 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-11-02 | Equal | R-4, R-5, R-6, R-7: Done. |
 | 2026-11-02 | Equal | R-8, R-9, R-10, R-11, R-12, R-22: Done. |
 | 2026-11-02 | Equal | R-14, R-15, R-18: Done. |
+| 2026-11-02 | Equal | Added R-23. |
+| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
+| 2026-11-02 | Equal | Added R-24. |
+| 2026-11-02 | Equal | Changed fields: related. |
+| 2026-11-02 | Equal | The user approved R-23 and R-24. |
