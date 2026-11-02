@@ -351,6 +351,33 @@ func TestSpikeText(t *testing.T) {
 	}
 }
 
+// TestEurekaText checks skill-eureka#R-1 to R-4: the eureka skill text.
+func TestEurekaText(t *testing.T) {
+	dir, err := Ensure(t.TempDir(), "v1.2.3", "/bin/claude-dx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "skills", "eureka", "SKILL.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(data)
+	for _, want := range []string{
+		"name: eureka", "verified, reusable and not yet documented", "adr_list", "learning_list", "glossary_lookup",
+		"No new lessons", "Ask the user to select", "Record nothing that the user did not select",
+		"`dx:adr`", "`dx:learning`", "`dx:glossary`", "Do not commit", "/dx:commit",
+	} {
+		if !strings.Contains(text, want) {
+			t.Errorf("eureka skill lacks %q", want)
+		}
+	}
+	for _, bad := range []string{"git_commit", "spec_update", "task_set_status", "spike_note"} {
+		if strings.Contains(text, bad) {
+			t.Errorf("eureka skill names %q", bad)
+		}
+	}
+}
+
 // TestADR018Text checks plugin#R-13 and R-14: the rules stay short and the skills do not name a Document History.
 func TestADR018Text(t *testing.T) {
 	dir, err := Ensure(t.TempDir(), "v1.2.3", "/bin/claude-dx")
