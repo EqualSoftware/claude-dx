@@ -24,6 +24,25 @@ func TestClaudeVersion(t *testing.T) {
 	}
 }
 
+func TestGitVersion(t *testing.T) {
+	for out, want := range map[string]string{
+		"git version 2.39.3 (Apple Git-146)\n": "OK git 2.39.3 in PATH",
+		"git version 2.43.0.windows.1\n":       "OK git 2.43.0.windows.1 in PATH",
+		"git version 3.0.0\n":                  "OK git 3.0.0 in PATH",
+		"git version 2.30.0\n":                 "OK git 2.30.0 in PATH",
+		"git version 2.29.9\n":                 "FAIL git 2.29.9 is older than 2.30. Fix: update git to 2.30 or later.",
+		"git version 1.9.1\n":                  "FAIL git 1.9.1 is older than 2.30. Fix: update git to 2.30 or later.",
+		"nonsense":                             "FAIL cannot read the git version from \"nonsense\". Fix: install git again.",
+		"git version x.y\n":                    "FAIL cannot read the git version from \"git version x.y\". Fix: install git again.",
+	} {
+		ok, text := gitVersion(out)
+		got := map[bool]string{true: "OK ", false: "FAIL "}[ok] + text
+		if got != want {
+			t.Errorf("gitVersion(%q) = %q, want %q", out, got, want)
+		}
+	}
+}
+
 func TestRun(t *testing.T) {
 	t.Setenv("PATH", t.TempDir()) // no claude
 	cache := filepath.Join(t.TempDir(), "claude-dx")
@@ -32,6 +51,7 @@ func TestRun(t *testing.T) {
 		t.Fatal("Run passed with no claude and no plugin")
 	}
 	want := "FAIL  claude is not in PATH. Fix: install Claude Code: https://docs.claude.com/claude-code.\n" +
+		"FAIL  git is not in PATH. Fix: install git 2.30 or later: https://git-scm.com/downloads.\n" +
 		"OK    cache " + cache + " is writable\n" +
 		"FAIL  plugin v0.1.0 is not extracted. Fix: run claude-dx once.\n"
 	if b.String() != want {
