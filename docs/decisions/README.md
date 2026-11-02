@@ -21,3 +21,4 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-014](ADR-014-a-lock-for-the-plugin-directory-repair.md) | A lock for the plugin directory repair | Accepted | 2026-10-27 |
 | [ADR-015](ADR-015-git-tools-in-worktrees.md) | Git tools in worktrees | Accepted | 2026-11-02 |
 | [ADR-016](ADR-016-scope-of-the-filesystem-tools.md) | Scope of the filesystem tools | Accepted | 2026-11-02 |
+| [ADR-017](ADR-017-stage-hunks-by-numbered-diff-token.md) | Stage hunks by numbered diff token | Accepted | 2026-11-02 |
