@@ -43,19 +43,19 @@ The agent runs git in Bash, and it can rewrite history, push a force or discard 
 | R-5 | git_commit builds the commit message of ADR-003 and refuses a message that is not valid, such as a summary that is not lowercase imperative or that ends with a period. It refuses when nothing is staged, and it adds one Co-Authored-By trailer for each co-author. | Done |
 | R-6 | A commit is on the remote when a remote-tracking branch contains it (git branch -r --contains). | Done |
 | R-7 | A tool that rewrites a commit on the remote asks the user with elicitation first. If the client has no elicitation or the user says no, the tool refuses with the reason and does not change the repository. | Done |
-| R-8 | git_branch runs the actions list, create, switch, rename and delete. delete uses git branch -d, and a branch that is not merged needs elicitation. | Planned |
-| R-9 | git_sync runs fetch --prune and rebase --autostash onto the upstream, and keeps the local changes. On a conflict it returns the result of git_conflicts. | Planned |
-| R-10 | git_rebase runs the actions start, continue, abort and skip. continue uses GIT_EDITOR=true. | Planned |
-| R-11 | git_conflicts returns each conflicted path with its conflict hunks and line numbers. | Planned |
-| R-12 | git_push uses --force-with-lease and --force-if-includes when the remote branch is not an ancestor. A push to the main branch in that case needs elicitation first, and nothing is pushed on a no. | Planned |
+| R-8 | git_branch runs the actions list, create, switch, rename and delete. delete uses git branch -d, and a branch that is not merged needs elicitation. | Done |
+| R-9 | git_sync runs fetch --prune and rebase --autostash onto the upstream, and keeps the local changes. On a conflict it returns the result of git_conflicts. | Done |
+| R-10 | git_rebase runs the actions start, continue, abort and skip. continue uses GIT_EDITOR=true. | Done |
+| R-11 | git_conflicts returns each conflicted path with its conflict hunks and line numbers. | Done |
+| R-12 | git_push uses --force-with-lease and --force-if-includes when the remote branch is not an ancestor. A push to the main branch in that case needs elicitation first, and nothing is pushed on a no. | Done |
 | R-13 | Network git commands stop after 120 seconds, with GIT_TERMINAL_PROMPT=0, so a credential prompt never blocks the server. | Done |
-| R-14 | A PreToolUse hook denies a Bash call when a git command runs in it, also after ;, &&, \|\|, pipes, subshells, sh -c, eval and wrappers such as env and xargs. The deny reason says to use the git_* tools. | Planned |
-| R-15 | If the hook cannot parse a Bash command, it allows the command. | Planned |
+| R-14 | A PreToolUse hook denies a Bash call when a git command runs in it, also after ;, &&, \|\|, pipes, subshells, sh -c, eval and wrappers such as env and xargs. The deny reason says to use the git_* tools. | Done |
+| R-15 | If the hook cannot parse a Bash command, it allows the command. | Done |
 | R-16 | git_exec runs git with the given arguments for an operation that no tool maps. Each call appends one JSON line to <cache>/unmapped.log. | Done |
 | R-17 | claude-dx report groups the lines of unmapped.log by git subcommand, opens the issue form in the browser with the values filled in, and prints the URL. report --clear empties the log. | Done |
-| R-18 | The shared rules say to use the git_* tools for git and not to run git in Bash. | Planned |
+| R-18 | The shared rules say to use the git_* tools for git and not to run git in Bash. | Done |
 | R-21 | Each git_* tool takes an optional path. The path must be the project root or a worktree of the same repository. The tool runs git in that directory. Another path gives a tool error. | Done |
-| R-22 | git_worktree runs the actions list, add and remove. add creates a new branch from a start point. remove refuses a worktree with changes that are not committed. With delete_branch it also deletes the branch with git branch -d. | Planned |
+| R-22 | git_worktree runs the actions list, add and remove. add creates a new branch from a start point. remove refuses a worktree with changes that are not committed. With delete_branch it also deletes the branch with git branch -d. | Done |
 
 ## 6. Design
 
@@ -151,3 +151,5 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-11-02 | Equal | R-1, R-2, R-3, R-13, R-21: Done. |
 | 2026-11-02 | Equal | R-16, R-17: Done. |
 | 2026-11-02 | Equal | R-4, R-5, R-6, R-7: Done. |
+| 2026-11-02 | Equal | R-8, R-9, R-10, R-11, R-12, R-22: Done. |
+| 2026-11-02 | Equal | R-14, R-15, R-18: Done. |
