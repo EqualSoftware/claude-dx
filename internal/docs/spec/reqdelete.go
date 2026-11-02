@@ -3,6 +3,7 @@ package spec
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -14,8 +15,9 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/project"
 )
 
-// usedID is a history note that shows an ID: "Added R-N." or "Deleted R-N.".
-var usedID = regexp.MustCompile(`(?:Added|Deleted) R-(\d+)\.`)
+// usedID is a whole history note cell that shows an ID: "Added R-N." or "Deleted R-N.". Free text in a
+// longer note does not match.
+var usedID = regexp.MustCompile(`\| (?:Added|Deleted) R-(\d{1,9})\. \|`)
 
 // historyMax returns the highest requirement number that the Document History shows, or 0.
 func historyMax(body string) int {
@@ -33,7 +35,7 @@ func historyMax(body string) int {
 // A refusal names the reasons.
 func (s Store) DeleteRequirement(slug, rid string) (review bool, err error) {
 	rid = strings.ToUpper(strings.TrimSpace(rid))
-	list, err := s.commits(slug) // git data does not change with the docs, so it is read before the lock.
+	list, err := s.commitsIfGit(slug) // git data does not change with the docs, so it is read before the lock.
 	if err != nil {
 		return false, err
 	}
@@ -51,6 +53,14 @@ func (s Store) DeleteRequirement(slug, rid string) (review bool, err error) {
 		return err
 	})
 	return review, err
+}
+
+// commitsIfGit is commits for a project in git. A project outside git has no commits (mcp-server#R-2).
+func (s Store) commitsIfGit(slug string) ([]commit, error) {
+	if err := exec.Command("git", "-C", s.Root, "rev-parse", "--git-dir").Run(); err != nil {
+		return nil, nil
+	}
+	return s.commits(slug)
 }
 
 // checkRequirementDelete returns an error with all the reasons why rid cannot be deleted.

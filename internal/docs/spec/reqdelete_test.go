@@ -91,3 +91,33 @@ func TestReqDeleteReview(t *testing.T) {
 		t.Errorf("spec is not In Review:\n%s", f)
 	}
 }
+
+func TestReqDeleteOutsideGit(t *testing.T) {
+	s := newStore(t)
+	if err := os.RemoveAll(filepath.Join(s.Root, ".git")); err != nil {
+		t.Fatal(err)
+	}
+	session := connect(t, s)
+	run(t, session, []step{
+		{"spec_create", createArgs("a", "A"), "Created a."},
+		{"spec_req_add", map[string]any{"slug": "a", "text": "One."}, "Added R-1."},
+		{"spec_req_delete", map[string]any{"slug": "a", "rid": "R-1"}, "Deleted R-1."},
+	})
+}
+
+func TestHistoryFreeTextKeepsIDs(t *testing.T) {
+	s := newStore(t)
+	session := connect(t, s)
+	steps := []step{
+		{"spec_create", createArgs("a", "A"), "Created a."},
+		{"spec_req_add", map[string]any{"slug": "a", "text": "One."}, "Added R-1."},
+	}
+	for _, ref := range []string{"1", "2", "3", "4", "6", "7"} {
+		steps = append(steps, step{"spec_update_section", map[string]any{"slug": "a", "section": ref, "body": filled[ref]}, "Updated section " + ref + " of a."})
+	}
+	steps = append(steps,
+		step{"spec_set_status", map[string]any{"slug": "a", "status": "In Review", "note": "Added R-999. Deleted R-99999999999999999999."}, "a is In Review."},
+		step{"spec_req_add", map[string]any{"slug": "a", "text": "Two."}, "Added R-2."},
+	)
+	run(t, session, steps)
+}
