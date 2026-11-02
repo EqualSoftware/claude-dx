@@ -1,6 +1,6 @@
 # ADR-009: ADRs do not change after a push
 
-- Status: Accepted
+- Status: Superseded by ADR-018
 - Date: 2026-10-27
 - Owners: Maintainer
 

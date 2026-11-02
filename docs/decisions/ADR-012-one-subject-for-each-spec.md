@@ -1,6 +1,6 @@
 # ADR-012: One subject for each spec
 
-- Status: Accepted
+- Status: Superseded by ADR-018
 - Date: 2026-10-27
 - Owners: Equal
 

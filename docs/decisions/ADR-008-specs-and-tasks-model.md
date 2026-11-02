@@ -1,6 +1,6 @@
 # ADR-008: Specs and tasks model
 
-- Status: Accepted
+- Status: Superseded by ADR-018
 - Date: 2026-10-27
 - Owners: Maintainer
 
