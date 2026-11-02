@@ -1,6 +1,7 @@
 package spec
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -70,24 +71,50 @@ func checkHistorySection(t *testing.T, legacy bool) {
 	}
 }
 
-// TestReviewRules checks which changes set an Approved spec to In Review (docs-spec#R-11).
+// TestReviewRules checks which changes set an Approved spec to In Review (docs-spec#R-11), and the
+// question tools, on a spec with and without section 9.
 func TestReviewRules(t *testing.T) {
+	for _, legacy := range []bool{false, true} {
+		t.Run(fmt.Sprintf("legacy %v", legacy), func(t *testing.T) { checkReviewRules(t, legacy) })
+	}
+}
+
+func checkReviewRules(t *testing.T, legacy bool) {
 	s := newStore(t)
 	session := connect(t, s)
-	steps := []step{
-		{"spec_create", createArgs("a", "A"), "Created a."},
+	run(t, session, []step{{"spec_create", createArgs("a", "A"), "Created a."}})
+	if legacy {
+		appendHistory(t, s)
+	}
+	approve := []step{
 		{"spec_req_add", map[string]any{"slug": "a", "text": "One."}, "Added R-1."},
+		{"spec_set_status", map[string]any{"slug": "a", "status": "In Review"}, "a is In Review."},
+		{"spec_set_status", map[string]any{"slug": "a", "status": "Approved"}, "a is Approved."},
 	}
-	for _, ref := range []string{"1", "2", "3", "4", "6", "7"} {
-		steps = append(steps, step{"spec_update_section", map[string]any{"slug": "a", "section": ref, "body": filled[ref]}, "Updated section " + ref + " of a."})
+	fill := func() {
+		for _, ref := range []string{"1", "2", "3", "4", "6", "7"} {
+			run(t, session, []step{{"spec_update_section", map[string]any{"slug": "a", "section": ref, "body": filled[ref]}, "Updated section " + ref + " of a."}})
+		}
 	}
-	steps = append(steps,
-		step{"spec_set_status", map[string]any{"slug": "a", "status": "In Review"}, "a is In Review."},
-		step{"spec_set_status", map[string]any{"slug": "a", "status": "Approved"}, "a is Approved."},
-		step{"spec_question_add", map[string]any{"slug": "a", "question": "Q?"}, "Added Q-1. Q-1 is Open, so a is In Review. The user must approve it again."},
-	)
-	run(t, session, steps)
-	if got := readSpec(t, s, "a"); !strings.Contains(got, "status: In Review") {
-		t.Errorf("a new question did not set In Review:\n%s", got)
+	review := " The scope changed, so a is In Review. The user must approve it again."
+	fill()
+	run(t, session, approve)
+	run(t, session, []step{{"spec_update_section", map[string]any{"slug": "a", "section": "Goals", "body": "- G-1: New."}, "Updated section Goals of a." + review}})
+	run(t, session, approve[2:])
+	run(t, session, []step{{"spec_update_section", map[string]any{"slug": "a", "section": "Out of Scope", "body": "- New."}, "Updated section Out of Scope of a." + review}})
+	run(t, session, approve[2:])
+	run(t, session, []step{
+		{"spec_question_add", map[string]any{"slug": "a", "question": "Q?"}, "Added Q-1. Q-1 is Open, so a is In Review. The user must approve it again."},
+	})
+	if got := readSpec(t, s, "a"); !strings.Contains(got, "status: In Review") || !strings.HasSuffix(got, "\n") {
+		t.Errorf("after the question add:\n%s", got)
+	}
+	run(t, session, []step{{"spec_question_answer", map[string]any{"slug": "a", "qid": "Q-1", "answer": "Yes."}, "Answered Q-1."}})
+	got := readSpec(t, s, "a")
+	if !strings.HasSuffix(got, "\n") || !strings.Contains(got, "| Q-1 | Q? | Tester | Yes. |") {
+		t.Errorf("after the answer:\n%s", got)
+	}
+	if legacy != strings.HasSuffix(got, legacyHistory) {
+		t.Errorf("section 9 is wrong (legacy %v):\n%s", legacy, got)
 	}
 }

@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/markdown"
@@ -39,12 +38,11 @@ var Priorities = []string{"P0", "P1", "P2", "P3"}
 
 // Store reads and writes the specs of one project.
 type Store struct {
-	Dir    string           // absolute path of docs/specs
-	ADRDir string           // absolute path of docs/decisions, for the related check
-	Root   string           // project root, where git runs
-	Now    func() time.Time // clock; nil means time.Now
-	Author func() string    // author of Document History rows; nil means "Agent"
-	Lock   string           // path of the docs lock (ADR-006); required
+	Dir    string        // absolute path of docs/specs
+	ADRDir string        // absolute path of docs/decisions, for the related check
+	Root   string        // project root, where git runs
+	Author func() string // owner of a new question; nil means "Maintainer"
+	Lock   string        // path of the docs lock (ADR-006); required
 }
 
 // Front is the YAML frontmatter of a spec. It is the only source of these fields.

@@ -60,8 +60,8 @@ func ReplaceSection(body, ref, content string) (string, error) {
 		return "", err
 	}
 	middle := []string{"", strings.Trim(content, "\n")}
-	if end < len(lines) {
-		middle = append(middle, "")
+	if end < len(lines) || strings.HasSuffix(lf(body), "\n") {
+		middle = append(middle, "") // a blank line before the next heading, or the final newline
 	}
 	out := strings.Join(append(append(append([]string{}, lines[:start]...), middle...), lines[end:]...), "\n")
 	if crlf {

@@ -420,3 +420,29 @@ func TestUpdateTitleKeepsFencedComment(t *testing.T) {
 		t.Errorf("title headings = %d, want 1:\n%s", n, got)
 	}
 }
+
+// TestDoneKeepsHistorySection is docs-task#R-10 on a spec that still has section 9: the covers
+// requirement is Done, and section 9 does not change.
+func TestDoneKeepsHistorySection(t *testing.T) {
+	s := newStore(t)
+	addSpec(t, s, "a", "Approved", 2)
+	path := filepath.Join(s.Specs.Dir, "a", "SPEC.md")
+	data, err := os.ReadFile(path)
+	must(t, err)
+	history := "\n## 9. Document History\n| Date | Author | Description / Change Notes |\n| :--- | :--- | :--- |\n| 2026-10-26 | Tester | Initial draft specification |\n"
+	must(t, os.WriteFile(path, append(data, history...), 0o644))
+	id, err := s.Create(New{Spec: "a", Slug: "work", Title: "Task work", Priority: "P1", Brief: "Do it.", Plan: []string{"Do it."}, Covers: []string{"R-1"}})
+	must(t, err)
+	must(t, s.CheckStep(id, 1))
+	must(t, s.CheckDoD(id, 1, "Test."))
+	must(t, s.CheckDoD(id, 2, "Test."))
+	_, err = s.SetStatus(id, "In Progress", "")
+	must(t, err)
+	_, err = s.SetStatus(id, "Done", "")
+	must(t, err)
+	got, err := os.ReadFile(path)
+	must(t, err)
+	if !strings.HasSuffix(string(got), history) || !strings.Contains(string(got), "| R-1 | A behavior. | Done |") {
+		t.Errorf("spec after Done:\n%s", got)
+	}
+}

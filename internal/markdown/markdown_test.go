@@ -179,3 +179,21 @@ func TestSectionNumber(t *testing.T) {
 		t.Error("SectionNumber(99) found a section")
 	}
 }
+
+func TestReplaceSectionLastKeepsFinalNewline(t *testing.T) {
+	for _, eol := range []string{"\n", "\r\n"} {
+		body := strings.Join([]string{"# T", "", "## 1. A", "", "a", "", "## 2. B", "", "b", ""}, eol)
+		got, err := ReplaceSection(body, "2", "new")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := strings.Join([]string{"# T", "", "## 1. A", "", "a", "", "## 2. B", "", "new", ""}, eol); got != want {
+			t.Errorf("eol %q: got %q, want %q", eol, got, want)
+		}
+		noEnd := strings.TrimSuffix(body, eol)
+		got, _ = ReplaceSection(noEnd, "2", "new")
+		if strings.HasSuffix(got, "\n") {
+			t.Errorf("eol %q: a body with no final newline got one: %q", eol, got)
+		}
+	}
+}

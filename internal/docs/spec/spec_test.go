@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -28,7 +27,6 @@ func newStore(t *testing.T) Store {
 		Dir:    filepath.Join(root, "docs", "specs"),
 		ADRDir: adrs,
 		Root:   root,
-		Now:    func() time.Time { return time.Date(2026, 10, 26, 0, 0, 0, 0, time.UTC) },
 		Author: func() string { return "Tester" },
 		Lock:   filepath.Join(t.TempDir(), "docs.lock"),
 	}

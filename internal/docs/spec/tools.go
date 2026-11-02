@@ -102,7 +102,7 @@ func Register(server *mcp.Server, s Store) {
 		func(in createInput) (string, error) {
 			return "Created " + in.Slug + ".", s.Create(New(in))
 		})
-	add(server, "spec_update_fields", "Change the title, the milestone, the priority, the area or the related ADRs of a spec A list replaces the full list. The slug and the status do not change.",
+	add(server, "spec_update_fields", "Change the title, the milestone, the priority, the area or the related ADRs of a spec. A list replaces the full list. The slug and the status do not change.",
 		func(in fieldsInput) (string, error) {
 			u := Update{Title: in.Title, Milestone: in.Milestone, Priority: in.Priority, Area: in.Area, Related: in.Related}
 			return "Updated " + in.Slug + ".", s.UpdateFields(in.Slug, u)
