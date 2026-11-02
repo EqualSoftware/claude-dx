@@ -44,9 +44,9 @@ An accepted ADR can change after others read it. Then a reader sees a decision t
 | R-9 | adr_list gives one warning line for each ADR file that it cannot read or parse, and lists the other ADRs. | Done |
 | R-10 | adr_update refuses an ADR whose status in the upstream branch is Accepted or Superseded. If the upstream check cannot run, it allows the change. | Done |
 | R-11 | adr_supersede changes only the status line of the old ADR, and adds the line Supersedes: ADR-NNN to the new ADR after the Owners line, also when the new ADR is pushed. | Done |
-| R-12 | An ADR has the status Proposed, Accepted or Superseded by ADR-NNN, and the ADR tools have no delete tool. | Planned |
-| R-13 | adr_supersede refuses an old ADR that is the same as the new ADR. | Planned |
-| R-14 | adr_update reads the upstream status only from the local upstream ref with git show @{upstream}:<path>, runs no git fetch, and allows the change when the file is not in the upstream, its upstream status is Proposed, there is no upstream, the folder is not in a git repository or git is not installed. | Planned |
+| R-12 | An ADR has the status Proposed, Accepted or Superseded by ADR-NNN, and the ADR tools have no delete tool. | Done |
+| R-13 | adr_supersede refuses an old ADR that is the same as the new ADR. | Done |
+| R-14 | adr_update reads the upstream status only from the local upstream ref with git show @{upstream}:<path>, runs no git fetch, and allows the change when the file is not in the upstream, its upstream status is Proposed, there is no upstream, the folder is not in a git repository or git is not installed. | Done |
 
 ## 6. Design
 
@@ -84,6 +84,9 @@ An accepted ADR can change after others read it. Then a reader sees a decision t
 - R-9: `TestListBadFile` (`internal/docs/adr`).
 - R-10: `TestUpdateUpstream`, `TestUpdateUpstreamSuperseded`, `TestUpdateNoUpstream` and `TestUpdateOutsideGit` (`internal/docs/adr`).
 - R-11: `TestSupersedePushed` and `TestSupersedeNoOwners` (`internal/docs/adr`).
+- R-12: `TestToolNames` (`internal/docs/adr`).
+- R-13: `TestSupersede` (`internal/docs/adr`).
+- R-14: `TestUpdateUpstream`, `TestUpdateUpstreamSuperseded`, `TestUpdateNoUpstream`, `TestUpdateOutsideGit`, `TestUpdateGitMissing` and `TestUpdateNotInUpstream` (`internal/docs/adr`).
 
 The tests pass on macOS, Linux and Windows.
 
