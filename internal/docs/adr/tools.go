@@ -13,7 +13,7 @@ import (
 )
 
 type getInput struct {
-	ID      string `json:"id" jsonschema:"ADR ID, example ADR-007"`
+	ID      string `json:"id" jsonschema:"ADR ID, example ADR-123"`
 	Section string `json:"section,omitempty" jsonschema:"one section only: Context, Decision, Alternatives, Consequences or Evidence"`
 }
 
@@ -29,7 +29,7 @@ type createInput struct {
 }
 
 type updateInput struct {
-	ID      string `json:"id" jsonschema:"ADR ID, example ADR-007"`
+	ID      string `json:"id" jsonschema:"ADR ID, example ADR-123"`
 	Status  string `json:"status,omitempty" jsonschema:"Proposed or Accepted"`
 	Section string `json:"section,omitempty" jsonschema:"section to replace: Context, Decision, Alternatives, Consequences or Evidence"`
 	Body    string `json:"body,omitempty" jsonschema:"new content of the section, with no heading"`
