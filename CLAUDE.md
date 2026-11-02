@@ -6,7 +6,7 @@ Go CLI that starts Claude Code with the dx plugin: skills, an MCP server and hoo
 
 - The linter limit of cyclomatic complexity is 10.
 - Add tests for each change. Tests must pass on macOS, Linux and Windows.
-- Specs: `docs/specs/`. Work from an Approved spec. Record each architecture decision as an ADR.
+- Specs: `docs/specs/`. Work from an Approved spec. Record as an ADR only a decision that is expensive to reverse or that affects more than one spec. Record other decisions as a line in the Design of the spec: "Decision: X, because Y." Code of an exploration (spike) does not need an Approved spec.
 - The commit type sets the next version (ADR-005). Rebase only: integrate a branch with a rebase and a fast-forward, no merge commit.
 
 ## Go language server
