@@ -56,8 +56,8 @@ The agent runs git in Bash, and it can rewrite history, push a force or discard 
 | R-18 | The shared rules say to use the git_* tools for git and not to run git in Bash. | Done |
 | R-21 | Each git_* tool takes an optional path. The path must be the project root or a worktree of the same repository. The tool runs git in that directory. Another path gives a tool error. | Done |
 | R-22 | git_worktree runs the actions list, add and remove. add creates a new branch from a start point. remove refuses a worktree with changes that are not committed. With delete_branch it also deletes the branch with git branch -d. | Done |
-| R-23 | git_diff takes hunks (default false). With true, it shows each hunk with a number per file ([1], [2], ...) and a token: a short hash of the diff. It stays read only. With false, the output does not change. | Planned |
-| R-24 | git_stage_hunks takes the token and a list of paths with hunk numbers from git_diff with hunks: true, and stages only those hunks. It refuses when the current diff has another token, or when a number does not exist. | Planned |
+| R-23 | git_diff takes hunks (default false). With true, it shows each hunk with a number per file ([1], [2], ...) and a token: a short hash of the diff. It stays read only. With false, the output does not change. | Done |
+| R-24 | git_stage_hunks takes the token and a list of paths with hunk numbers from git_diff with hunks: true, and stages only those hunks. It refuses when the current diff has another token, or when a number does not exist. | Done |
 
 ## 6. Design
 
@@ -162,3 +162,4 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-11-02 | Equal | Added R-24. |
 | 2026-11-02 | Equal | Changed fields: related. |
 | 2026-11-02 | Equal | The user approved R-23 and R-24. |
+| 2026-11-02 | Equal | R-23, R-24: Done. |
