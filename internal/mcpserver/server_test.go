@@ -25,7 +25,7 @@ import (
 var tools = []string{
 	"adr_create", "adr_get", "adr_list", "adr_supersede", "adr_update",
 	"fs_copy", "fs_delete", "fs_mkdir", "fs_move", "fs_tree",
-	"git_amend", "git_blame", "git_branch", "git_cherry_pick", "git_commit", "git_conflicts", "git_diff", "git_discard", "git_exec", "git_fixup", "git_log", "git_push", "git_rebase", "git_revert", "git_show", "git_stage", "git_stash",
+	"git_amend", "git_blame", "git_branch", "git_cherry_pick", "git_commit", "git_conflicts", "git_diff", "git_discard", "git_exec", "git_fixup", "git_log", "git_push", "git_rebase", "git_revert", "git_show", "git_stage", "git_stage_hunks", "git_stash",
 	"git_status", "git_sync", "git_tag", "git_undo", "git_unstage", "git_worktree",
 	"glossary_delete", "glossary_list", "glossary_lookup", "glossary_upsert",
 	"learning_create", "learning_delete", "learning_get", "learning_list", "learning_update",

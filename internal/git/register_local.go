@@ -29,6 +29,12 @@ func (m messageInput) message() Message {
 	return Message{Type: m.Type, Scope: m.Scope, Summary: m.Summary, Body: m.Body, Breaking: m.Breaking, CoAuthors: m.CoAuthors}
 }
 
+type stageHunksInput struct {
+	pathInput
+	Token string          `json:"token" jsonschema:"the token from git_diff with hunks: true"`
+	Hunks []HunkSelection `json:"hunks" jsonschema:"the files and hunk numbers to stage"`
+}
+
 type undoInput struct {
 	pathInput
 	N int `json:"n,omitempty" jsonschema:"the number of commits to undo. The default is 1"`
@@ -71,6 +77,10 @@ func registerLocal(server *mcp.Server, r Runner) {
 	addLocal(server, r, "git_stage", "Stage paths, or all changes with all.", false,
 		func(ctx context.Context, dir string, in pathsInput, _ Confirm) (string, error) {
 			return r.Stage(ctx, dir, in.Paths, in.All)
+		})
+	addLocal(server, r, "git_stage_hunks", "Stage only the chosen hunks of the unstaged diff. Give the token and the hunk numbers from git_diff with hunks: true. It refuses a token of another diff and a number that does not exist. It does not stage untracked files: use git_stage.", false,
+		func(ctx context.Context, dir string, in stageHunksInput, _ Confirm) (string, error) {
+			return r.StageHunks(ctx, dir, in.Token, in.Hunks)
 		})
 	addLocal(server, r, "git_unstage", "Unstage paths. The changes stay in the working tree.", false,
 		func(ctx context.Context, dir string, in pathsInput, _ Confirm) (string, error) {

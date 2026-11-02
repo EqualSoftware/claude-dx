@@ -22,6 +22,7 @@ type diffInput struct {
 	Ref    string   `json:"ref,omitempty" jsonschema:"a commit or range to compare with, example main..HEAD. Omit it for the working tree"`
 	Paths  []string `json:"paths,omitempty" jsonschema:"only these paths"`
 	Stat   bool     `json:"stat,omitempty" jsonschema:"true to show file stats and not the diff"`
+	Hunks  bool     `json:"hunks,omitempty" jsonschema:"true to number the hunks of each file and give a token for git_stage_hunks. It works only on the unstaged working tree diff"`
 }
 
 type logInput struct {
@@ -52,7 +53,7 @@ func Register(server *mcp.Server, root string) {
 		func(ctx context.Context, dir string, _ pathInput) (string, error) { return r.Status(ctx, dir) })
 	add(server, r, "git_diff", "Show a git diff with no color, or the file stats with stat. Reads only.",
 		func(ctx context.Context, dir string, in diffInput) (string, error) {
-			return r.Diff(ctx, dir, DiffOptions{Staged: in.Staged, Ref: in.Ref, Paths: in.Paths, Stat: in.Stat})
+			return r.Diff(ctx, dir, DiffOptions{Staged: in.Staged, Ref: in.Ref, Paths: in.Paths, Stat: in.Stat, Hunks: in.Hunks})
 		})
 	add(server, r, "git_log", "Show the git log, one line for each commit: <short-hash> <YYYY-MM-DD> <author> <subject>. Reads only.",
 		func(ctx context.Context, dir string, in logInput) (string, error) {

@@ -97,12 +97,16 @@ type DiffOptions struct {
 	Ref    string
 	Paths  []string
 	Stat   bool
+	Hunks  bool
 }
 
 // Diff returns the diff without color, or the file stats.
 func (r Runner) Diff(ctx context.Context, dir string, o DiffOptions) (string, error) {
 	if err := noDash(o.Ref); err != nil {
 		return "", err
+	}
+	if o.Hunks {
+		return r.hunkDiff(ctx, dir, o)
 	}
 	args := []string{"diff", "--no-color", "--no-ext-diff"}
 	if o.Staged {
