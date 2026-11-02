@@ -1,12 +1,15 @@
 package spike
 
 import (
+	"context"
 	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
 func newStore(t *testing.T) Store {
@@ -161,5 +164,49 @@ func TestDelete(t *testing.T) {
 	must(t, s.Delete([]string{"a", "b"}))
 	if list, _, _ := s.List(""); len(list) != 0 {
 		t.Fatalf("spikes left: %+v", list)
+	}
+}
+
+// A write with no spikes folder is a refusal, not a normal state.
+func TestWriteWithoutFolder(t *testing.T) {
+	s := newStore(t)
+	for name, call := range map[string]func() error{
+		"note":   func() error { return s.Note("a", "x") },
+		"close":  func() error { return s.Close("a", "x") },
+		"delete": func() error { return s.Delete([]string{"a"}) },
+	} {
+		err := call()
+		if err == nil || errors.Is(err, ErrNoDir) {
+			t.Errorf("%s = %v, want a refusal that is not ErrNoDir", name, err)
+		}
+	}
+	server := mcp.NewServer(&mcp.Implementation{Name: "dx", Version: "test"}, nil)
+	Register(server, s)
+	st, ct := mcp.NewInMemoryTransports()
+	ctx := context.Background()
+	if _, err := server.Connect(ctx, st, nil); err != nil {
+		t.Fatal(err)
+	}
+	session, err := mcp.NewClient(&mcp.Implementation{Name: "test", Version: "test"}, nil).Connect(ctx, ct, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = session.Close() })
+	for _, c := range []struct {
+		name string
+		args map[string]any
+		want bool
+	}{
+		{"spike_note", map[string]any{"slug": "a", "text": "x"}, true},
+		{"spike_close", map[string]any{"slug": "a", "result": "x"}, true},
+		{"spike_delete", map[string]any{"slugs": []string{"a"}}, true},
+		{"spike_list", map[string]any{}, false},
+		{"spike_get", map[string]any{"slug": "a"}, false},
+	} {
+		name, want := c.name, c.want
+		res, err := session.CallTool(ctx, &mcp.CallToolParams{Name: name, Arguments: c.args})
+		if err != nil || res.IsError != want {
+			t.Errorf("%s: IsError = %v, %v; want %v", name, res != nil && res.IsError, err, want)
+		}
 	}
 }

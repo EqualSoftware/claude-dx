@@ -169,7 +169,8 @@ func (s Store) List(status string) ([]Spike, string, error) {
 }
 
 // scan reads all spike files with the status. The caller holds the docs lock.
-func (s Store) scan(status string) (list []Spike, warnings string, err error) {
+func (s Store) scan(status string) ([]Spike, string, error) {
+	var warn strings.Builder
 	entries, err := os.ReadDir(s.Dir)
 	if docfile.NotExist(err) {
 		return nil, "", ErrNoDir
@@ -177,20 +178,21 @@ func (s Store) scan(status string) (list []Spike, warnings string, err error) {
 	if err != nil {
 		return nil, "", err
 	}
+	var list []Spike
 	for _, e := range entries {
 		if e.IsDir() || !strings.HasSuffix(e.Name(), ".md") {
 			continue
 		}
 		sp, err := readSpike(filepath.Join(s.Dir, e.Name()))
 		if err != nil {
-			warnings += fmt.Sprintf("Warning: %s: %v.\n", e.Name(), err)
+			fmt.Fprintf(&warn, "Warning: %s: %v.\n", e.Name(), err)
 			continue
 		}
 		if status == "" || sp.Status == status {
 			list = append(list, sp)
 		}
 	}
-	return list, warnings, nil
+	return list, warn.String(), nil
 }
 
 // compare orders Open spikes before the others, then by slug.
@@ -220,6 +222,9 @@ func readSpike(path string) (Spike, error) {
 // Get returns the spike file, or one section of it: Question, Notes or Result.
 func (s Store) Get(slug, section string) (text string, err error) {
 	err = docfile.RLocked(s.Lock, func() error {
+		if _, err := os.Stat(s.Dir); docfile.NotExist(err) {
+			return ErrNoDir
+		}
 		path, err := s.find(slug)
 		if err != nil {
 			return err
@@ -271,9 +276,6 @@ func (s Store) delete(slugs []string) error {
 func (s Store) find(slug string) (string, error) {
 	if err := validSlug(slug); err != nil {
 		return "", err
-	}
-	if _, err := os.Stat(s.Dir); docfile.NotExist(err) {
-		return "", ErrNoDir
 	}
 	path := filepath.Join(s.Dir, slug+".md")
 	if _, err := os.Stat(path); docfile.NotExist(err) {
