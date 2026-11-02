@@ -14,11 +14,13 @@ import (
 func Run(w io.Writer, dir, cacheDir string) {
 	g, gitErr := readGit(dir)
 	tasks, approved, errs := readTasks(dir, cacheDir)
+	spikes, spikeErrs := readSpikes(dir, cacheDir)
 	v := view{
 		inProgress: progressList(inProgress(tasks)),
 		next:       taskLines(next(tasks, approved), false),
 		blocked:    taskLines(blocked(tasks), true),
-		errs:       errs,
+		spikes:     spikeLines(newestSpikes(spikes)),
+		errs:       append(errs, spikeErrs...),
 	}
 	v.addGit(g, gitErr)
 	for _, line := range render(v) {
@@ -31,6 +33,7 @@ func (v *view) addGit(g gitState, err error) {
 	switch {
 	case errors.Is(err, errNoRepo):
 		v.header = "dx: no git repository"
+		v.spikes = nil // without git the output has only the task sections (R-10)
 		return
 	case err != nil:
 		v.errs = append([]error{skip("git", err)}, v.errs...)
@@ -40,7 +43,7 @@ func (v *view) addGit(g gitState, err error) {
 		v.changed = g.changed
 		return
 	}
-	if len(g.changed) == 0 && len(g.unpushed)+len(v.inProgress)+len(v.next)+len(v.blocked) == 0 {
+	if len(g.changed) == 0 && len(g.unpushed)+len(v.inProgress)+len(v.next)+len(v.blocked)+len(v.spikes) == 0 {
 		v.header = fmt.Sprintf("dx: branch %s, clean tree, no active tasks.", g.branch)
 		return
 	}

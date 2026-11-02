@@ -264,3 +264,89 @@ func TestNoCacheDir(t *testing.T) {
 		t.Fatalf("output:\n%s", out.String())
 	}
 }
+
+// spike writes a spike file. notes are the lines of the Notes section.
+func (e *env) spike(slug, status, created, notes string) {
+	e.t.Helper()
+	writeFile(e.t, filepath.Join(e.data, project.Spikes, slug+".md"),
+		fmt.Sprintf("---\nslug: %s\ntitle: Title %s\nstatus: %s\ncreated: %s\n---\n\n## Question\n\nQ?\n\n## Notes\n\n%s\n## Result\n", slug, slug, status, created, notes))
+}
+
+// TestSpikes checks R-1, R-13: the Open spikes, newest created first, max 3, with the date of the last
+// note or the created date. The section is after Blocked and before Unpushed.
+func TestSpikes(t *testing.T) {
+	e := newEnv(t)
+	e.task("general/stuck", "Blocked", "P1", "", "", 0)
+	e.spike("old", "Open", "2026-01-01", "- 2026-01-02: a\n- 2026-03-04: b\n")
+	e.spike("mid", "Open", "2026-02-01", "")
+	e.spike("new", "Open", "2026-05-01", "- 2026-05-02: a\n")
+	e.spike("newer", "Open", "2026-06-01", "")
+	e.spike("shut", "Closed", "2026-07-01", "")
+	hash := runGit(t, e.repo, "log", "-1", "--format=%h")
+	check(t, e.run(), `dx: branch main, no upstream, 0 changed files
+Blocked:
+- general/stuck (P1) Title stuck
+Spikes:
+- newer Title newer (2026-06-01)
+- new Title new (2026-05-02)
+- mid Title mid (2026-02-01)
+  +1 more
+Unpushed:
+- `+hash+` chore: first
+`)
+}
+
+// TestSpikesActive checks R-4: an Open spike is active work, a Closed spike is not.
+func TestSpikesActive(t *testing.T) {
+	e := newEnv(t)
+	remote := t.TempDir()
+	runGit(t, remote, "init", "-q", "--bare")
+	runGit(t, e.repo, "remote", "add", "origin", remote)
+	runGit(t, e.repo, "push", "-q", "-u", "origin", "main")
+	e.spike("shut", "Closed", "2026-07-01", "")
+	check(t, e.run(), "dx: branch main, clean tree, no active tasks.\n")
+	e.spike("live", "Open", "2026-07-02", "")
+	check(t, e.run(), "dx: branch main, 0 ahead of origin/main, 0 changed files\nSpikes:\n- live Title live (2026-07-02)\n")
+}
+
+// TestSpikesNoGit checks R-10: with no repository, the output has no Spikes section.
+func TestSpikesNoGit(t *testing.T) {
+	dir, cache := t.TempDir(), t.TempDir()
+	p, err := project.Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e := &env{t: t, repo: dir, cache: cache, data: p.DataDir(cache)}
+	e.spike("live", "Open", "2026-07-02", "")
+	check(t, e.run(), "dx: no git repository\n")
+}
+
+// TestSpikesErrors checks R-11, R-13: a missing folder is normal and is not created; a file or a folder
+// that cannot be read gives one line.
+func TestSpikesErrors(t *testing.T) {
+	e := newEnv(t)
+	hash := runGit(t, e.repo, "log", "-1", "--format=%h")
+	want := "dx: branch main, no upstream, 0 changed files\nUnpushed:\n- " + hash + " chore: first\n"
+	check(t, e.run(), want)
+	if _, err := os.Stat(filepath.Join(e.data, project.Spikes)); !os.IsNotExist(err) {
+		t.Fatalf("the spikes folder exists: %v", err)
+	}
+
+	writeFile(t, filepath.Join(e.data, project.Spikes, "bad.md"), "---\nslug: [\n---\n")
+	if out := e.run(); !strings.Contains(out, "dx: skipped spikes: bad.md: bad frontmatter: ") {
+		t.Fatalf("output:\n%s", out)
+	}
+
+	// A file in place of the folder cannot be read as a folder.
+	if err := os.RemoveAll(filepath.Join(e.data, project.Spikes)); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(e.data, project.Spikes), "x")
+	if out := e.run(); !strings.Contains(out, "dx: skipped spikes: ") {
+		t.Fatalf("output:\n%s", out)
+	}
+	entries, err := os.ReadDir(e.data)
+	if err != nil || len(entries) != 2 { // only tasks and spikes: no lock file
+		t.Fatalf("data directory: %v, %v", entries, err)
+	}
+}

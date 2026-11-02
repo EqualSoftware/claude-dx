@@ -12,6 +12,7 @@ const (
 	maxChanged  = 10
 	maxNext     = 3
 	maxBlocked  = 5
+	maxSpikes   = 3
 	maxUnpushed = 10
 )
 
@@ -23,6 +24,7 @@ type view struct {
 	inProgress []progress
 	next       []string
 	blocked    []string
+	spikes     []string
 	unpushed   []string
 }
 
@@ -69,13 +71,14 @@ func (v view) lines(notes int) []string {
 	}
 	lines = appendList(lines, "Next", v.next, maxNext)
 	lines = appendList(lines, "Blocked", v.blocked, maxBlocked)
+	lines = appendList(lines, "Spikes", v.spikes, maxSpikes)
 	return appendList(lines, "Unpushed", v.unpushed, maxUnpushed)
 }
 
 // clean reports whether the view has only the header and the errors.
 func (v view) clean() bool {
 	return len(v.changed) == 0 && len(v.inProgress) == 0 && len(v.next) == 0 &&
-		len(v.blocked) == 0 && len(v.unpushed) == 0
+		len(v.blocked) == 0 && len(v.spikes) == 0 && len(v.unpushed) == 0
 }
 
 // lines writes the task, with the last notes Notes lines.
