@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/EqualSoftware/claude-dx/internal/project"
 )
@@ -23,6 +24,9 @@ type Tools struct {
 // A path outside the project root is refused (filesystem-tools#R-1).
 func (t Tools) path(rel string) (string, error) {
 	abs := rel
+	if filepath.VolumeName(abs) != "" && !filepath.IsAbs(abs) {
+		return "", fmt.Errorf("path %s has a drive and no root. Use a path from the project root", rel)
+	}
 	if !filepath.IsAbs(abs) {
 		abs = filepath.Join(t.Project.Root, abs)
 	}
@@ -38,12 +42,32 @@ func (t Tools) path(rel string) (string, error) {
 }
 
 // protected reports whether path is the project root, the .git directory or a path inside it
-// (filesystem-tools#R-6, R-10).
+// (filesystem-tools#R-6, R-10). It compares file identity, so a name with another case on a
+// case-insensitive volume is also found. The string compare is the fallback.
 func (t Tools) protected(path string) bool {
-	if path == t.Project.Root {
+	root := t.Project.Root
+	if path == root || within(filepath.Join(root, ".git"), path) {
 		return true
 	}
-	return within(filepath.Join(t.Project.Root, ".git"), path)
+	if info, err := os.Lstat(path); err == nil {
+		if rootInfo, err := os.Lstat(root); err == nil && os.SameFile(info, rootInfo) {
+			return true
+		}
+	}
+	gitInfo, err := os.Lstat(filepath.Join(root, ".git"))
+	return err == nil && t.hasAncestor(gitInfo, path, true)
+}
+
+// hasAncestor reports whether target is path (when self is true) or a directory above path, up to the project root.
+func (t Tools) hasAncestor(target os.FileInfo, path string, self bool) bool {
+	for p := path; ; p = filepath.Dir(p) {
+		if info, err := os.Lstat(p); err == nil && (self || p != path) && os.SameFile(info, target) {
+			return true
+		}
+		if p == t.Project.Root || filepath.Dir(p) == p {
+			return false
+		}
+	}
 }
 
 // within reports whether path is dir or a path under dir.
@@ -55,67 +79,133 @@ func within(dir, path string) bool {
 	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)))
 }
 
+// plan is a checked move or copy. same is true for a case-only rename of one file.
+type plan struct {
+	src, dst string
+	same     bool
+}
+
 // pair resolves and checks the source and the destination of fs_move and fs_copy.
-func (t Tools) pair(source, destination string, overwrite bool) (src, dst string, err error) {
-	if src, err = t.path(source); err != nil {
-		return "", "", err
+func (t Tools) pair(source, destination string, overwrite, move bool) (plan, error) {
+	src, err := t.path(source)
+	if err != nil {
+		return plan{}, err
 	}
-	if dst, err = t.path(destination); err != nil {
-		return "", "", err
+	dst, err := t.path(destination)
+	if err != nil {
+		return plan{}, err
 	}
 	if t.protected(src) || t.protected(dst) {
-		return "", "", errors.New("the project root and the .git directory are not allowed as source or destination")
+		return plan{}, errors.New("the project root and the .git directory are not allowed as source or destination")
 	}
-	if _, err = os.Lstat(src); err != nil {
-		return "", "", fmt.Errorf("%s does not exist", source)
+	srcInfo, err := os.Lstat(src)
+	if err != nil {
+		return plan{}, fmt.Errorf("%s does not exist", source)
 	}
-	if within(src, dst) || within(dst, src) {
-		return "", "", errors.New("the source and the destination contain each other")
+	if t.hasAncestor(srcInfo, dst, false) {
+		return plan{}, errors.New("the source and the destination contain each other")
 	}
-	if _, err = os.Lstat(dst); err != nil {
-		return src, dst, nil
+	dstInfo, err := os.Lstat(dst)
+	if err != nil {
+		return plan{src: src, dst: dst}, nil
+	}
+	return t.existing(plan{src: src, dst: dst}, srcInfo, dstInfo, destination, overwrite, move)
+}
+
+// existing checks a destination that exists.
+func (t Tools) existing(pl plan, srcInfo, dstInfo os.FileInfo, destination string, overwrite, move bool) (plan, error) {
+	if os.SameFile(srcInfo, dstInfo) {
+		if !move || pl.src == pl.dst || !strings.EqualFold(pl.src, pl.dst) {
+			return plan{}, errors.New("the source and the destination are the same file")
+		}
+		pl.same = true
+		return pl, nil
+	}
+	if t.hasAncestor(dstInfo, pl.src, false) {
+		return plan{}, errors.New("the source and the destination contain each other")
 	}
 	if !overwrite {
-		return "", "", fmt.Errorf("%s exists. Set overwrite to true to replace it", destination)
+		return plan{}, fmt.Errorf("%s exists. Set overwrite to true to replace it", destination)
 	}
-	return src, dst, nil
+	return pl, nil
 }
 
 // Move moves a file or a directory (filesystem-tools#R-7).
 func (t Tools) Move(source, destination string, overwrite bool) (string, error) {
-	src, dst, err := t.pair(source, destination, overwrite)
+	pl, err := t.pair(source, destination, overwrite, true)
 	if err != nil {
 		return "", err
 	}
-	if err := removeIfExists(dst); err != nil {
-		return "", err
+	if pl.same {
+		err = os.Rename(pl.src, pl.dst)
+	} else {
+		err = replace(pl.src, pl.dst)
 	}
-	if err := os.Rename(src, dst); err != nil {
+	if err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("Moved %s to %s.", source, destination), nil
 }
 
-// Copy copies a file, or a directory with all its contents (filesystem-tools#R-7).
+// Copy copies a file, or a directory with all its contents (filesystem-tools#R-7). It copies to a
+// temporary name next to the destination, so a failure keeps the destination.
 func (t Tools) Copy(source, destination string, overwrite bool) (string, error) {
-	src, dst, err := t.pair(source, destination, overwrite)
+	pl, err := t.pair(source, destination, overwrite, false)
 	if err != nil {
 		return "", err
 	}
-	if err := removeIfExists(dst); err != nil {
+	tmp, err := os.MkdirTemp(filepath.Dir(pl.dst), ".fs-copy-")
+	if err != nil {
 		return "", err
 	}
-	if err := copyAny(src, dst); err != nil {
+	defer func() { _ = os.RemoveAll(tmp) }()
+	stage := filepath.Join(tmp, "new")
+	if err := copyAny(pl.src, stage); err != nil {
+		return "", err
+	}
+	if err := replace(stage, pl.dst); err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("Copied %s to %s.", source, destination), nil
 }
 
-func removeIfExists(path string) error {
-	if _, err := os.Lstat(path); err != nil {
-		return nil
+// replace renames src to dst. A file over a file is one atomic rename. In the other cases that
+// replace something, dst moves to a backup name first, and comes back if the rename fails.
+func replace(src, dst string) error {
+	dstInfo, err := os.Lstat(dst)
+	if err != nil {
+		return rename(src, dst)
 	}
-	return os.RemoveAll(path)
+	srcInfo, err := os.Lstat(src)
+	if err != nil {
+		return err
+	}
+	if !dstInfo.IsDir() && !srcInfo.IsDir() {
+		return rename(src, dst)
+	}
+	tmp, err := os.MkdirTemp(filepath.Dir(dst), ".fs-old-")
+	if err != nil {
+		return err
+	}
+	defer func() { _ = os.RemoveAll(tmp) }()
+	backup := filepath.Join(tmp, "old")
+	if err := os.Rename(dst, backup); err != nil {
+		return err
+	}
+	if err := rename(src, dst); err != nil {
+		_ = os.Rename(backup, dst)
+		return err
+	}
+	return nil
+}
+
+// rename is os.Rename with a clear error for two devices.
+func rename(src, dst string) error {
+	err := os.Rename(src, dst)
+	if errors.Is(err, syscall.EXDEV) {
+		return errors.New("the source and the destination are on different devices. Use fs_copy, then fs_delete")
+	}
+	return err
 }
 
 func copyAny(src, dst string) error {
@@ -132,8 +222,10 @@ func copyAny(src, dst string) error {
 		return os.Symlink(target, dst)
 	case info.IsDir():
 		return copyDir(src, dst, info.Mode().Perm())
-	default:
+	case info.Mode().IsRegular():
 		return copyFile(src, dst, info.Mode().Perm())
+	default:
+		return fmt.Errorf("%s is not a file, a directory or a symbolic link", filepath.Base(src))
 	}
 }
 

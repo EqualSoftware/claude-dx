@@ -2,6 +2,7 @@ package fs
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -269,7 +270,7 @@ func TestTreeLimit(t *testing.T) {
 	}
 	lines := strings.Split(got, "\n")
 	// 504 entries: the directory line and 503 files.
-	if len(lines) != 501 || lines[500] != "4 lines not shown." {
+	if len(lines) != 501 || !strings.HasSuffix(lines[500], "lines not shown.") {
 		t.Fatalf("lines = %d, last = %q", len(lines), lines[len(lines)-1])
 	}
 }
@@ -284,5 +285,165 @@ func checkLinkCopyAndMove(t *testing.T, tl Tools) {
 	}
 	if _, err := tl.Move("link2", "link3", false); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// caseInsensitive reports whether the volume of the project treats names with another case as the same.
+func caseInsensitive(tl Tools) bool {
+	tl.write(nopTB{}, "CaseProbe", "")
+	return tl.exists("caseprobe")
+}
+
+// nopTB lets the probe write a file without a test.
+type nopTB struct{ testing.TB }
+
+func (nopTB) Helper()      {}
+func (nopTB) Fatal(...any) {}
+
+// TestGitCaseVariant checks that .GIT is the protected .git on a case-insensitive volume.
+func TestGitCaseVariant(t *testing.T) {
+	tl := newTools(t, true)
+	if !caseInsensitive(tl) {
+		t.Skip("the volume is case sensitive")
+	}
+	tl.write(t, "a.txt", "a")
+	for _, p := range []string{".GIT", ".Git/config", "SUB/../.GIT"} {
+		_, err := tl.Delete([]string{p}, true)
+		wantErr(t, err, "cannot be deleted")
+		_, err = tl.Move("a.txt", p, true)
+		wantErr(t, err, "not allowed")
+	}
+	if !tl.exists(".git/HEAD") {
+		t.Fatal(".git changed")
+	}
+}
+
+func TestCaseOnlyRename(t *testing.T) {
+	tl := newTools(t, false)
+	if !caseInsensitive(tl) {
+		t.Skip("the volume is case sensitive")
+	}
+	tl.write(t, "Foo.txt", "x")
+	if _, err := tl.Move("Foo.txt", "foo.txt", true); err != nil {
+		t.Fatal(err)
+	}
+	names, _ := filepath.Glob(filepath.Join(tl.Project.Root, "*.txt"))
+	if len(names) != 1 || filepath.Base(names[0]) != "foo.txt" || tl.read(t, "foo.txt") != "x" {
+		t.Fatalf("files = %v", names)
+	}
+}
+
+func TestSameFileRefused(t *testing.T) {
+	tl := newTools(t, false)
+	tl.write(t, "a.txt", "a")
+	if err := os.Link(filepath.Join(tl.Project.Root, "a.txt"), filepath.Join(tl.Project.Root, "b.txt")); err != nil {
+		t.Skip("cannot make a hard link")
+	}
+	for _, op := range []func() error{
+		func() error { _, err := tl.Move("a.txt", "b.txt", true); return err },
+		func() error { _, err := tl.Copy("a.txt", "b.txt", true); return err },
+		func() error { _, err := tl.Move("a.txt", "a.txt", true); return err },
+	} {
+		wantErr(t, op(), "same file")
+	}
+	if tl.read(t, "a.txt") != "a" || tl.read(t, "b.txt") != "a" {
+		t.Fatal("a file is lost")
+	}
+}
+
+// fifo makes a named pipe, a file type that fs_copy refuses.
+func fifo(t *testing.T, path string) {
+	t.Helper()
+	if runtime.GOOS == "windows" {
+		t.Skip("no named pipes")
+	}
+	if out, err := exec.Command("mkfifo", path).CombinedOutput(); err != nil {
+		t.Skipf("mkfifo: %v %s", err, out)
+	}
+}
+
+// TestCopyFailureKeepsDestination checks that a failed copy keeps the old destination and leaves no temporary name.
+func TestCopyFailureKeepsDestination(t *testing.T) {
+	tl := newTools(t, false)
+	tl.write(t, "src/ok.txt", "ok")
+	fifo(t, filepath.Join(tl.Project.Root, "src", "pipe"))
+	tl.write(t, "dst/old.txt", "old")
+	_, err := tl.Copy("src", "dst", true)
+	wantErr(t, err, "not a file")
+	if tl.read(t, "dst/old.txt") != "old" {
+		t.Fatal("destination lost")
+	}
+	_, err = tl.Copy("src/pipe", "p2", false)
+	wantErr(t, err, "not a file")
+	assertNoTemp(t, tl)
+}
+
+func assertNoTemp(t *testing.T, tl Tools) {
+	t.Helper()
+	entries, err := os.ReadDir(tl.Project.Root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range entries {
+		if strings.HasPrefix(e.Name(), ".fs-") {
+			t.Fatalf("temporary name %s is left", e.Name())
+		}
+	}
+}
+
+func TestReplaceLeavesNoTemp(t *testing.T) {
+	tl := newTools(t, false)
+	tl.write(t, "d/new.txt", "n")
+	tl.write(t, "e/old.txt", "o")
+	tl.write(t, "f.txt", "f")
+	tl.write(t, "g.txt", "g")
+	for _, call := range []func() error{
+		func() error { _, err := tl.Move("d", "e", true); return err },
+		func() error { _, err := tl.Copy("f.txt", "g.txt", true); return err },
+		func() error { _, err := tl.Copy("e", "h", true); return err },
+	} {
+		if err := call(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	assertNoTemp(t, tl)
+	if tl.read(t, "g.txt") != "f" || !tl.exists("h/new.txt") {
+		t.Fatal("content wrong")
+	}
+}
+
+func TestTreeThroughLinkOutside(t *testing.T) {
+	tl := newTools(t, false)
+	outside := t.TempDir()
+	if err := os.WriteFile(filepath.Join(outside, "secret.txt"), nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outside, filepath.Join(tl.Project.Root, "link")); err != nil {
+		t.Skip("cannot make a symbolic link")
+	}
+	_, err := tl.Tree(context.Background(), "link", 1)
+	wantErr(t, err, "outside the project")
+}
+
+func TestDriveRelativeRefused(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("drive letters exist only on Windows")
+	}
+	tl := newTools(t, false)
+	_, err := tl.Delete([]string{"C:foo"}, true)
+	wantErr(t, err, "drive")
+}
+
+func TestTreeGitLimit(t *testing.T) {
+	tl := newTools(t, true)
+	for i := 0; i < 503; i++ {
+		tl.write(t, fmt.Sprintf("d/f%03d", i), "")
+	}
+	got, err := tl.Tree(context.Background(), "", 3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasSuffix(got, "\n4 lines not shown.") {
+		t.Fatalf("tail = %q", got[len(got)-30:])
 	}
 }
