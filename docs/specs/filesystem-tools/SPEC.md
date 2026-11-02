@@ -33,14 +33,14 @@ The shell file operations have no check of the project boundary. An agent can de
 
 | ID | Requirement | Status |
 | :--- | :--- | :--- |
-| R-1 | The tools fs_move, fs_copy, fs_delete and fs_mkdir replace the shell file operations mv, cp, rm and mkdir. Each tool refuses a path outside the project root. | Planned |
-| R-2 | fs_tree lists the files from git ls-files --cached --others --exclude-standard (without git: all files except .git). It takes path (default: project root) and depth (default 3), shows an indented tree and stops at 500 lines with a note that gives the number of lines not shown. | Planned |
-| R-5 | The Bash hook denies mv, rm, cp and mkdir when a path argument is inside the project root (a path with a variable or a glob counts as inside). It uses the parser of the git block and gives the name of the fs_ tool to use. | Planned |
-| R-6 | fs_delete runs with no user prompt. It needs recursive: true to delete a directory that is not empty. It refuses the project root and the .git directory. | Planned |
-| R-7 | fs_move and fs_copy take one source, one destination and overwrite (default false). With false they refuse a destination that exists, file or directory. With true they replace it: a file destination is replaced, a directory destination is deleted first. fs_copy copies a directory with all its contents. | Planned |
-| R-8 | fs_delete and fs_mkdir take a list of paths. fs_mkdir makes the parent directories and accepts a directory that exists. | Planned |
-| R-9 | The fs_ tools act on a symbolic link, not on its target. They write no log. | Planned |
-| R-10 | fs_move, fs_copy and fs_mkdir refuse the project root and the .git directory (or a path inside it), also with another letter case, and fs_move and fs_copy refuse a source and destination that are the same file or that contain each other. | Planned |
+| R-1 | The tools fs_move, fs_copy, fs_delete and fs_mkdir replace the shell file operations mv, cp, rm and mkdir. Each tool refuses a path outside the project root. | Done |
+| R-2 | fs_tree lists the files from git ls-files --cached --others --exclude-standard (without git: all files except .git). It takes path (default: project root) and depth (default 3), shows an indented tree and stops at 500 lines with a note that gives the number of lines not shown. | Done |
+| R-5 | The Bash hook denies mv, rm, cp and mkdir when a path argument is inside the project root (a path with a variable or a glob counts as inside). It uses the parser of the git block and gives the name of the fs_ tool to use. | Done |
+| R-6 | fs_delete runs with no user prompt. It needs recursive: true to delete a directory that is not empty. It refuses the project root and the .git directory. | Done |
+| R-7 | fs_move and fs_copy take one source, one destination and overwrite (default false). With false they refuse a destination that exists, file or directory. With true they replace it: a file destination is replaced, a directory destination is deleted first. fs_copy copies a directory with all its contents. | Done |
+| R-8 | fs_delete and fs_mkdir take a list of paths. fs_mkdir makes the parent directories and accepts a directory that exists. | Done |
+| R-9 | The fs_ tools act on a symbolic link, not on its target. They write no log. | Done |
+| R-10 | fs_move, fs_copy and fs_mkdir refuse the project root and the .git directory (or a path inside it), also with another letter case, and fs_move and fs_copy refuse a source and destination that are the same file or that contain each other. | Done |
 
 ## 6. Design
 
@@ -136,3 +136,5 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-11-02 | Equal | R-10: text changed. |
 | 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
 | 2026-11-02 | Equal | R-10 extended to fs_mkdir and same-file checks (Q-10). Approved by the user. |
+| 2026-11-02 | Equal | R-1, R-2, R-6, R-7, R-8, R-9, R-10: Done. |
+| 2026-11-02 | Equal | R-5: Done. |
