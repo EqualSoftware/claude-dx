@@ -33,9 +33,9 @@ Sort the terms in alphabetical order.
 | Project key | The first 16 hex characters of the SHA-256 of the git common directory (or of the project root outside git). All worktrees of one repository have the same key. | mcp | project id | ADR-007 |
 | Project root | The git top level of the current directory, or the current directory outside git. `Project.Resolve` refuses a path outside it. The filesystem tools will use it. | mcp | workspace, base dir | ADR-002 |
 | Ready task | A Todo task whose spec is Approved and whose depends_on tasks are all Done. | process | next task, unblocked task | docs-task#R-8 |
-| Requirement | One behavior that a spec requires. Its ID R-N does not change. Its status is Planned or Done. | process | — | ADR-008 |
+| Requirement | One behavior that a spec requires. Its ID R-N does not change. Its status is Planned or Done. | process | — | ADR-018 |
 | Shared rules | The short dx rules text (`rules.md` in the dx plugin) that the launcher gives to Claude Code with `--append-system-prompt-file`. | plugin | RULES.md | ADR-010 |
-| Spec | The current definition of one feature or scope, in docs/specs/<slug>/SPEC.md. Its ID is the slug. It has requirements and no task IDs. | process | — | ADR-008, `docs/specs/` |
+| Spec | The current definition of one feature or scope, in docs/specs/<slug>/SPEC.md. Its ID is the slug. It has requirements and no task IDs. | process | — | ADR-018, `docs/specs/` |
 | Task | A local work item of one spec, with ID `<spec>/<task-slug>`. It is stored in the project data directory, not in git. | process | ticket, issue | docs-task |
 | Task status | The state of a task: Todo, In Progress, Blocked or Done. Done is final. | process | — | docs-task#R-5 |
 | Unmapped operation | A git operation that no dx git tool covers. The model runs it with `git_exec`, and the dx server logs it to `unmapped.log`. | git | unknown command | ADR-003 |

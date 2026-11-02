@@ -8,18 +8,10 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-001](ADR-001-launcher-and-cli.md) | Launcher and CLI | Accepted | 2026-10-27 |
 | [ADR-002](ADR-002-mcp-server-and-tool-conventions.md) | MCP server and tool conventions | Accepted | 2026-10-27 |
 | [ADR-003](ADR-003-git-through-mcp-tools-no-merge.md) | Git through MCP tools, no merge | Accepted | 2026-10-27 |
-| [ADR-004](ADR-004-lsp-servers-on-demand.md) | LSP servers on demand | Superseded by ADR-013 | 2026-10-27 |
 | [ADR-005](ADR-005-release-and-update.md) | Release and update | Accepted | 2026-10-27 |
 | [ADR-006](ADR-006-os-locks-and-the-claude-child-process.md) | OS locks and the claude child process | Accepted | 2026-10-27 |
 | [ADR-007](ADR-007-project-data-dir-and-number-allocation.md) | Project data dir and number allocation | Accepted | 2026-10-27 |
-| [ADR-008](ADR-008-specs-and-tasks-model.md) | Specs and tasks model | Superseded by ADR-018 | 2026-10-27 |
-| [ADR-009](ADR-009-adrs-do-not-change-after-a-push.md) | ADRs do not change after a push | Superseded by ADR-018 | 2026-10-27 |
 | [ADR-010](ADR-010-skills-and-shared-rules-no-agent.md) | Skills and shared rules, no agent | Accepted | 2026-10-27 |
 | [ADR-011](ADR-011-interactive-clean-command.md) | Interactive clean command | Accepted | 2026-10-27 |
-| [ADR-012](ADR-012-one-subject-for-each-spec.md) | One subject for each spec | Superseded by ADR-018 | 2026-10-27 |
 | [ADR-013](ADR-013-no-lsp-management.md) | No LSP management | Accepted | 2026-10-27 |
-| [ADR-014](ADR-014-a-lock-for-the-plugin-directory-repair.md) | A lock for the plugin directory repair | Accepted | 2026-10-27 |
-| [ADR-015](ADR-015-git-tools-in-worktrees.md) | Git tools in worktrees | Accepted | 2026-11-02 |
-| [ADR-016](ADR-016-scope-of-the-filesystem-tools.md) | Scope of the filesystem tools | Accepted | 2026-11-02 |
-| [ADR-017](ADR-017-stage-hunks-by-numbered-diff-token.md) | Stage hunks by numbered diff token | Accepted | 2026-11-02 |
 | [ADR-018](ADR-018-documentation-policy.md) | Documentation policy | Accepted | 2026-11-02 |

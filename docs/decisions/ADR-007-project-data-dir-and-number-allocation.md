@@ -10,7 +10,7 @@ Many agents can create ADRs at the same time: subagents of one session, two sess
 ## Decision
 - The project key is the first 16 hex characters of the SHA-256 of the absolute path of the git common directory (`git rev-parse --git-common-dir`). All worktrees of one repository have the same key. Outside git, the key is a hash of the project root.
 - The project data directory is `<git-common-dir>/dx/` in a git repository: git does not track it, and all worktrees share it. Outside git it is `<cache>/projects/<key>/`.
-- The data directory has `docs.lock` (ADR-006), `tasks/` (ADR-008) and `project.json`.
+- The data directory has `docs.lock` (ADR-006), `tasks/` (ADR-018) and `project.json`.
 - `project.json` in the data directory keeps the number counters: `{"counters": {"adr": 11}}`. A write changes only the key `counters` and keeps the other keys.
 - A second file `<cache>/projects/<key>/project.json` keeps the project path and the last use date (`path`, `last_used`), so `claude-dx clean` can show each project (ADR-011). The MCP server writes it at start, as best effort. Outside git, both files are the same file, so each writer keeps the keys of the other.
 - All writes of `project.json` hold the docs lock of the project and are atomic (ADR-006).

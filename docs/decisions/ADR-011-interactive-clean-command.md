@@ -10,7 +10,7 @@ The cache of claude-dx has old plugin versions and, for projects outside git, th
 ## Decision
 - The command `claude-dx clean` shows an interactive multi-select with the `charmbracelet/huh` library, then asks for a confirmation. Nothing is deleted without a selection and a confirmation of the user. The default answer is No.
 - Items:
-  - Global: old plugin versions, and each LSP server when the LSP servers exist (ADR-004).
+  - Global: old plugin versions, and each LSP server when the LSP servers exist.
   - Projects: for each known project, its cache data and its local tasks (by spec and status). A project that is not on the disk is shown as missing.
 - Lock files are never shown and never deleted (ADR-006). The number counters of a project that exists are not items (ADR-007).
 - Each item has its lock. Global items need the exclusive cache lock: while a session runs, they are disabled with the reason. Project items take the shared cache lock, then the docs lock of that project (ADR-006), so a person can clean one project while a session runs. `MoveData` holds the exclusive cache lock, so a project delete never runs during a move.
