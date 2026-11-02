@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strings"
 
 	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
 	"github.com/EqualSoftware/claude-dx/internal/markdown"
@@ -27,16 +26,12 @@ type New struct {
 	Priority  string
 	Area      []string
 	Related   []string
-	SplitFrom string // slug of the old spec of a split, for the Document History
 }
 
 // check returns an error for a missing or invalid field.
 func (n New) check() error {
 	if err := checkSlug(n.Slug); err != nil {
 		return err
-	}
-	if n.SplitFrom != "" && !slugPattern.MatchString(n.SplitFrom) {
-		return fmt.Errorf("slug %q is not kebab-case. Example: docs-lock", n.SplitFrom)
 	}
 	if err := checkMilestone(n.Milestone); err != nil {
 		return err
@@ -142,12 +137,6 @@ func (s Store) fill(n New) string {
 	front = markdown.SetField(front, "area", nonNil(n.Area))
 	front = markdown.SetField(front, "related", nonNil(n.Related))
 	body = headerLine.ReplaceAllLiteralString(body, "# "+n.Title)
-	note := "Initial draft specification"
-	if n.SplitFrom != "" {
-		note += ". Split from " + n.SplitFrom + "."
-	}
-	body = strings.Replace(body, "| YYYY-MM-DD | [Name] | Initial draft specification |",
-		fmt.Sprintf("| %s | %s | %s |", s.today(), docfile.Cell(s.author()), note), 1)
 	return markdown.Join(front, body)
 }
 

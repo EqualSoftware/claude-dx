@@ -28,13 +28,10 @@ func TestRequirementsAndSetDoneLocked(t *testing.T) {
 		t.Fatal(err)
 	}
 	text := string(data)
-	for _, want := range []string{"| R-1 | One. | Done |", "| R-2 | Two. | Planned |", "| R-3 | Three. | Done |", "| Tester | R-1, R-3: Done. |"} {
+	for _, want := range []string{"| R-1 | One. | Done |", "| R-2 | Two. | Planned |", "| R-3 | Three. | Done |"} {
 		if !strings.Contains(text, want) {
 			t.Errorf("spec has no %q:\n%s", want, text)
 		}
-	}
-	if n := strings.Count(text, "R-1, R-3: Done."); n != 1 {
-		t.Errorf("%d Done rows, want 1", n)
 	}
 	index, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
 	if !strings.Contains(string(index), "2/3") {

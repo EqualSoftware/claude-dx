@@ -48,29 +48,30 @@ func TestReqDelete(t *testing.T) {
 	}
 	run(t, session, []step{{"spec_req_delete", del("R-4"), "Deleted R-4."}})
 	text, _ := s.Get("a", "")
-	if strings.Contains(text, "| R-4 |") || !strings.Contains(text, "| Deleted R-4. |") {
+	if strings.Contains(text, "| R-4 |") {
 		t.Errorf("R-4 not deleted:\n%s", text)
 	}
 }
 
-func TestReqDeleteNoReuse(t *testing.T) {
+func TestReqAddUsesHighestID(t *testing.T) {
 	s := newStore(t)
 	session := connect(t, s)
 	run(t, session, []step{
 		{"spec_create", createArgs("a", "A"), "Created a."},
 		{"spec_req_add", map[string]any{"slug": "a", "text": "One."}, "Added R-1."},
-		{"spec_req_delete", map[string]any{"slug": "a", "rid": "R-1"}, "Deleted R-1."},
 		{"spec_req_add", map[string]any{"slug": "a", "text": "Two."}, "Added R-2."},
 		{"spec_req_delete", map[string]any{"slug": "a", "rid": "R-2"}, "Deleted R-2."},
-		{"spec_req_add", map[string]any{"slug": "a", "text": "Three."}, "Added R-3."},
+		{"spec_req_add", map[string]any{"slug": "a", "text": "Three."}, "Added R-2."},
+		{"spec_req_delete", map[string]any{"slug": "a", "rid": "R-1"}, "Deleted R-1."},
+		{"spec_req_add", map[string]any{"slug": "a", "text": "Four."}, "Added R-3."},
 	})
 	text, _ := s.Get("a", "5")
-	if strings.Contains(text, "| R-1 |") || !strings.Contains(text, "| R-3 | Three. | Planned |") {
+	if strings.Contains(text, "| R-1 |") || !strings.Contains(text, "| R-3 | Four. | Planned |") {
 		t.Errorf("section 5 =\n%s", text)
 	}
 }
 
-func TestReqDeleteReview(t *testing.T) {
+func TestReqDeleteKeepsStatus(t *testing.T) {
 	s := newStore(t)
 	session := connect(t, s)
 	steps := []step{
@@ -84,11 +85,11 @@ func TestReqDeleteReview(t *testing.T) {
 	steps = append(steps,
 		step{"spec_set_status", map[string]any{"slug": "a", "status": "In Review"}, "a is In Review."},
 		step{"spec_set_status", map[string]any{"slug": "a", "status": "Approved"}, "a is Approved."},
-		step{"spec_req_delete", map[string]any{"slug": "a", "rid": "R-2"}, "Deleted R-2. The scope changed, so a is In Review. The user must approve it again."},
+		step{"spec_req_delete", map[string]any{"slug": "a", "rid": "R-2"}, "Deleted R-2."},
 	)
 	run(t, session, steps)
-	if f, _ := s.Get("a", ""); !strings.Contains(f, "status: In Review") {
-		t.Errorf("spec is not In Review:\n%s", f)
+	if f, _ := s.Get("a", ""); !strings.Contains(f, "status: Approved") {
+		t.Errorf("spec is not Approved:\n%s", f)
 	}
 }
 
@@ -103,21 +104,4 @@ func TestReqDeleteOutsideGit(t *testing.T) {
 		{"spec_req_add", map[string]any{"slug": "a", "text": "One."}, "Added R-1."},
 		{"spec_req_delete", map[string]any{"slug": "a", "rid": "R-1"}, "Deleted R-1."},
 	})
-}
-
-func TestHistoryFreeTextKeepsIDs(t *testing.T) {
-	s := newStore(t)
-	session := connect(t, s)
-	steps := []step{
-		{"spec_create", createArgs("a", "A"), "Created a."},
-		{"spec_req_add", map[string]any{"slug": "a", "text": "One."}, "Added R-1."},
-	}
-	for _, ref := range []string{"1", "2", "3", "4", "6", "7"} {
-		steps = append(steps, step{"spec_update_section", map[string]any{"slug": "a", "section": ref, "body": filled[ref]}, "Updated section " + ref + " of a."})
-	}
-	steps = append(steps,
-		step{"spec_set_status", map[string]any{"slug": "a", "status": "In Review", "note": "Added R-999. Deleted R-99999999999999999999."}, "a is In Review."},
-		step{"spec_req_add", map[string]any{"slug": "a", "text": "Two."}, "Added R-2."},
-	)
-	run(t, session, steps)
 }

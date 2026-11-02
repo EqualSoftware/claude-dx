@@ -253,15 +253,6 @@ func (s Store) readDoc(slug string) (*doc, string, error) {
 	return d, path, nil
 }
 
-func (s Store) today() string {
-	if s.Now != nil {
-		return s.Now().Format(time.DateOnly)
-	}
-	return time.Now().Format(time.DateOnly)
-}
-
-func (s Store) author() string { return s.authorOr("Agent") }
-
 // authorOr returns the author name, or fallback when there is none.
 func (s Store) authorOr(fallback string) string {
 	if s.Author != nil {
@@ -272,27 +263,14 @@ func (s Store) authorOr(fallback string) string {
 	return fallback
 }
 
-// addHistory adds a Document History row with today's date and the author.
-func (s Store) addHistory(d *doc, note string) error {
-	history, ok := markdown.Section(d.body, "Document History")
-	if !ok {
-		return errors.New("the spec has no Document History section")
-	}
-	row := fmt.Sprintf("| %s | %s | %s |", s.today(), s.author(), docfile.Cell(note))
-	body, err := markdown.ReplaceSection(d.body, "Document History", history+"\n"+row)
-	d.body = body
-	return err
-}
-
-// toReview sets an Approved spec to In Review and adds the note to the Document History.
-// It returns true if the status changed.
-func (s Store) toReview(d *doc, note string) (bool, error) {
+// toReview sets an Approved spec to In Review. It returns true if the status changed.
+func (s Store) toReview(d *doc) (bool, error) {
 	status, err := d.status()
 	if err != nil || status != "Approved" {
 		return false, err
 	}
 	d.front = markdown.SetField(d.front, "status", "In Review")
-	return true, s.addHistory(d, note)
+	return true, nil
 }
 
 // oneOf returns an error if value is not in valid. name is the field name for the message.

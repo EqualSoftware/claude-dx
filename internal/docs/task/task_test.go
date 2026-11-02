@@ -35,7 +35,7 @@ func addSpec(t *testing.T, s Store, slug, status string, n int) {
 	t.Helper()
 	must(t, s.Specs.Create(spec.New{Slug: slug, Title: "Spec " + slug, Milestone: "v0.1.0", Priority: "P1", Area: []string{"docs"}}))
 	for range n {
-		if _, _, err := s.Specs.AddRequirement(slug, "A behavior."); err != nil {
+		if _, err := s.Specs.AddRequirement(slug, "A behavior."); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -283,10 +283,14 @@ func TestStatus(t *testing.T) {
 	}
 	sp, err := s.Specs.Get("a", "")
 	must(t, err)
-	for _, want := range []string{"| R-1 | A behavior. | Done |", "| R-2 | A behavior. | Planned |", "| R-3 | A behavior. | Done |", "| Tester | R-1, R-3: Done. |"} {
+	for _, want := range []string{"| R-1 | A behavior. | Done |", "| R-2 | A behavior. | Planned |", "| R-3 | A behavior. | Done |"} {
 		if !strings.Contains(sp, want) {
 			t.Errorf("spec has no %q:\n%s", want, sp)
 		}
+	}
+	// docs-task#R-10: the covers requirements are Done with no history row.
+	if strings.Contains(sp, "R-1, R-3: Done.") || strings.Contains(sp, "Document History") {
+		t.Errorf("spec has a history row:\n%s", sp)
 	}
 }
 

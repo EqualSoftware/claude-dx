@@ -36,7 +36,6 @@ const (
 var protected = []struct{ number, title, tools string }{
 	{"5", "Requirements", "spec_req_add, spec_req_set and spec_req_delete"},
 	{"8", "Open Questions", "spec_question_add and spec_question_answer"},
-	{"9", "Document History", "spec_set_status"},
 }
 
 // checkSection refuses a protected section.
@@ -59,17 +58,12 @@ var pristine = func() map[string]string {
 	return m
 }()
 
-// scopeSections define the scope of a spec: Goals, Out of Scope, Requirements, Design and
-// Acceptance Criteria (ADR-008).
-var scopeSections = []string{"3", "4", "5", "6", "7"}
+// reviewSections are the sections that set an Approved spec to In Review when they change: Goals and
+// Out of Scope. A change of Requirements, Design or Acceptance Criteria keeps the status (ADR-018).
+var reviewSections = []string{"3", "4"}
 
-// scopeNote is the Document History note when a scope change sets In Review.
-func scopeNote(section string) string {
-	return "Status: In Review. The scope changed in section " + section + "."
-}
-
-// UpdateSection replaces one section. A scope change of an Approved spec sets it to In Review,
-// because the user must approve the new scope. review is true after that status change.
+// UpdateSection replaces one section. A change of Goals or Out of Scope of an Approved spec sets it to
+// In Review, because the user must approve the new scope. review is true after that status change.
 func (s Store) UpdateSection(slug, section, content string) (review bool, err error) {
 	if err := checkSection(section); err != nil {
 		return false, err
@@ -84,14 +78,14 @@ func (s Store) UpdateSection(slug, section, content string) (review bool, err er
 		if !scopeChanged(old, body) {
 			return nil
 		}
-		review, err = s.toReview(d, scopeNote(section))
+		review, err = s.toReview(d)
 		return err
 	})
 	return review, err
 }
 
 func scopeChanged(old, body string) bool {
-	return slices.ContainsFunc(scopeSections, func(ref string) bool {
+	return slices.ContainsFunc(reviewSections, func(ref string) bool {
 		a, _ := markdown.Section(old, ref)
 		b, _ := markdown.Section(body, ref)
 		return a != b
@@ -105,8 +99,8 @@ var transitions = map[string][]string{
 	"Approved":  {"In Review"},
 }
 
-// SetStatus changes the status, adds a Document History row and enforces the status rules.
-func (s Store) SetStatus(slug, status, note string) error {
+// SetStatus changes the status and enforces the status rules.
+func (s Store) SetStatus(slug, status string) error {
 	if err := oneOf("status", status, Statuses); err != nil {
 		return err
 	}
@@ -122,10 +116,7 @@ func (s Store) SetStatus(slug, status, note string) error {
 			return fmt.Errorf("cannot set %s: %s", status, strings.Join(problems, "; "))
 		}
 		d.front = markdown.SetField(d.front, "status", status)
-		if note == "" {
-			note = "Status: " + status + "."
-		}
-		return s.addHistory(d, note)
+		return nil
 	})
 }
 
@@ -168,58 +159,35 @@ func requirements(body string) [][]string {
 	return rows(body, "5", requirementRow)
 }
 
-// AddRequirement adds the next R-n row with the status Planned and returns its ID. review is true
-// if the spec was Approved and is now In Review.
-func (s Store) AddRequirement(slug, text string) (rid string, review bool, err error) {
+// AddRequirement adds the row with the highest current number plus one and the status Planned, and
+// returns its ID. The status of the spec does not change (ADR-018).
+func (s Store) AddRequirement(slug, text string) (rid string, err error) {
 	text = oneLine(text)
 	if text == "" {
-		return "", false, errors.New("give the text of the requirement")
+		return "", errors.New("give the text of the requirement")
 	}
 	err = s.edit(slug, func(d *doc) error {
 		lines, next := withoutPlaceholder(d.body, "5", noRequirements, requirementRow)
-		rid = fmt.Sprintf("R-%d", max(next, historyMax(d.body)+1)) // The history keeps the IDs of deleted rows.
+		rid = fmt.Sprintf("R-%d", next)
 		row := fmt.Sprintf("| %s | %s | Planned |", rid, docfile.Cell(text))
-		if err := replaceTable(d, "5", insertRow(lines, row)); err != nil {
-			return err
-		}
-		if err := s.addHistory(d, "Added "+rid+"."); err != nil {
-			return err
-		}
-		review, err = s.toReview(d, scopeNote("5"))
-		return err
+		return replaceTable(d, "5", insertRow(lines, row))
 	})
-	return rid, review, err
+	return rid, err
 }
 
-// SetRequirement changes the text, the status, or both of one requirement. Only a text change sets an
-// Approved spec to In Review, because a status change does not change the scope.
-func (s Store) SetRequirement(slug, rid, text, status string) (review bool, err error) {
+// SetRequirement changes the text, the status, or both of one requirement. The status of the spec does
+// not change (ADR-018).
+func (s Store) SetRequirement(slug, rid, text, status string) error {
 	text = oneLine(text)
 	if text == "" && status == "" {
-		return false, errors.New("give text, status or both")
+		return errors.New("give text, status or both")
 	}
 	if status != "" {
 		if err := oneOf("status", status, []string{"Planned", "Done"}); err != nil {
-			return false, err
-		}
-	}
-	err = s.edit(slug, func(d *doc) error {
-		notes, err := setRow(d, rid, text, status)
-		if err != nil {
 			return err
 		}
-		for _, note := range notes {
-			if err := s.addHistory(d, note); err != nil {
-				return err
-			}
-		}
-		if text == "" {
-			return nil
-		}
-		review, err = s.toReview(d, scopeNote("5"))
-		return err
-	})
-	return review, err
+	}
+	return s.edit(slug, func(d *doc) error { return setRow(d, rid, text, status) })
 }
 
 // RequirementsLocked returns the status of the spec and the IDs of its requirements. The caller holds
@@ -238,8 +206,7 @@ func (s Store) RequirementsLocked(slug string) (status string, rids []string, er
 	return status, rids, nil
 }
 
-// SetDoneLocked sets the requirements rids to Done and adds one Document History row, for example
-// "R-2, R-5: Done.". A requirement that is Done already does not change, so a retry is safe. The caller
+// SetDoneLocked sets the requirements rids to Done. A requirement that is Done already does not change, so a retry is safe. The caller
 // holds the docs lock (docs-task).
 func (s Store) SetDoneLocked(slug string, rids []string) error {
 	if len(rids) == 0 {
@@ -250,11 +217,11 @@ func (s Store) SetDoneLocked(slug string, rids []string) error {
 			return errUnchanged
 		}
 		for _, rid := range rids {
-			if _, err := setRow(d, rid, "", "Done"); err != nil {
+			if err := setRow(d, rid, "", "Done"); err != nil {
 				return err
 			}
 		}
-		return s.addHistory(d, strings.Join(rids, ", ")+": Done.")
+		return nil
 	})
 }
 
@@ -268,8 +235,8 @@ func requirementStatus(d *doc, rid string) string {
 	return ""
 }
 
-// setRow changes the row of rid and returns the Document History notes.
-func setRow(d *doc, rid, text, status string) ([]string, error) {
+// setRow changes the row of rid.
+func setRow(d *doc, rid, text, status string) error {
 	section, _ := markdown.Section(d.body, "5")
 	lines := strings.Split(section, "\n")
 	for i, line := range lines {
@@ -277,19 +244,16 @@ func setRow(d *doc, rid, text, status string) ([]string, error) {
 		if m == nil || !strings.EqualFold(m[1], rid) {
 			continue
 		}
-		var notes []string
 		if text != "" {
 			m[3] = docfile.Cell(text)
-			notes = append(notes, m[1]+": text changed.")
 		}
 		if status != "" {
 			m[4] = status
-			notes = append(notes, m[1]+": status "+status+".")
 		}
 		lines[i] = fmt.Sprintf("| %s | %s | %s |", m[1], m[3], m[4])
-		return notes, replaceTable(d, "5", lines)
+		return replaceTable(d, "5", lines)
 	}
-	return nil, fmt.Errorf("requirement %s does not exist", rid)
+	return fmt.Errorf("requirement %s does not exist", rid)
 }
 
 // AddQuestion adds the next Q-n row with the answer Open and returns its ID. An Approved spec goes
@@ -308,7 +272,7 @@ func (s Store) AddQuestion(slug, question, owner string) (qid string, review boo
 		if err := replaceTable(d, "8", insertRow(lines, row)); err != nil {
 			return err
 		}
-		review, err = s.toReview(d, "Status: In Review. "+qid+" is Open.")
+		review, err = s.toReview(d)
 		return err
 	})
 	return qid, review, err

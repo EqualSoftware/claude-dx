@@ -63,7 +63,7 @@ func (s Store) checkUpdate(slug string, u Update) error {
 	return nil
 }
 
-// UpdateFields changes the frontmatter fields of the spec slug and adds one Document History row. It
+// UpdateFields changes the frontmatter fields of the spec slug. It
 // does not change the status. It validates all fields before it changes one.
 func (s Store) UpdateFields(slug string, u Update) error {
 	return s.edit(slug, func(d *doc) error {
@@ -76,7 +76,7 @@ func (s Store) UpdateFields(slug string, u Update) error {
 		}
 		u.Related = related
 		u.apply(d)
-		return s.addHistory(d, "Changed fields: "+strings.Join(u.changed(), ", ")+".")
+		return nil
 	})
 }
 

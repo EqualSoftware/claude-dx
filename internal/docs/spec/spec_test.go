@@ -112,9 +112,8 @@ func TestCreateAndList(t *testing.T) {
 		{"spec_create", createArgs("docs-lock", "Docs lock"), "Created docs-lock."},
 		{"spec_create", createArgs("docs-lock", "Other"), `ERR Spec "docs-lock" exists.`},
 		{"spec_create", createArgs("other", "DOCS LOCK"), "ERR Docs-lock has the same title. Give a different title, or change docs-lock."},
-		{"spec_create", map[string]any{"slug": "cache", "title": "Cache", "milestone": "v0.2.0", "priority": "P2", "area": []string{"cli"}, "split_from": "Old"},
-			`ERR Slug "Old" is not kebab-case. Example: docs-lock.`},
-		{"spec_create", map[string]any{"slug": "cache", "title": "Cache", "milestone": "v0.2.0", "priority": "P2", "area": []string{"cli"}, "split_from": "old-cache"}, "Created cache."},
+		{"spec_create", map[string]any{"slug": "cache", "title": "Cache", "milestone": "v0.2.0", "priority": "P2", "area": []string{"cli"}},
+			"Created cache."},
 		{"spec_list", map[string]any{}, "cache      Draft  P2  v0.2.0  Cache      [cli]   0/0\ndocs-lock  Draft  P1  v0.1.0  Docs lock  [docs]  0/0\n"},
 		{"spec_list", map[string]any{"related": "adr-008"}, "docs-lock  Draft  P1  v0.1.0  Docs lock  [docs]  0/0\n"},
 		{"spec_list", map[string]any{"status": "Approved"}, "No specs match.\n"},
@@ -126,14 +125,13 @@ func TestCreateAndList(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"slug: docs-lock\n", "title: Docs lock\n", "status: Draft\n", "related: [ADR-008]\n", "\n# Docs lock\n",
-		"| 2026-10-26 | Tester | Initial draft specification |"} {
+	for _, want := range []string{"slug: docs-lock\n", "title: Docs lock\n", "status: Draft\n", "related: [ADR-008]\n", "\n# Docs lock\n"} {
 		if !strings.Contains(doc, want) {
 			t.Errorf("SPEC.md has no %q:\n%s", want, doc)
 		}
 	}
-	if text, _ := s.Get("cache", "9"); !strings.Contains(text, "| 2026-10-26 | Tester | Initial draft specification. Split from old-cache. |") {
-		t.Errorf("cache history =\n%s", text)
+	if strings.Contains(doc, "Document History") {
+		t.Errorf("a new spec has a Document History section:\n%s", doc)
 	}
 	index, _ := os.ReadFile(filepath.Join(s.Dir, "README.md"))
 	rows := "| [docs-lock](docs-lock/SPEC.md) | Docs lock | `Draft` | v0.1.0 | `P1` | `docs` | 0/0 |\n" +
@@ -152,7 +150,6 @@ func TestGates(t *testing.T) {
 		{"spec_create", createArgs("docs-lock", "Docs lock"), "Created docs-lock."},
 		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "5", "body": "x"}, `ERR Section "5" changes only with spec_req_add, spec_req_set and spec_req_delete.`},
 		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "open questions", "body": "x"}, `ERR Section "open questions" changes only with spec_question_add and spec_question_answer.`},
-		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "9", "body": "x"}, `ERR Section "9" changes only with spec_set_status.`},
 		{"spec_set_status", map[string]any{"slug": "docs-lock", "status": "Done"}, `ERR Status "Done" is not valid. Use one of: Draft, In Review, Approved.`},
 		{"spec_set_status", map[string]any{"slug": "docs-lock", "status": "Approved"}, "ERR Cannot set Approved from Draft. Allowed: In Review."},
 		{"spec_set_status", map[string]any{"slug": "docs-lock", "status": "In Review"}, "ERR Cannot set In Review: section 1 has the template text. Fill it or write Not applicable; " +
@@ -171,7 +168,7 @@ func TestGates(t *testing.T) {
 		{"spec_question_answer", map[string]any{"slug": "docs-lock", "qid": "Q-7", "answer": "A."}, "ERR Question Q-7 does not exist."},
 		{"spec_question_answer", map[string]any{"slug": "docs-lock", "qid": "q-1", "answer": "The docs lock."}, "Answered q-1."},
 		{"spec_set_status", map[string]any{"slug": "docs-lock", "status": "In Review"}, "docs-lock is In Review."},
-		{"spec_set_status", map[string]any{"slug": "docs-lock", "status": "Approved", "note": "The user approved it."}, approved},
+		{"spec_set_status", map[string]any{"slug": "docs-lock", "status": "Approved"}, approved},
 		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "1", "body": "New summary."}, "Updated section 1 of docs-lock."},
 		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "Goals", "body": "- G-1: New."}, "Updated section Goals of docs-lock." + review},
 		{"spec_set_status", map[string]any{"slug": "docs-lock", "status": "Approved"}, approved},
@@ -179,9 +176,11 @@ func TestGates(t *testing.T) {
 		{"spec_req_set", map[string]any{"slug": "docs-lock", "rid": "R-1", "status": "Gone"}, `ERR Status "Gone" is not valid. Use one of: Planned, Done.`},
 		{"spec_req_set", map[string]any{"slug": "docs-lock", "rid": "R-9", "status": "Done"}, "ERR Requirement R-9 does not exist."},
 		{"spec_req_set", map[string]any{"slug": "docs-lock", "rid": "r-1", "status": "Done"}, "Updated R-1."},
-		{"spec_req_set", map[string]any{"slug": "docs-lock", "rid": "R-1", "text": "Each write holds the docs lock."}, "Updated R-1." + review},
-		{"spec_set_status", map[string]any{"slug": "docs-lock", "status": "Approved"}, approved},
-		{"spec_req_add", map[string]any{"slug": "docs-lock", "text": "Each read holds the shared lock."}, "Added R-2." + review},
+		{"spec_req_set", map[string]any{"slug": "docs-lock", "rid": "R-1", "text": "Each write holds the docs lock."}, "Updated R-1."},
+		{"spec_req_add", map[string]any{"slug": "docs-lock", "text": "Each read holds the shared lock."}, "Added R-2."},
+		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "Design", "body": "New design."}, "Updated section Design of docs-lock."},
+		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "7", "body": "- R-1: New check."}, "Updated section 7 of docs-lock."},
+		{"spec_update_section", map[string]any{"slug": "docs-lock", "section": "Out of Scope", "body": "- New item."}, "Updated section Out of Scope of docs-lock." + review},
 		{"spec_set_status", map[string]any{"slug": "docs-lock", "status": "Approved"}, approved},
 		{"spec_question_add", map[string]any{"slug": "docs-lock", "question": "Q?", "owner": "Equal"}, "Added Q-2. Q-2 is Open, so docs-lock is In Review. The user must approve it again."},
 		{"spec_set_status", map[string]any{"slug": "docs-lock", "status": "Draft"}, "docs-lock is Draft."},
@@ -195,9 +194,6 @@ func TestGates(t *testing.T) {
 	for _, want := range []string{
 		"| R-1 | Each write holds the docs lock. | Done |\n| R-2 | Each read holds the shared lock. | Planned |\n",
 		"| Q-1 | Which lock? | Tester | The docs lock. |\n| Q-2 | Q? | Equal | Open |\n",
-		"| Added R-1. |", "| Status: In Review. |", "| The user approved it. |", "| Status: In Review. The scope changed in section Goals. |",
-		"| R-1: status Done. |", "| R-1: text changed. |", "| Status: In Review. The scope changed in section 5. |",
-		"| Added R-2. |", "| Status: In Review. Q-2 is Open. |", "| Status: Draft. |",
 	} {
 		if !strings.Contains(text, want) {
 			t.Errorf("SPEC.md has no %q:\n%s", want, text)

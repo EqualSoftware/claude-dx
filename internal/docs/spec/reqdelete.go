@@ -5,9 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/EqualSoftware/claude-dx/internal/docs/docfile"
@@ -15,44 +13,20 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/project"
 )
 
-// usedID is a whole history note cell that shows an ID: "Added R-N." or "Deleted R-N.". Free text in a
-// longer note does not match.
-var usedID = regexp.MustCompile(`\| (?:Added|Deleted) R-(\d{1,9})\. \|`)
-
-// historyMax returns the highest requirement number that the Document History shows, or 0.
-func historyMax(body string) int {
-	history, _ := markdown.Section(body, "Document History")
-	highest := 0
-	for _, m := range usedID.FindAllStringSubmatch(history, -1) {
-		n, _ := strconv.Atoi(m[1]) // The pattern allows only digits.
-		highest = max(highest, n)
-	}
-	return highest
-}
-
-// DeleteRequirement deletes one Planned requirement that has no commit and no task. It adds the note
-// "Deleted R-N." to the Document History. review is true if the spec was Approved and is now In Review.
-// A refusal names the reasons.
-func (s Store) DeleteRequirement(slug, rid string) (review bool, err error) {
+// DeleteRequirement deletes one Planned requirement that has no commit and no task. The status of the
+// spec does not change (ADR-018). A refusal names the reasons.
+func (s Store) DeleteRequirement(slug, rid string) error {
 	rid = strings.ToUpper(strings.TrimSpace(rid))
 	list, err := s.commitsIfGit(slug) // git data does not change with the docs, so it is read before the lock.
 	if err != nil {
-		return false, err
+		return err
 	}
-	err = s.edit(slug, func(d *doc) error {
+	return s.edit(slug, func(d *doc) error {
 		if err := s.checkRequirementDelete(d, rid, list); err != nil {
 			return err
 		}
-		if err := removeRow(d, rid); err != nil {
-			return err
-		}
-		if err := s.addHistory(d, "Deleted "+rid+"."); err != nil {
-			return err
-		}
-		review, err = s.toReview(d, scopeNote("5"))
-		return err
+		return removeRow(d, rid)
 	})
-	return review, err
 }
 
 // commitsIfGit is commits for a project in git. A project outside git has no commits (mcp-server#R-2).

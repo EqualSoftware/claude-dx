@@ -41,8 +41,3 @@ related: []
 | — | None. | — | — |
 
 The status cannot be `Approved` while a question is `Open`.
-
-## 9. Document History
-| Date | Author | Description / Change Notes |
-| :--- | :--- | :--- |
-| YYYY-MM-DD | [Name] | Initial draft specification |

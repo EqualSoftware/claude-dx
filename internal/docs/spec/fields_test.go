@@ -63,9 +63,7 @@ func TestUpdateFieldsChanges(t *testing.T) {
 	})
 	got := readSpec(t, s, "a")
 	for _, want := range []string{"title: New title", "milestone: v0.2.0", "priority: P0", "area: []", "related: []",
-		"status: Approved", "# New title",
-		"| Tester | Changed fields: title, area. |",
-		"| Tester | Changed fields: title, milestone, priority, related. |"} {
+		"status: Approved", "# New title"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("spec has no %q:\n%s", want, got)
 		}

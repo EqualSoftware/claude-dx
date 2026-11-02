@@ -31,7 +31,6 @@ type createInput struct {
 	Priority  string   `json:"priority" jsonschema:"P0, P1, P2 or P3"`
 	Area      []string `json:"area" jsonschema:"the areas of the project, example [api] or [docs, ci]"`
 	Related   []string `json:"related,omitempty" jsonschema:"IDs of ADRs that exist, example [ADR-008]"`
-	SplitFrom string   `json:"split_from,omitempty" jsonschema:"slug of the old spec when this spec comes from a split. It goes to the Document History"`
 }
 
 type fieldsInput struct {
@@ -52,7 +51,6 @@ type sectionInput struct {
 type statusInput struct {
 	Slug   string `json:"slug" jsonschema:"spec slug"`
 	Status string `json:"status" jsonschema:"Draft, In Review or Approved"`
-	Note   string `json:"note,omitempty" jsonschema:"Document History note"`
 }
 
 type reqAddInput struct {
@@ -63,7 +61,7 @@ type reqAddInput struct {
 type reqSetInput struct {
 	Slug   string `json:"slug" jsonschema:"spec slug"`
 	RID    string `json:"rid" jsonschema:"requirement ID, example R-2"`
-	Text   string `json:"text,omitempty" jsonschema:"new text, one line. A text change of an Approved spec sets it to In Review"`
+	Text   string `json:"text,omitempty" jsonschema:"new text, one line"`
 	Status string `json:"status,omitempty" jsonschema:"Planned or Done"`
 }
 
@@ -104,34 +102,34 @@ func Register(server *mcp.Server, s Store) {
 		func(in createInput) (string, error) {
 			return "Created " + in.Slug + ".", s.Create(New(in))
 		})
-	add(server, "spec_update_fields", "Change the title, the milestone, the priority, the area or the related ADRs of a spec, and add a Document History row. A list replaces the full list. The slug and the status do not change.",
+	add(server, "spec_update_fields", "Change the title, the milestone, the priority, the area or the related ADRs of a spec A list replaces the full list. The slug and the status do not change.",
 		func(in fieldsInput) (string, error) {
 			u := Update{Title: in.Title, Milestone: in.Milestone, Priority: in.Priority, Area: in.Area, Related: in.Related}
 			return "Updated " + in.Slug + ".", s.UpdateFields(in.Slug, u)
 		})
-	add(server, "spec_update_section", "Replace one section of a spec.",
+	add(server, "spec_update_section", "Replace one section of a spec. A change of Goals or Out of Scope sets an Approved spec to In Review.",
 		func(in sectionInput) (string, error) {
 			review, err := s.UpdateSection(in.Slug, in.Section, in.Body)
 			return "Updated section " + in.Section + " of " + in.Slug + "." + scopeText(review, in.Slug), err
 		})
-	add(server, "spec_set_status", "Change the status of a spec and add a Document History row. The tool refuses a change that breaks a status rule and gives the reasons.",
+	add(server, "spec_set_status", "Change the status of a spec. The tool refuses a change that breaks a status rule and gives the reasons.",
 		func(in statusInput) (string, error) {
-			return in.Slug + " is " + in.Status + ".", s.SetStatus(in.Slug, in.Status, in.Note)
+			return in.Slug + " is " + in.Status + ".", s.SetStatus(in.Slug, in.Status)
 		})
 	add(server, "spec_req_add", "Add a requirement R-N with the status Planned to a spec.",
 		func(in reqAddInput) (string, error) {
-			rid, review, err := s.AddRequirement(in.Slug, in.Text)
-			return "Added " + rid + "." + scopeText(review, in.Slug), err
+			rid, err := s.AddRequirement(in.Slug, in.Text)
+			return "Added " + rid + ".", err
 		})
 	add(server, "spec_req_set", "Change the text, the status, or both of one requirement of a spec.",
 		func(in reqSetInput) (string, error) {
-			review, err := s.SetRequirement(in.Slug, in.RID, in.Text, in.Status)
-			return "Updated " + strings.ToUpper(in.RID) + "." + scopeText(review, in.Slug), err
+			err := s.SetRequirement(in.Slug, in.RID, in.Text, in.Status)
+			return "Updated " + strings.ToUpper(in.RID) + ".", err
 		})
-	add(server, "spec_req_delete", "Delete one requirement of a spec. The requirement must be Planned, have no commit with Refs: <slug>#R-N in HEAD and have no task that covers it. A refusal gives the reasons. The ID is not used again. An Approved spec goes to In Review.",
+	add(server, "spec_req_delete", "Delete one requirement of a spec. The requirement must be Planned, have no commit with Refs: <slug>#R-N in HEAD and have no task that covers it. A refusal gives the reasons.",
 		func(in reqDeleteInput) (string, error) {
-			review, err := s.DeleteRequirement(in.Slug, in.RID)
-			return "Deleted " + strings.ToUpper(strings.TrimSpace(in.RID)) + "." + scopeText(review, in.Slug), err
+			err := s.DeleteRequirement(in.Slug, in.RID)
+			return "Deleted " + strings.ToUpper(strings.TrimSpace(in.RID)) + ".", err
 		})
 	add(server, "spec_question_add", "Add an Open question to the Open Questions table of a spec.",
 		func(in questionInput) (string, error) {
