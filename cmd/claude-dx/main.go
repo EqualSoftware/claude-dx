@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"runtime"
 
 	"github.com/charmbracelet/x/term"
 
@@ -16,6 +18,7 @@ import (
 	"github.com/EqualSoftware/claude-dx/internal/launcher"
 	"github.com/EqualSoftware/claude-dx/internal/mcpserver"
 	"github.com/EqualSoftware/claude-dx/internal/plugin"
+	"github.com/EqualSoftware/claude-dx/internal/report"
 	"github.com/EqualSoftware/claude-dx/internal/resume"
 	"github.com/EqualSoftware/claude-dx/internal/session"
 	"github.com/EqualSoftware/claude-dx/internal/update"
@@ -34,6 +37,8 @@ Usage:
   claude-dx clean --list           Show the data of claude-dx and its sizes.
   claude-dx doctor                 Check the setup.
   claude-dx resume                 Print the work state (tasks and git) for a new session.
+  claude-dx report                 Open an issue for the git operations that no tool maps.
+  claude-dx report --clear         Empty the log of those operations.
   claude-dx --version              Show the claude-dx version.
   claude-dx --help                 Show this help.
 
@@ -66,6 +71,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runDoctor(stdout, stderr)
 	case "resume":
 		return runResume(stdout)
+	case "report":
+		return runReport(cmd.Args, stdout, stderr)
 	}
 	fmt.Fprintf(stderr, "claude-dx: %q is not available yet.\n", args[0])
 	return 1
@@ -187,6 +194,16 @@ func runResume(stdout io.Writer) int {
 	cacheDir, _ := cache.Dir()
 	resume.Run(stdout, dir, cacheDir)
 	return 0
+}
+
+// runReport opens the issue form for the git_exec calls in the log (git-tools#R-17).
+func runReport(args []string, stdout, stderr io.Writer) int {
+	dir, err := cache.Dir()
+	if err != nil {
+		return fail(stderr, err)
+	}
+	r := report.Reporter{Path: filepath.Join(dir, report.LogName), Version: version, GOOS: runtime.GOOS, Open: report.OpenBrowser}
+	return r.Run(args, stdout, stderr)
 }
 
 func fail(stderr io.Writer, err error) int {

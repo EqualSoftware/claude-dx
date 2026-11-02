@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/EqualSoftware/claude-dx/internal/report"
 )
 
 func git(t *testing.T, dir string, args ...string) {
@@ -237,5 +239,47 @@ func TestRunNetworkTimeout(t *testing.T) {
 	}
 	if NetworkTimeout.Seconds() != 120 {
 		t.Errorf("NetworkTimeout = %v", NetworkTimeout)
+	}
+}
+
+// TestExec checks git-tools#R-16: git_exec runs git and logs the call.
+func TestExec(t *testing.T) {
+	r := repo(t)
+	log := filepath.Join(t.TempDir(), "cache", report.LogName)
+	out, err := r.Exec(context.Background(), r.Root, log, execInput{Args: []string{"rev-parse", "--abbrev-ref", "HEAD"}, Reason: "no tool"})
+	if err != nil || !strings.HasPrefix(out, "main\n") {
+		t.Fatalf("Exec = %q, %v", out, err)
+	}
+	if !strings.Contains(out, "claude-dx report") || !strings.Contains(out, report.IssueURL) {
+		t.Errorf("Exec has no notice: %q", out)
+	}
+	checkExecLog(t, r, log)
+}
+
+// checkExecLog runs a failing command, and checks that the log has both calls.
+func checkExecLog(t *testing.T, r Runner, log string) {
+	t.Helper()
+	if _, err := r.Exec(context.Background(), r.Root, log, execInput{Args: []string{"nope"}, Reason: "bad"}); err == nil || !strings.Contains(err.Error(), "git nope failed") {
+		t.Fatalf("Exec error = %v", err)
+	}
+	entries, err := report.Read(log)
+	if err != nil || len(entries) != 2 || entries[1].Sub != "nope" {
+		t.Fatalf("log = %+v, %v", entries, err)
+	}
+	if entries[0].Sub != "rev-parse" || entries[0].Reason != "no tool" {
+		t.Errorf("first entry = %+v", entries[0])
+	}
+}
+
+func TestExecNeedsArgsAndReason(t *testing.T) {
+	r := repo(t)
+	log := filepath.Join(t.TempDir(), report.LogName)
+	for _, in := range []execInput{{Reason: "x"}, {Args: []string{"status"}}} {
+		if _, err := r.Exec(context.Background(), r.Root, log, in); err == nil {
+			t.Errorf("Exec(%+v) gave no error", in)
+		}
+	}
+	if _, err := os.Stat(log); err == nil {
+		t.Error("an invalid call was logged")
 	}
 }
