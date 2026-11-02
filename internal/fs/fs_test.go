@@ -2,6 +2,7 @@ package fs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -445,5 +446,44 @@ func TestTreeGitLimit(t *testing.T) {
 	}
 	if !strings.HasSuffix(got, "\n4 lines not shown.") {
 		t.Fatalf("tail = %q", got[len(got)-30:])
+	}
+}
+
+// TestReplaceKeepsBackupWhenRestoreFails checks that the old destination is not deleted when it cannot come back.
+func TestReplaceKeepsBackupWhenRestoreFails(t *testing.T) {
+	tl := newTools(t, false)
+	tl.write(t, "d/new.txt", "n")
+	tl.write(t, "e/old.txt", "o")
+	calls := 0
+	osRename = func(src, dst string) error {
+		calls++
+		if calls == 1 {
+			return os.Rename(src, dst) // dst to the backup name
+		}
+		return errors.New("rename failed")
+	}
+	t.Cleanup(func() { osRename = os.Rename })
+	_, err := tl.Move("d", "e", true)
+	if err == nil || !strings.Contains(err.Error(), "saved in") {
+		t.Fatalf("err = %v, want the backup path", err)
+	}
+	path := err.Error()[strings.Index(err.Error(), "saved in ")+len("saved in "):]
+	if data, rerr := os.ReadFile(filepath.Join(path, "old.txt")); rerr != nil || string(data) != "o" {
+		t.Fatalf("backup lost: %v", rerr)
+	}
+}
+
+func TestMkdirProtected(t *testing.T) {
+	tl := newTools(t, true)
+	paths := []string{".", ".git/x"}
+	if caseInsensitive(tl) {
+		paths = append(paths, ".GIT/x")
+	}
+	for _, p := range paths {
+		_, err := tl.Mkdir([]string{"ok", p})
+		wantErr(t, err, "not allowed")
+	}
+	if tl.exists("ok") || tl.exists(".git/x") {
+		t.Fatal("a directory was made")
 	}
 }

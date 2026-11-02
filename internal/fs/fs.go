@@ -79,6 +79,9 @@ func within(dir, path string) bool {
 	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)))
 }
 
+// osRename is os.Rename. A test replaces it to make a rename fail.
+var osRename = os.Rename
+
 // plan is a checked move or copy. same is true for a case-only rename of one file.
 type plan struct {
 	src, dst string
@@ -137,7 +140,7 @@ func (t Tools) Move(source, destination string, overwrite bool) (string, error) 
 		return "", err
 	}
 	if pl.same {
-		err = os.Rename(pl.src, pl.dst)
+		err = osRename(pl.src, pl.dst)
 	} else {
 		err = replace(pl.src, pl.dst)
 	}
@@ -187,21 +190,30 @@ func replace(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer func() { _ = os.RemoveAll(tmp) }()
+	keep := false // true when the backup is the only copy of the old destination
+	defer func() {
+		if !keep {
+			_ = os.RemoveAll(tmp)
+		}
+	}()
 	backup := filepath.Join(tmp, "old")
-	if err := os.Rename(dst, backup); err != nil {
+	if err := osRename(dst, backup); err != nil {
 		return err
 	}
-	if err := rename(src, dst); err != nil {
-		_ = os.Rename(backup, dst)
-		return err
+	err = rename(src, dst)
+	if err == nil {
+		return nil
 	}
-	return nil
+	if rerr := osRename(backup, dst); rerr != nil {
+		keep = true
+		return fmt.Errorf("%w. The old destination is saved in %s", err, backup)
+	}
+	return err
 }
 
 // rename is os.Rename with a clear error for two devices.
 func rename(src, dst string) error {
-	err := os.Rename(src, dst)
+	err := osRename(src, dst)
 	if errors.Is(err, syscall.EXDEV) {
 		return errors.New("the source and the destination are on different devices. Use fs_copy, then fs_delete")
 	}
@@ -318,6 +330,9 @@ func (t Tools) Mkdir(paths []string) (string, error) {
 		a, err := t.path(p)
 		if err != nil {
 			return "", err
+		}
+		if t.protected(a) {
+			return "", errors.New("the project root and the .git directory are not allowed")
 		}
 		abs[i] = a
 	}
