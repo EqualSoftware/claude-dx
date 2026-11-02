@@ -1,17 +1,17 @@
 ---
 name: adr
-description: Record an architecture decision of this project as an ADR in docs/decisions with the dx ADR tools. Use when a plan or change selects an approach that affects structure, public interfaces, file formats, build or dependencies.
+description: Record an architecture decision of this project as an ADR in docs/decisions with the dx ADR tools. Use when a plan or change selects an approach that is expensive to reverse or that affects more than one spec.
 ---
 
 # Record an architecture decision
 
 ## When to use
 
-Use this skill when a decision:
-- changes the structure of the code,
-- changes a public interface, a file format or a data schema,
-- adds, removes or replaces a dependency or a build option,
-- replaces an earlier ADR.
+Use this skill only when a decision:
+- is expensive to reverse, or
+- affects more than one spec.
+
+Write each other decision as one line in the Design of the spec: "Decision: X, because Y." Do not make an ADR for it.
 
 Do not record small implementation details or decisions that the code already makes obvious.
 

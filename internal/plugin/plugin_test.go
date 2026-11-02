@@ -326,3 +326,30 @@ func TestCommitSkill(t *testing.T) {
 		t.Error("the plan step is after the commit step")
 	}
 }
+
+// TestADR018Text checks plugin#R-13 and R-14: the rules stay short and the skills do not name a Document History.
+func TestADR018Text(t *testing.T) {
+	dir, err := Ensure(t.TempDir(), "v1.2.3", "/bin/claude-dx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	rules, err := os.ReadFile(filepath.Join(dir, "rules.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n := strings.Count(string(rules), "\n"); n > 15 {
+		t.Errorf("rules.md has %d lines, want 15 or less", n)
+	}
+	if !strings.Contains(string(rules), "Decision: X, because Y.") {
+		t.Error("rules.md lacks the Decision line rule")
+	}
+	for _, name := range []string{"adr", "spec", "task"} {
+		data, err := os.ReadFile(filepath.Join(dir, "skills", name, "SKILL.md"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.Contains(string(data), "Document History") {
+			t.Errorf("skill %s names the Document History", name)
+		}
+	}
+}
