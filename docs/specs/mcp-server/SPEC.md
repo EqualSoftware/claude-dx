@@ -46,7 +46,7 @@ The dx tools must run in a session with no change to the project. Each tool must
 | R-6 | The file lock gives an exclusive lock and a shared lock, each with a blocking and a no-wait form. It uses flock on Unix and LockFileEx on Windows. | Done |
 | R-7 | The Markdown helpers read and write YAML frontmatter, and read or replace one section by its number or heading, with no change to the other sections. | Done |
 | R-8 | The result tables align the columns by the number of characters, not bytes. | Done |
-| R-9 | The MCP server adds less than 100 ms to the start of the `claude-dx` process, and it has no data race. | Done |
+| R-9 | The MCP server adds less than 100 ms (150 ms on Windows) to the start of the `claude-dx` process, and it has no data race. | Done |
 | R-10 | While it runs, the server holds the shared cache lock. | Done |
 | R-11 | At start, the server writes the project file of the cache (see project-data). | Done |
 | R-12 | The update check writes cache update.json at most once in 24 hours. After a network error, it writes the check time and keeps the last known release, so the next check waits 24 hours. A check that is cancelled at server stop writes nothing. | Done |
@@ -79,6 +79,7 @@ The dx tools must run in a session with no change to the project. Each tool must
 - ADR-002: the MCP server on stdio, the tool conventions and the document tools.
 - ADR-005: the MCP server does the update check.
 - ADR-007: the Project file (cache).
+- Decision: the start limit of R-9 is 150 ms on Windows, because a process start is slower on Windows and the server starts git processes when it opens the project.
 
 ## 7. Acceptance Criteria
 
