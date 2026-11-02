@@ -19,3 +19,4 @@ This folder has the architecture decision records (ADRs) of the project. Use `/d
 | [ADR-012](ADR-012-one-subject-for-each-spec.md) | One subject for each spec | Accepted | 2026-10-27 |
 | [ADR-013](ADR-013-no-lsp-management.md) | No LSP management | Accepted | 2026-10-27 |
 | [ADR-014](ADR-014-a-lock-for-the-plugin-directory-repair.md) | A lock for the plugin directory repair | Accepted | 2026-10-27 |
+| [ADR-015](ADR-015-git-tools-in-worktrees.md) | Git tools in worktrees | Accepted | 2026-11-02 |
