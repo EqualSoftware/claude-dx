@@ -24,7 +24,8 @@ import (
 // tools is the full list of tool names. A new tool needs a change of this list.
 var tools = []string{
 	"adr_create", "adr_get", "adr_list", "adr_supersede", "adr_update",
-	"git_blame", "git_diff", "git_exec", "git_log", "git_show", "git_status",
+	"git_amend", "git_blame", "git_cherry_pick", "git_commit", "git_diff", "git_discard", "git_exec", "git_fixup", "git_log", "git_revert", "git_show", "git_stage", "git_stash",
+	"git_status", "git_tag", "git_undo", "git_unstage",
 	"glossary_delete", "glossary_list", "glossary_lookup", "glossary_upsert",
 	"learning_create", "learning_delete", "learning_get", "learning_list", "learning_update",
 	"spec_create", "spec_delete", "spec_get", "spec_list", "spec_question_add", "spec_question_answer", "spec_req_add", "spec_req_delete", "spec_req_set",

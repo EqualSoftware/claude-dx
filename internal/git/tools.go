@@ -67,6 +67,7 @@ func Register(server *mcp.Server, root string) {
 			return r.Blame(ctx, dir, BlameOptions{File: in.File, Ref: in.Ref, Start: in.Start, End: in.End})
 		})
 	registerExec(server, r)
+	registerLocal(server, r)
 }
 
 // pather gives the path of an input.
