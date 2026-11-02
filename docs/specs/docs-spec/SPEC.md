@@ -41,6 +41,7 @@ Task files in git make many files, and they do not give the current behavior of 
 | R-5 | A list that spec_update_fields gets (area, related) replaces the full list. A field that the tool does not get does not change. | Done |
 | R-6 | spec_update_fields validates each field with the rules of spec_create, and changes no field on an error. | Done |
 | R-7 | spec_update_fields adds one Document History row that names the changed fields, and does not change the status of the spec. | Done |
+| R-8 | spec_req_delete deletes one requirement that is Planned, has no commits and has no task that refers to it. It adds the line "Deleted R-N." to the history and sets an Approved spec to In Review. spec_req_add does not use again an ID that the history shows. | Planned |
 
 ## 6. Design
 
@@ -103,3 +104,6 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-10-27 | Equal | Approved by the user. |
 | 2026-10-27 | Equal | Changed fields: related. |
 | 2026-10-27 | Equal | R-3: text changed. |
+| 2026-11-02 | Equal | Added R-8. |
+| 2026-11-02 | Equal | Status: In Review. The scope changed in section 5. |
+| 2026-11-02 | Equal | Approved R-8 (spec_req_delete). |

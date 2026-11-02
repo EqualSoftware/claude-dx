@@ -5,14 +5,14 @@ status: Draft
 milestone: v0.2.0
 priority: P1
 area: [git, mcp, plugin]
-related: [ADR-003, ADR-010]
+related: [ADR-003, ADR-010, ADR-015]
 ---
 
 # Git tools and the Bash git hook
 
 ## 1. Summary
 
-claude-dx gives the agent git tools in place of the git command in the Bash tool. The tools use the system git binary. A Bash hook blocks git in Bash, and a git_exec tool records each operation that no tool maps. The skills /dx:commit and /dx:eureka use the tools.
+claude-dx gives the agent git tools in place of the git command in the Bash tool. The tools use the system git binary. A Bash hook blocks git in Bash, and a git_exec tool records each operation that no tool maps.
 
 ## 2. Problem
 
@@ -36,7 +36,7 @@ The agent runs git in Bash, and it can rewrite history, push a force or discard 
 
 | ID | Requirement | Status |
 | :--- | :--- | :--- |
-| R-1 | The git runner runs the system git in the project root with LC_ALL=C, GIT_TERMINAL_PROMPT=0, no pager and no color. A git error gives a short tool error with the first lines of stderr. | Planned |
+| R-1 | The git runner runs the system git in the project root, or in the directory of R-21, with LC_ALL=C, GIT_TERMINAL_PROMPT=0, no pager and no color. A git error gives a short tool error with the first lines of stderr. | Planned |
 | R-2 | The read tools git_status, git_diff, git_log, git_show and git_blame return grouped status, file stats or diffs, one line for each commit, and one line for each source line. | Planned |
 | R-3 | doctor checks that git is in PATH and that its version is 2.30 or later. It reports FAIL with the minimum version otherwise. | Planned |
 | R-4 | The local tools git_stage, git_unstage, git_discard, git_commit, git_amend, git_undo, git_fixup, git_revert, git_cherry_pick, git_tag and git_stash run their git operation. git_discard is marked destructive in its description. | Planned |
@@ -56,20 +56,21 @@ The agent runs git in Bash, and it can rewrite history, push a force or discard 
 | R-18 | The shared rules say to use the git_* tools for git and not to run git in Bash. | Planned |
 | R-19 | The /dx:commit skill splits the changes into logical groups, makes one commit for each group with git_commit, and does not push unless the user asks. | Planned |
 | R-20 | The /dx:eureka skill keeps only verified, reusable and undocumented lessons, and records each one as an ADR, a learning or a glossary term. It reports No new lessons and changes no file when there is none. | Planned |
+| R-21 | Each git_* tool takes an optional path. The path must be the project root or a worktree of the same repository. The tool runs git in that directory. Another path gives a tool error. | Planned |
+| R-22 | git_worktree runs the actions list, add and remove. add creates a new branch from a start point. remove refuses a worktree with changes that are not committed. With delete_branch it also deletes the branch with git branch -d. | Planned |
 
 ## 6. Design
 
 ### Planned modules
 
-- `internal/git/`: the runner (environment, timeout, error text) and the tools of each group: read, local, branch and remote.
+- `internal/git/`: the runner (environment, timeout, error text) and the tools of each group: read, local, branch, remote and worktree (`git_worktree`). Each `git_*` tool takes the optional `path` parameter.
 - `internal/hook/`: the Bash command parser for the PreToolUse hook. It parses the lists, pipes, subshells, `sh -c` strings and the wrappers. It fails open (allows) on a parse error.
 - `internal/cli/`: the `hook pre-tool-use` and `report` commands.
 - `internal/plugin/assets/hooks/hooks.json`: the PreToolUse hook for the Bash tool, with `{{BINARY}} hook pre-tool-use`.
-- `internal/plugin/assets/skills/commit/` and `skills/eureka/`: the two skills.
 
 ### Data flow
 
-1. An agent calls a git_* tool. The tool runs the git runner in the project root.
+1. An agent calls a git_* tool. The tool runs the git runner in the project root, or in the given worktree.
 2. A tool that rewrites the remote history asks the user with elicitation. If the answer is no, the tool stops.
 3. The Bash hook checks each Bash command. A command with git is denied with the reason of R-14.
 4. git_exec appends one line to `<cache>/unmapped.log`. `claude-dx report` reads that file.
@@ -83,6 +84,7 @@ The agent runs git in Bash, and it can rewrite history, push a force or discard 
 
 - ADR-003: the git tools.
 - ADR-010: the skills and the rules.
+- ADR-015: git tools in worktrees.
 
 ## 7. Acceptance Criteria
 
@@ -101,7 +103,8 @@ Planned requirements (tests to write):
 - R-16: a test that git_exec adds one line to unmapped.log.
 - R-17: a test of the grouping and the output of `claude-dx report`, with the browser call replaced by a function.
 - R-18: a test that the shared rules have the git line.
-- R-19 and R-20: a manual check of the transcript of /dx:commit (two commits with valid headers) and of /dx:eureka (No new lessons).
+- R-21: a test that a path out of the repository gives a tool error, and that git_commit makes a commit in a worktree.
+- R-22: tests of add, list and remove on a temporary repository, and a test that remove refuses a worktree with changes that are not committed.
 
 ## 8. Open Questions
 
@@ -139,3 +142,7 @@ The status cannot be `Approved` while a question is `Open`.
 | 2026-10-27 | Equal | v0.2.0 work is planned again after the migration. |
 | 2026-10-27 | Equal | Changed fields: related. |
 | 2026-10-27 | Equal | R-5: text changed. |
+| 2026-11-02 | Equal | Added R-21. |
+| 2026-11-02 | Equal | Added R-22. |
+| 2026-11-02 | Equal | R-1: text changed. |
+| 2026-11-02 | Equal | Changed fields: related. |
