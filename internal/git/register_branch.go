@@ -26,6 +26,15 @@ type pushInput struct {
 	Branch string `json:"branch,omitempty" jsonschema:"the branch to push. The default is the current branch"`
 }
 
+type worktreeInput struct {
+	pathInput
+	Action       string `json:"action,omitempty" jsonschema:"list, add or remove. The default is list"`
+	Worktree     string `json:"worktree,omitempty" jsonschema:"for add and remove: the directory of the worktree"`
+	Branch       string `json:"branch,omitempty" jsonschema:"for add: the name of the new branch"`
+	Start        string `json:"start,omitempty" jsonschema:"for add: the start point of the new branch. The default is HEAD"`
+	DeleteBranch bool   `json:"delete_branch,omitempty" jsonschema:"for remove: also delete the branch of the worktree with git branch -d"`
+}
+
 // registerBranch adds the branch, remote and worktree tools (git-tools#R-8 to R-12, R-22).
 func registerBranch(server *mcp.Server, r Runner) {
 	addLocal(server, r, "git_branch", "List, create, switch, rename or delete branches. delete uses git branch -d and refuses the current branch. If the branch is not merged it asks the user first.", true,
@@ -45,5 +54,9 @@ func registerBranch(server *mcp.Server, r Runner) {
 	addLocal(server, r, "git_push", "Push a branch. It sets the upstream on the first push. If the remote branch is not an ancestor it uses --force-with-lease and --force-if-includes, and for the main branch it asks the user first.", true,
 		func(ctx context.Context, dir string, in pushInput, confirm Confirm) (string, error) {
 			return r.Push(ctx, dir, PushOptions{Remote: in.Remote, Branch: in.Branch}, confirm)
+		})
+	addLocal(server, r, "git_worktree", "List, add or remove worktrees. add makes a new branch from a start point. remove refuses a worktree with changes that are not committed.", true,
+		func(ctx context.Context, dir string, in worktreeInput, _ Confirm) (string, error) {
+			return r.Worktree(ctx, dir, WorktreeOptions{Action: in.Action, Worktree: in.Worktree, Branch: in.Branch, Start: in.Start, DeleteBranch: in.DeleteBranch})
 		})
 }

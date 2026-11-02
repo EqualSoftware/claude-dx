@@ -96,7 +96,9 @@ func TestRebaseAbortSkip(t *testing.T) {
 	if got, err := r.Rebase(ctx, r.Root, RebaseOptions{Action: "abort"}, nil); err != nil || got != "Rebase aborted." || head(t, r) != before {
 		t.Fatalf("abort = %q, %v", got, err)
 	}
-	r.Rebase(ctx, r.Root, RebaseOptions{Action: "start", Onto: "origin/main"}, nil)
+	if _, err := r.Rebase(ctx, r.Root, RebaseOptions{Action: "start", Onto: "origin/main"}, nil); err != nil {
+		t.Fatal(err)
+	}
 	got, err := r.Rebase(ctx, r.Root, RebaseOptions{Action: "skip"}, nil)
 	if err != nil || !strings.HasPrefix(got, "Rebase finished. HEAD is now ") {
 		t.Fatalf("skip = %q, %v", got, err)
