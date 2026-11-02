@@ -10,7 +10,7 @@ import (
 const maxDepth = 8
 
 // DenyReason is the reason that the hook gives when a Bash command runs git.
-const DenyReason = "Do not run git in Bash. Use the git_* tools of the dx MCP server (git_status, git_diff, git_commit and others)."
+const DenyReason = "Do not run git in Bash. Use the git_* tools of the dx MCP server (git_status, git_diff, git_commit and others). If no tool maps your operation, use git_exec."
 
 // shells run a command string with -c.
 var shells = map[string]bool{"sh": true, "bash": true, "zsh": true, "dash": true, "ksh": true}

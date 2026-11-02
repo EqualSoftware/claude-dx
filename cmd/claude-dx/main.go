@@ -56,12 +56,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 	switch cmd.Name {
 	case "":
 		return launch(cmd.Args, stderr)
-	case "help":
-		fmt.Fprint(stdout, help)
-		return 0
-	case "version":
-		fmt.Fprintf(stdout, "claude-dx %s\n", version)
-		return 0
+	case "help", "version":
+		return printInfo(cmd.Name, stdout)
 	case "mcp":
 		return serve(stderr)
 	case "update":
@@ -79,6 +75,16 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	fmt.Fprintf(stderr, "claude-dx: %q is not available yet.\n", args[0])
 	return 1
+}
+
+// printInfo prints the help or the version.
+func printInfo(name string, stdout io.Writer) int {
+	if name == "help" {
+		fmt.Fprint(stdout, help)
+		return 0
+	}
+	fmt.Fprintf(stdout, "claude-dx %s\n", version)
+	return 0
 }
 
 func launch(args []string, stderr io.Writer) int {

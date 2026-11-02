@@ -75,7 +75,7 @@ func TestPreToolUse(t *testing.T) {
 		if got := out.Len() > 0; got != tt.deny {
 			t.Errorf("%s: deny = %v, want %v (%q)", tt.name, got, tt.deny, out.String())
 		}
-		if tt.deny && (!strings.Contains(out.String(), `"permissionDecision":"deny"`) || !strings.Contains(out.String(), "git_* tools")) {
+		if tt.deny && (!strings.Contains(out.String(), `"permissionDecision":"deny"`) || !strings.Contains(out.String(), "If no tool maps your operation, use git_exec.")) {
 			t.Errorf("%s: output = %q", tt.name, out.String())
 		}
 	}
