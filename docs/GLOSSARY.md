@@ -27,15 +27,16 @@ Sort the terms in alphabetical order.
 | Milestone | The release version of a spec, example `v0.1.0`. A frontmatter field of each spec. | process | target version, release field | docs-spec |
 | Owner | The person who decides an open question of a spec, or who is responsible for an ADR. The default is the git user.name. | process | assignee, reviewer | docs-spec |
 | Plan | The section of a task with a numbered list of steps. Each step has one action and its check. | process | — | docs-task#R-2, R-12 |
-| Project data directory | The directory of the local data of one project: `<git-common-dir>/dx/` in a git repository, else `<cache>/projects/<key>/`. It holds the docs lock, the Project file (data) and the local tasks. All worktrees of a repository share it. | docs-tools | dx folder, project cache | ADR-007 |
+| Project data directory | The directory of the local data of one project: `<git-common-dir>/dx/` in a git repository, else `<cache>/projects/<key>/`. It holds the docs lock, the Project file (data), the local tasks and the spikes. All worktrees of a repository share it. | docs-tools | dx folder, project cache | ADR-007 |
 | Project file (cache) | The file `<cache>/projects/<key>/project.json`. It holds the project path and the last use date, so `claude-dx clean` can show each project. | cli | — | ADR-007 |
 | Project file (data) | The file `project.json` in the project data directory. It holds the number counters. | docs-tools | — | ADR-007 |
 | Project key | The first 16 hex characters of the SHA-256 of the git common directory (or of the project root outside git). All worktrees of one repository have the same key. | mcp | project id | ADR-007 |
-| Project root | The git top level of the current directory, or the current directory outside git. `Project.Resolve` refuses a path outside it. The filesystem tools will use it. | mcp | workspace, base dir | ADR-002 |
+| Project root | The git top level of the current directory, or the current directory outside git. `Project.Resolve` refuses a path outside it. The filesystem tools use it. | mcp | workspace, base dir | ADR-002 |
 | Ready task | A Todo task whose spec is Approved and whose depends_on tasks are all Done. | process | next task, unblocked task | docs-task#R-8 |
 | Requirement | One behavior that a spec requires. Its ID R-N does not change. Its status is Planned or Done. | process | — | ADR-018 |
 | Shared rules | The short dx rules text (`rules.md` in the dx plugin) that the launcher gives to Claude Code with `--append-system-prompt-file`. | plugin | RULES.md | ADR-010 |
 | Spec | The current definition of one feature or scope, in docs/specs/<slug>/SPEC.md. Its ID is the slug. It has requirements and no task IDs. | process | — | ADR-018, `docs/specs/` |
+| Spike | A local record of one exploration: a question, notes and a result. It is stored in spikes/<slug>.md in the project data directory. Git does not track it. Its status is Open or Closed. | docs-tools | — | ADR-018, docs-spike |
 | Task | A local work item of one spec, with ID `<spec>/<task-slug>`. It is stored in the project data directory, not in git. | process | ticket, issue | docs-task |
 | Task status | The state of a task: Todo, In Progress, Blocked or Done. Done is final. | process | — | docs-task#R-5 |
 | Unmapped operation | A git operation that no dx git tool covers. The model runs it with `git_exec`, and the dx server logs it to `unmapped.log`. | git | unknown command | ADR-003 |
