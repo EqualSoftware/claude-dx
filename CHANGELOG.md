@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/EqualSoftware/claude-dx/compare/v0.2.0...v0.3.0) (2026-11-03)
+
+
+### Features
+
+* **plugin:** tell the agent to use the fs_ tools for file operations ([2d28f7c](https://github.com/EqualSoftware/claude-dx/commit/2d28f7cba33e5ed4e6c0acbf4e51786a3ac75f47))
+
 ## [0.2.0](https://github.com/EqualSoftware/claude-dx/compare/v0.1.0...v0.2.0) (2026-11-02)
 
 
