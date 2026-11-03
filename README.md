@@ -4,7 +4,7 @@
 
 `claude-dx` starts [Claude Code](https://docs.claude.com/claude-code) with the dx tools: skills and an MCP server for specs, ADRs, tasks, learnings and a glossary. The tools do the mechanical work, so the model uses fewer tokens and gives the same result each time.
 
-`claude-dx` writes no configuration into your project or into your Claude Code settings. It loads its plugin with launch flags. It keeps the local data of a project (tasks and counters) in the git directory of the project, in `.git/dx/`.
+`claude-dx` writes no configuration into your project or into your Claude Code settings. It loads its plugin with launch flags. It keeps the local data of a project (tasks, spikes and counters) in the git directory of the project, in `.git/dx/`.
 
 > Status: in development. See [docs/specs/](docs/specs/README.md).
 
@@ -26,9 +26,9 @@ Each spec has a `milestone` field. The [spec index](docs/specs/README.md) has on
 | Milestone | Content |
 | :--- | :--- |
 | v0.1.0 | Launcher, `update`, `clean`, `doctor`. Tools and skills for specs, ADRs, tasks, learnings and the glossary. `/dx:grill`. |
-| v0.2.0 | Git tools: safe defaults for commits, rebase and push. |
-| v0.3.0 | Filesystem tools. |
-| v0.4.0 | More skills, for example for commits and to record the lessons of a session. |
+| v0.2.0 | Git tools: safe defaults for commits, rebase and push. Built. |
+| v0.3.0 | Filesystem tools. Built. |
+| v0.4.0 | Spikes: the spike store, the spike tools and the spike skill. Skills for commits and to record the lessons of a session. Built. |
 
 ## Requirements
 
@@ -66,7 +66,9 @@ gh attestation verify claude-dx_<version>_<os>_<arch>.tar.gz --repo EqualSoftwar
 ```sh
 claude-dx [claude arguments]     # Start Claude Code with dx.
 claude-dx -- [claude arguments]  # Pass all arguments to Claude Code.
-claude-dx resume                 # Print the work state (tasks and git) for a new session.
+claude-dx resume                 # Print the work state (tasks, spikes and git) for a new session.
+claude-dx report                 # Open an issue for the git operations that no tool maps.
+claude-dx report --clear         # Empty the log of those operations.
 claude-dx update                 # Install the latest release.
 claude-dx clean                  # Select the data of claude-dx to delete.
 claude-dx clean --list           # Show the data of claude-dx and its sizes.
