@@ -12,7 +12,7 @@ related: [ADR-002, ADR-003, ADR-013]
 
 ## 1. Summary
 
-The filesystem tools replace the shell file operations (mv, cp, rm, mkdir) in the agent, and add fs_tree to show the project tree. Read, Edit, Write, Glob and Grep stay native (ADR-002). This spec is planned for v0.3.0 and has no code yet.
+The filesystem tools replace the shell file operations (mv, cp, rm, mkdir) in the agent, and add fs_tree to show the project tree. Read, Edit, Write, Glob and Grep stay native (ADR-002). This spec is for v0.3.0.
 
 ## 2. Problem
 
@@ -44,7 +44,7 @@ The shell file operations have no check of the project boundary. An agent can de
 
 ## 6. Design
 
-### Planned modules
+### Modules
 
 - `internal/fs/`: the fs_ tools. Each tool checks its paths with `Project.Resolve`, as the path guard of mcp-server does (ADR-002).
 - `internal/hook/`: the parser of the git block also finds `mv`, `rm`, `cp` and `mkdir`, and gives one deny reason for each program (Q-4).
@@ -81,16 +81,17 @@ Deny reasons: `rm` → fs_delete, `mv` → fs_move, `cp` → fs_copy, `mkdir` �
 
 ## 7. Acceptance Criteria
 
-Done requirements: none.
+Done requirements (tests that exist):
+- R-1: `TestOutsideRefused`, `TestMove`, `TestCopyDirectory` (`internal/fs/fs_test.go`).
+- R-2: `TestTreeGit`, `TestTreeWithoutGit`, `TestTreeLimit` (`internal/fs/fs_test.go`).
+- R-5: `TestDeny`, `TestPreToolUseFileOp` (`internal/hook/hook_test.go`).
+- R-6: `TestDelete`, `TestProtected` (`internal/fs/fs_test.go`).
+- R-7: `TestOverwrite` (`internal/fs/fs_test.go`).
+- R-8: `TestDelete`, `TestMkdir` (`internal/fs/fs_test.go`).
+- R-9: `TestSymlinkActsOnLink` (`internal/fs/fs_test.go`).
+- R-10: `TestProtected`, `TestMkdirProtected`, `TestSameFileRefused` (`internal/fs/fs_test.go`).
 
-Planned requirements (tests to write, on a temporary directory):
-- R-1: tests for fs_move, fs_copy, fs_delete and fs_mkdir, and a test that each path outside the project root is refused.
-- R-2: a test that fs_tree does not list a file that .gitignore names, obeys depth, and stops at 500 lines with the note.
-- R-5: hook tests that `mv`, `rm`, `cp` and `mkdir` on a project path are denied with the name of the fs_ tool, also inside `sh -c` and pipes, and that the same commands on a path outside the project are allowed.
-- R-6: tests that fs_delete refuses a directory that is not empty without recursive, and refuses the project root and `.git`.
-- R-7: tests that fs_move and fs_copy refuse a destination that exists, and replace it with overwrite true.
-- R-8: tests that fs_delete and fs_mkdir take many paths, and that fs_mkdir makes parents and accepts a directory that exists.
-- R-9: a test that fs_delete on a symbolic link deletes the link and keeps the target.
+Planned requirements: none.
 
 ## 8. Open Questions
 

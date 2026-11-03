@@ -39,7 +39,7 @@ This spec is the scope of the family of the cli-* specs (ADR-018). Each command 
 
 | ID | Requirement | Status |
 | :--- | :--- | :--- |
-| R-1 | Only the first argument selects a dx command (--help, -h, --version, update, clean, doctor, report, mcp, hook). The argument -- passes all later arguments to claude. | Done |
+| R-1 | Only the first argument selects a dx command (--help, -h, --version, update, clean, doctor, report, mcp, hook, resume). The argument -- passes all later arguments to claude. | Done |
 | R-2 | claude-dx --help and claude-dx --version print the dx help or the version and do not start claude. | Done |
 
 ## 6. Design
